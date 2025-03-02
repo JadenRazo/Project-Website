@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .title }}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>URL Shortener</h1>
+        <p>API is running! Use the following endpoints:</p>
+        <ul>
+            <li>POST /api/shorten - Shorten a URL</li>
+            <li>GET /api/urls - Get all URLs</li>
+            <li>GET /:shortCode - Redirect to original URL</li>
+        </ul>
+    </div>
+</body>
+</html>
