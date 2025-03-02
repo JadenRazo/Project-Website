@@ -6,8 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	
-	"urlshortener/db"
-	"urlshortener/utils"
+	"github.com/JadenRazo/Project-Website/backend/db"
+	"github.com/JadenRazo/Project-Website/backend/utils"
 )
 
 // AuthMiddleware checks if the user is authenticated

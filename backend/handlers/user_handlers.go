@@ -7,8 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 	
-	"urlshortener/db"
-	"urlshortener/utils"
+	"github.com/JadenRazo/Project-Website/backend/db"
+	"github.com/JadenRazo/Project-Website/backend/utils"
 )
 
 // RegisterRequest represents the request for user registration

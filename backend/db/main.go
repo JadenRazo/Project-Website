@@ -12,8 +12,8 @@ import (
 	"github.com/joho/godotenv"
 	"gorm.io/driver/sqlite"
 	
-	"url-shortener/db"
-	"url-shortener/handlers"
+	"github.com/JadenRazo/Project-Website/backend/db"
+	"github.com/JadenRazo/Project-Website/backend/handlers"
 )
 
 func main() {
