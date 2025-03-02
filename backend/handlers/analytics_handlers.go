@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	
-	"urlshortener/db"
+	"github.com/JadenRazo/Project-Website/backend/db"
 )
 
 // GetURLAnalytics returns analytics data for a URL

@@ -7,8 +7,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	
-	"url-shortener/db"
-	"url-shortener/utils"
+	"github.com/JadenRazo/Project-Website/backend/db"
+	"github.com/JadenRazo/Project-Website/backend/utils"
 )
 
 // ShortenURLRequest represents the request body for shortening a URL

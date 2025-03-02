@@ -11,10 +11,10 @@ import (
 	"github.com/joho/godotenv"
 	"gorm.io/driver/sqlite"
 	
-	"./db"
-	"./handlers"
-	"./middleware"
-	"./config"
+	"github.com/JadenRazo/Project-Website/backend/db"
+	"github.com/JadenRazo/Project-Website/backend/handlers"
+	"github.com/JadenRazo/Project-Website/backend/middleware"
+	"github.com/JadenRazo/Project-Website/backend/config"
 )
 
 func main() {
