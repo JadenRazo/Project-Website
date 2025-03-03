@@ -1,162 +1,189 @@
-Personal Portfolio Website
-A modern, responsive portfolio website built with FastAPI, React, and PostgreSQL. This website showcases projects, skills, and professional experience with an intuitive and elegant design that works seamlessly across all devices.
+# Personal Portfolio & Project Showcase
 
-🚀 Features
+## Overview
 
-Interactive project showcase with detailed descriptions and live demos
-Responsive design that adapts to any screen size or device
-Server-side rendering for optimal performance
-Database-driven content management
-Modern, clean UI with smooth animations
-Comprehensive API documentation
-Secure authentication system
-Docker containerization for easy deployment
+This repository contains my personal website showcasing various software development projects along with their live implementations. The website serves both as a portfolio and as a platform hosting functional applications, starting with a robust URL shortener service.
 
-🛠️ Technology Stack
-Backend
+```
+Project-Website/
+├─ backend/
+│  ├─ config/
+│  │  ├─ config.go
+│  ├─ data/
+│  ├─ db/
+│  │  ├─ analytics.go
+│  │  ├─ database.go
+│  │  ├─ migrations.go
+│  │  ├─ models.go
+│  │  ├─ repository.go
+│  │  ├─ url_model.go
+│  ├─ handlers/
+│  │  ├─ analytics_handlers.go
+│  │  ├─ url_handlers.go
+│  │  ├─ user_handlers.go
+│  ├─ middleware/
+│  │  ├─ auth.go
+│  │  ├─ rate_limiter.go
+│  ├─ static/
+│  │  ├─ css/
+│  │  │  ├─ style.css
+│  ├─ templates/
+│  │  ├─ 404.html
+│  │  ├─ expired.html
+│  │  ├─ index.html
+│  ├─ utils/
+│  │  ├─ token.go
+│  │  ├─ url_validator.go
+│  ├─ go.mod
+│  ├─ main.go
+├─ frontend/
+│  ├─ build/
+│  ├─ node_modules/
+│  ├─ public/
+│  ├─ src/
+│  │  ├─ assests/
+│  │  │  ├─ images/
+│  │  ├─ components/
+│  │  │  ├─ animations/
+│  │  │  │  ├─ FloatingElement.tsx
+│  │  │  │  ├─ LoadingScreen.tsx
+│  │  │  │  ├─ NetworkBackground.tsx
+│  │  │  │  ├─ ParticleBackground.tsx
+│  │  │  │  ├─ ScrollIndacator.tsx
+│  │  │  ├─ layout/
+│  │  │  │  ├─ Layout.tsx
+│  │  │  │  ├─ NavigationBar.tsx
+│  │  │  ├─ navigation/
+│  │  │  │  ├─ BurgerMenu.tsx
+│  │  │  ├─ sections/
+│  │  │  │  ├─ Hero.tsx
+│  │  │  │  ├─ ParallaxHero.tsx
+│  │  │  │  ├─ Projects.tsx
+│  │  │  │  ├─ Timeline.tsx
+│  │  │  ├─ ui/
+│  │  │  │  ├─ ProjectCard.tsx
+│  │  │  │  ├─ SkillBar.tsx
+│  │  │  │  ├─ Timeline.tsx
+│  │  ├─ contexts/
+│  │  │  ├─ Themecontext.tsx
+│  │  ├─ hooks/
+│  │  │  ├─ useClickOutside.ts
+│  │  ├─ styles/
+│  │  │  ├─ GlobalStyles.ts
+│  │  │  ├─ theme.types.ts
+│  │  │  ├─ themes.ts
+│  │  ├─ app.css
+│  │  ├─ app.tsx
+│  │  ├─ custom.d.ts
+│  │  ├─ index.css
+│  │  ├─ index.html
+│  │  ├─ index.tsx
+│  │  ├─ logo.svg
+│  │  ├─ styled.d.ts
+│  ├─ package.json
+├─ index.html
+├─ README.md
+```
 
-Python 3.11+
-FastAPI - Modern web framework
-PostgreSQL - Database
-SQLAlchemy - ORM
-Alembic - Database migrations
-Pydantic - Data validation
-Uvicorn - ASGI server
+## Architecture
 
-Frontend
+The project is split into two main components:
 
-React 18
-TypeScript
-Tailwind CSS
-React Router
-Axios - HTTP client
-React Query - Data fetching
-Framer Motion - Animations
+### Backend (Go)
+- Built with Go using Gin framework and GORM
+- Implements a clean repository pattern architecture
+- Provides RESTful APIs for the frontend
+- Features robust database management and migrations
+- Includes middlewares for authentication and rate limiting
 
-Development & Deployment
+### Frontend (React/TypeScript)
+- Developed with React and TypeScript
+- Showcases interactive UI elements and animations
+- Implements responsive design with dark/light theme support
+- Features component-based architecture for reusability
+- Uses custom hooks for enhanced functionality
 
-Docker & Docker Compose
-Git
-GitHub Actions (CI/CD)
-Poetry (Python dependency management)
-Node.js & npm
+## Featured Projects
 
-📋 Prerequisites
-Before you begin, ensure you have the following installed:
+### URL Shortener
+The first fully implemented project offering:
+- Short URL creation with custom code options
+- User account management and authentication
+- Advanced analytics for URL performance tracking
+- Custom domain support
+- Private and expirable links
 
-Python 3.11 or higher
-Node.js 18 or higher
-PostgreSQL 14 or higher
-Docker & Docker Compose (optional, but recommended)
-Git
+### Coming Soon
+Additional planned projects to be integrated into the portfolio.
 
-🔧 Local Development Setup
+## Technical Highlights
 
-Clone the repository:
-bashCopygit clone https://github.com/yourusername/portfolio-website.git
-cd portfolio-website
+### Backend Implementation
+- **Database Layer**: Uses repository pattern with generic Go implementations
+- **Authentication**: JWT-based auth with role-based permissions
+- **Analytics**: Comprehensive click tracking and visualization
+- **API Security**: Input validation, rate limiting, and proper error handling
 
-Set up the backend:
-bashCopycd backend
-python -m venv venv
-source venv/bin/activate  # On Windows: .\venv\Scripts\activate
-pip install poetry
-poetry install
+### Frontend Features
+- **Interactive UI**: Parallax effects, particle backgrounds, and smooth animations
+- **Responsive Design**: Mobile-first approach ensuring compatibility across devices
+- **Theme System**: Context-based theming with dark/light mode support
+- **Custom Components**: Reusable UI elements like project cards, skill bars, and timelines
 
-Set up the database:
-bashCopy# Create a PostgreSQL database
-createdb portfolio_db
+## Getting Started
 
-# Run migrations
-alembic upgrade head
+### Backend Setup
+1. Navigate to backend: `cd Project-Website/backend`
+2. Install dependencies: `go mod download`
+3. Configure environment: Copy `.env.example` to `.env` and adjust values
+4. Start server: `go run main.go`
 
-Set up the frontend:
-bashCopycd ../frontend
-npm install
+### Frontend Setup
+1. Navigate to frontend: `cd Project-Website/frontend`
+2. Install dependencies: `npm install`
+3. Start development server: `npm start`
 
-Create a .env file in the backend directory:
-CopyDATABASE_URL=postgresql://username:password@localhost/portfolio_db
-SECRET_KEY=your-secret-key
-ENVIRONMENT=development
+## API Endpoints
 
-Start the development servers:
-bashCopy# Terminal 1 - Backend
-cd backend
-uvicorn app.main:app --reload
+### URL Shortener
+- `POST /api/urls/shorten`: Create shortened URL
+- `GET /api/urls`: List user's URLs
+- `GET /:shortCode`: Redirect to original URL
+- `GET /api/urls/:shortCode/analytics`: Get URL analytics
 
-# Terminal 2 - Frontend
-cd frontend
-npm run dev
+### Authentication
+- `POST /api/auth/register`: Create account
+- `POST /api/auth/login`: Authenticate user
 
-Access the application:
+## Technologies Used
 
-Frontend: http://localhost:5173
-Backend API: http://localhost:8000
-API Documentation: http://localhost:8000/docs
+### Backend
+- Go (Golang)
+- Gin Web Framework
+- GORM (ORM)
+- SQLite (Database)
+- JWT (Authentication)
 
+### Frontend
+- React
+- TypeScript
+- Styled Components
+- React Router
+- Context API
 
+## Development Approach
 
-🐳 Docker Setup (Alternative)
+This project follows modern development practices:
+- Type-safe programming with TypeScript and Go
+- Component-based frontend architecture
+- Repository pattern for database operations
+- Clean separation between UI and business logic
+- Comprehensive error handling
 
-Build and start the containers:
-bashCopydocker-compose up --build
+## Running in Production
+For production deployment, additional considerations include:
+- Database configuration for production environment
+- Frontend build optimization
+- Server configuration and deployment
 
-Access the application:
-
-Frontend: http://localhost:3000
-Backend API: http://localhost:8000
-
-
-
-📁 Project Structure
-project-website/
-├── backend/
-│   ├── app/
-│   │   ├── __init__.py
-│   │   ├── main.py              # FastAPI application entry point
-│   │   ├── models/              # SQLAlchemy models
-│   │   │   ├── __init__.py
-│   │   │   ├── project.py       # Project model
-│   │   │   └── user.py          # User model
-│   │   ├── routes/              # API endpoints
-│   │   │   ├── __init__.py
-│   │   │   ├── projects.py      # Project-related endpoints
-│   │   │   └── users.py         # User-related endpoints
-│   │   └── utils/               # Utility functions
-│   ├── alembic/                 # Database migrations
-│   ├── tests/                   # Backend tests
-│   └── requirements.txt         # Python dependencies
-├── frontend/
-│   ├── src/
-│   │   ├── components/          # Reusable React components
-│   │   │   ├── Layout/
-│   │   │   ├── ProjectCard/
-│   │   │   └── Navigation/
-│   │   ├── pages/              # Page components
-│   │   │   ├── Home/
-│   │   │   ├── Projects/
-│   │   │   └── About/
-│   │   ├── hooks/             # Custom React hooks
-│   │   ├── utils/             # Frontend utilities
-│   │   ├── types/            # TypeScript type definitions
-│   │   └── App.tsx           # Root component
-│   ├── public/               # Static assets
-│   └── package.json         # Node.js dependencies
-├── docker/                  # Docker configuration
-│   ├── Dockerfile.backend
-│   └── Dockerfile.frontend
-├── docker-compose.yml      # Docker Compose configuration
-└── README.md              # Project documentation
-
-
-🚀 Deployment
-Instructions for deploying to DigitalOcean or similar platforms will be added soon.
-📝 License
-This project is licensed under the MIT License - see the LICENSE file for details.
-🤝 Contributing
-Contributions, issues, and feature requests are welcome! Feel free to check the issues page.
-👤 Author
-Your Name
-
-GitHub: @yourusername
-Website: yourwebsite.com
+---
