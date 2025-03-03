@@ -3,59 +3,110 @@ package db
 import (
 	"time"
 
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
-// Model is a base struct for all models providing common fields
-type Model struct {
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time      `json:"createdAt"`
-	UpdatedAt time.Time      `json:"updatedAt"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"deletedAt,omitempty"`
+// URL represents a shortened URL
+type URL struct {
+	Model
+	ShortCode    string    `gorm:"uniqueIndex;not null" json:"shortCode"`
+	OriginalURL  string    `gorm:"not null" json:"originalUrl"`
+	ExpiresAt    *time.Time `json:"expiresAt,omitempty"`
+	Clicks       uint       `gorm:"default:0" json:"clicks"`
+	UserID       uint       `json:"userId,omitempty"`
+	User         *User      `gorm:"foreignKey:UserID" json:"-"`
+	IsPrivate    bool       `gorm:"default:false" json:"isPrivate"`
+	CustomDomain string    `json:"customDomain,omitempty"`
+	Tags         string    `json:"tags,omitempty"`
+	Analytics    []ClickAnalytics `gorm:"foreignKey:URLID" json:"-"`
 }
 
-// Repository defines a standard interface for data access operations
-type Repository interface {
-	Find(id uint, result interface{}) error
-	FindAll(results interface{}) error
-	Create(value interface{}) error
-	Update(value interface{}) error
-	Delete(value interface{}) error
+// User represents a registered user
+type User struct {
+	Model
+	Username    string `gorm:"uniqueIndex;not null" json:"username"`
+	Email       string `gorm:"uniqueIndex;not null" json:"email"`
+	Password    string `gorm:"not null" json:"-"`
+	Role        string `gorm:"default:user" json:"role"` // user or admin
+	URLs        []URL  `gorm:"foreignKey:UserID" json:"-"`
+	IsActive    bool   `gorm:"default:true" json:"isActive"`
+	LastLoginAt time.Time `json:"lastLoginAt"`
+	Domains     []CustomDomain `gorm:"foreignKey:UserID" json:"-"`
 }
 
-// BaseRepository implements common repository operations
-type BaseRepository struct {
-	DB *gorm.DB
+// CustomDomain stores users' custom domains for URL shortening
+type CustomDomain struct {
+	Model
+	Domain      string `gorm:"uniqueIndex;not null" json:"domain"`
+	UserID      uint   `json:"userId"`
+	User        *User  `gorm:"foreignKey:UserID" json:"-"`
+	IsVerified  bool   `gorm:"default:false" json:"isVerified"`
+	VerifiedAt  *time.Time `json:"verifiedAt,omitempty"`
 }
 
-// NewBaseRepository creates a new base repository
-func NewBaseRepository() *BaseRepository {
-	return &BaseRepository{
-		DB: GetDB(),
+// ClickAnalytics tracks detailed information about URL clicks
+type ClickAnalytics struct {
+	Model
+	URLID       uint   `json:"urlId"`
+	URL         *URL   `gorm:"foreignKey:URLID" json:"-"`
+	ClickedAt   time.Time `gorm:"index" json:"clickedAt"`
+	IPAddress   string `json:"ipAddress,omitempty"`
+	UserAgent   string `json:"userAgent,omitempty"`
+	Referrer    string `json:"referrer,omitempty"`
+	CountryCode string `json:"countryCode,omitempty"`
+	City        string `json:"city,omitempty"`
+	Device      string `json:"device,omitempty"` // mobile, desktop, tablet, etc.
+	Browser     string `json:"browser,omitempty"`
+	OS          string `json:"os,omitempty"`
+}
+
+// HashPassword securely hashes a user's password
+func (u *User) HashPassword() error {
+	hashedPass, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
 	}
+	u.Password = string(hashedPass)
+	return nil
 }
 
-// Find retrieves a record by ID
-func (r *BaseRepository) Find(id uint, result interface{}) error {
-	return r.DB.First(result, id).Error
+// CheckPassword verifies the provided password against the stored hash
+func (u *User) CheckPassword(plainPassword string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(plainPassword))
+	return err == nil
 }
 
-// FindAll retrieves all records
-func (r *BaseRepository) FindAll(results interface{}) error {
-	return r.DB.Find(results).Error
+// BeforeSave handles password hashing before saving
+func (u *User) BeforeSave(tx *gorm.DB) error {
+	if u.ID == 0 || (u.Password != "" && !isHashedPassword(u.Password)) {
+		return u.HashPassword()
+	}
+	return nil
 }
 
-// Create inserts a new record
-func (r *BaseRepository) Create(value interface{}) error {
-	return r.DB.Create(value).Error
+// isHashedPassword checks if a password is already hashed
+func isHashedPassword(password string) bool {
+	// Bcrypt hashed passwords start with $2a$, $2b$, etc.
+	return len(password) == 60 && password[0:4] == "$2a$" || password[0:4] == "$2b$"
 }
 
-// Update updates an existing record
-func (r *BaseRepository) Update(value interface{}) error {
-	return r.DB.Save(value).Error
+// TableName specifies the table name for URL
+func (URL) TableName() string {
+	return "urls"
 }
 
-// Delete removes a record
-func (r *BaseRepository) Delete(value interface{}) error {
-	return r.DB.Delete(value).Error
+// TableName specifies the table name for User
+func (User) TableName() string {
+	return "users"
+}
+
+// TableName specifies the table name for CustomDomain
+func (CustomDomain) TableName() string {
+	return "custom_domains"
+}
+
+// TableName specifies the table name for ClickAnalytics
+func (ClickAnalytics) TableName() string {
+	return "click_analytics"
 }

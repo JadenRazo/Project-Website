@@ -1,99 +1,86 @@
 package db
 
 import (
+	"fmt"
 	"time"
+
+	"gorm.io/gorm"
 )
 
-// URL represents a shortened URL
-type URL struct {
-	Model
-	ShortCode    string    `gorm:"uniqueIndex;not null" json:"shortCode"`
-	OriginalURL  string    `gorm:"not null" json:"originalUrl"`
-	ExpiresAt    *time.Time `json:"expiresAt,omitempty"`
-	Clicks       uint       `gorm:"default:0" json:"clicks"`
-	UserID       uint       `json:"userId,omitempty"`
-	User         *User      `gorm:"foreignKey:UserID" json:"-"`
-	IsPrivate    bool       `gorm:"default:false" json:"isPrivate"`
-	CustomDomain string    `json:"customDomain,omitempty"`
-	Tags         string    `json:"tags,omitempty"`
-	Analytics    []ClickAnalytics `gorm:"foreignKey:URLID" json:"-"`
-}
-
-// URLRepository defines operations for URL data access
+// URLRepository wraps the generic repository with URL-specific methods
 type URLRepository struct {
-	*BaseRepository
+	Repository[URL]
 }
 
-// NewURLRepository creates a new URL repository
-func NewURLRepository() *URLRepository {
-	return &URLRepository{
-		BaseRepository: NewBaseRepository(),
-	}
-}
-
-// FindByShortCode retrieves a URL by short code
+// FindByShortCode finds a URL by its short code
 func (r *URLRepository) FindByShortCode(shortCode string) (*URL, error) {
-	var url URL
-	err := r.DB.Where("short_code = ?", shortCode).First(&url).Error
-	return &url, err
+	return r.FindBy("short_code", shortCode)
 }
 
 // IncrementClicks increases the click count for a URL
 func (r *URLRepository) IncrementClicks(id uint) error {
-	return r.DB.Model(&URL{}).Where("id = ?", id).
-		UpdateColumn("clicks", gorm.Expr("clicks + 1")).Error
-}
-
-// FindByUser retrieves all URLs for a specific user
-func (r *URLRepository) FindByUser(userID uint) ([]URL, error) {
-	var urls []URL
-	err := r.DB.Where("user_id = ?", userID).Find(&urls).Error
-	return urls, err
-}
-
-// SearchURLs searches for URLs with pagination and filters
-func (r *URLRepository) SearchURLs(userID uint, query string, tag string, 
-	page, pageSize int, sortBy, sortOrder string) ([]URL, int64, error) {
-	var urls []URL
-	var count int64
-
-	db := r.DB.Model(&URL{}).Where("user_id = ?", userID)
-
-	// Apply filters
-	if query != "" {
-		db = db.Where("original_url LIKE ? OR short_code LIKE ?", 
-			"%"+query+"%", "%"+query+"%")
+	result := GetDB().Model(&URL{}).
+		Where("id = ?", id).
+		UpdateColumn("clicks", gorm.Expr("clicks + 1"))
+	
+	if result.Error != nil {
+		return fmt.Errorf("failed to increment clicks: %w", result.Error)
 	}
 	
-	if tag != "" {
-		db = db.Where("tags LIKE ?", "%"+tag+"%")
+	if result.RowsAffected == 0 {
+		return ErrNotFound
 	}
-
-	// Get total count
-	err := db.Count(&count).Error
-	if err != nil {
-		return nil, 0, err
-	}
-
-	// Apply pagination and sorting
-	offset := (page - 1) * pageSize
 	
-	// Validate and apply sort
-	validSortColumns := map[string]bool{
+	return nil
+}
+
+// FindExpired finds all URLs that have expired
+func (r *URLRepository) FindExpired() ([]URL, error) {
+	return r.FindAllWhere("expires_at IS NOT NULL AND expires_at < ?", time.Now())
+}
+
+// FindByUser retrieves all URLs for a specific user with optional pagination
+func (r *URLRepository) FindByUser(userID uint, page, pageSize int) ([]URL, *Pagination, error) {
+	return r.Paginate(page, pageSize, WithOrder("created_at", SortDescending),
+		func(db *gorm.DB) *gorm.DB {
+			return db.Where("user_id = ?", userID)
+		})
+}
+
+// SearchURLs provides advanced searching functionality for URLs
+func (r *URLRepository) SearchURLs(userID uint, query string, tag string, page, pageSize int, sortBy, sortOrder string) ([]URL, *Pagination, error) {
+	// Validate sort parameters
+	validSortFields := map[string]bool{
 		"created_at": true, "clicks": true, "expires_at": true,
 	}
 	
-	if !validSortColumns[sortBy] {
+	if !validSortFields[sortBy] {
 		sortBy = "created_at"
 	}
 	
-	if sortOrder != "asc" && sortOrder != "desc" {
-		sortOrder = "desc"
+	var direction SortDirection = SortDescending
+	if sortOrder == "asc" {
+		direction = SortAscending
 	}
 	
-	err = db.Order(sortBy + " " + sortOrder).
-		Offset(offset).Limit(pageSize).
-		Find(&urls).Error
-
-	return urls, count, err
+	// Build query options
+	options := []QueryOption{
+		WithOrder(sortBy, direction),
+		func(db *gorm.DB) *gorm.DB {
+			db = db.Where("user_id = ?", userID)
+			
+			if query != "" {
+				db = db.Where("original_url LIKE ? OR short_code LIKE ?", 
+					"%"+query+"%", "%"+query+"%")
+			}
+			
+			if tag != "" {
+				db = db.Where("tags LIKE ?", "%"+tag+"%")
+			}
+			
+			return db
+		},
+	}
+	
+	return r.Paginate(page, pageSize, options...)
 }
