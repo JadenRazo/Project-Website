@@ -9,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-contrib/cors"
 	"github.com/joho/godotenv"
-	"gorm.io/driver/sqlite"
 	
 	"github.com/JadenRazo/Project-Website/backend/db"
 	"github.com/JadenRazo/Project-Website/backend/handlers"
@@ -29,10 +28,28 @@ func main() {
 	// Create data directory if it doesn't exist
 	os.MkdirAll("data", 0755)
 	
-	// Initialize database
-	if err := db.InitDB(appConfig.DatabasePath); err != nil {
+	// Initialize database using the new system
+	db.Initialize()
+	dbManager := db.DefaultManager
+	
+	// Configure the database connection
+	dbManager.SetSQLite(appConfig.DatabasePath)
+	if err := dbManager.Connect(); err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
+	
+	// Run migrations using the migration manager
+	migrationManager := db.NewMigrationManager(dbManager)
+	if err := migrationManager.Migrate(); err != nil {
+		log.Fatalf("Database migration failed: %v", err)
+	}
+	
+	// Ensure we close the connection when the program exits
+	defer func() {
+		if err := dbManager.Close(); err != nil {
+			log.Printf("Error closing database connection: %v", err)
+		}
+	}()
 	
 	// Set Gin mode based on environment
 	if appConfig.IsDevelopment() {
@@ -111,12 +128,32 @@ func main() {
 		// Admin routes (protected and admin-only)
 		admin := api.Group("/admin", middleware.AuthMiddleware(), middleware.AdminMiddleware())
 		{
-			// Add admin endpoints here if needed
+			// Admin dashboard routes
+			admin.GET("/dashboard", handlers.AdminDashboard)
+			admin.GET("/users", handlers.GetAllUsers)
+			admin.PUT("/users/:id", handlers.UpdateUserStatus)
+			admin.GET("/urls", handlers.GetAllURLs)
+			admin.DELETE("/urls/:id", handlers.AdminDeleteURL)
 		}
 	}
 	
+	// Health check endpoint
+	router.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status": "ok",
+			"version": appConfig.Version,
+			"environment": appConfig.Environment,
+		})
+	})
+	
 	// Start server
 	port := appConfig.Port
+	
+	log.Printf("Starting server in %s mode", appConfig.Environment)
 	fmt.Printf("Server running on http://localhost:%s\n", port)
-	log.Fatal(router.Run(":" + port))
+	
+	// Run the server with graceful shutdown
+	if err := router.Run(":" + port); err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	}
 }
