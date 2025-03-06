@@ -1,7 +1,11 @@
-import React, { memo, useMemo, useState, useCallback, useRef } from 'react';
+import React, { memo, useMemo, useState, useCallback, useRef, useEffect, forwardRef } from 'react';
 import styled, { css, keyframes } from 'styled-components';
-import { motion, Variants, HTMLMotionProps, AnimatePresence } from 'framer-motion';
+import { motion, Variants, HTMLMotionProps, AnimatePresence, useAnimation } from 'framer-motion';
 import { useTheme } from '../../contexts/ThemeContext';
+import useDeviceCapabilities from '../../hooks/useDeviceCapabilities';
+import useTouchInteractions from '../../hooks/useTouchInteractions';
+import usePerformanceOptimizations from '../../hooks/usePerformanceOptimizations';
+import { useInView } from 'react-intersection-observer';
 
 // Types
 interface AnimatedElementProps extends HTMLMotionProps<"div"> {
@@ -22,85 +26,156 @@ interface Skill {
   projects?: string[];
 }
 
-// Performance-optimized animation variants
-const ANIMATION_VARIANTS: Record<string, Variants> = {
-  container: {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.08,
-        when: "beforeChildren",
+// Define media breakpoints for responsive design
+const breakpoints = {
+  mobileSm: '320px',
+  mobileMd: '375px',
+  mobileLg: '425px',
+  tablet: '768px',
+  laptop: '1024px',
+  laptopLg: '1440px',
+  desktop: '1920px'
+};
+
+// Media query helper functions
+const media = {
+  mobileSm: `@media (max-width: ${breakpoints.mobileSm})`,
+  mobileMd: `@media (max-width: ${breakpoints.mobileMd})`,
+  mobileLg: `@media (max-width: ${breakpoints.mobileLg})`,
+  tablet: `@media (max-width: ${breakpoints.tablet})`,
+  laptop: `@media (max-width: ${breakpoints.laptop})`,
+  laptopLg: `@media (max-width: ${breakpoints.laptopLg})`,
+  desktop: `@media (min-width: ${breakpoints.laptopLg})`,
+  touch: `@media (max-width: ${breakpoints.tablet})`,
+  mouse: `@media (min-width: ${breakpoints.tablet})`
+};
+
+// Dynamic animation variants based on performance settings
+const createAnimationVariants = (performanceSettings: any) => {
+  const { transitionSpeed, staggerDelay, reduceMotion } = performanceSettings;
+  
+  return {
+    container: {
+      hidden: { opacity: 0 },
+      visible: {
+        opacity: 1,
+        transition: {
+          staggerChildren: reduceMotion ? staggerDelay / 2 : staggerDelay,
+          when: "beforeChildren",
+        },
       },
     },
-  },
-  item: {
-    hidden: { opacity: 0, y: 15 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: "tween",
-        duration: 0.4,
-        ease: [0.25, 0.1, 0.25, 1.0],
+    item: {
+      hidden: { opacity: 0, y: reduceMotion ? 5 : 15 },
+      visible: {
+        opacity: 1,
+        y: 0,
+        transition: {
+          type: "tween",
+          duration: transitionSpeed,
+          ease: [0.25, 0.1, 0.25, 1.0],
+        },
       },
     },
-  },
-  skillDetail: {
-    initial: { 
-      opacity: 0, 
-      height: 0,
-      y: -20
-    },
-    animate: { 
-      opacity: 1, 
-      height: 'auto',
-      y: 0,
-      transition: {
-        opacity: { duration: 0.3 },
-        height: { duration: 0.4 },
-        y: { duration: 0.3, ease: "easeOut" }
+    skillDetail: {
+      initial: { 
+        opacity: 0, 
+        height: 0,
+        y: reduceMotion ? -5 : -20
+      },
+      animate: { 
+        opacity: 1, 
+        height: 'auto',
+        y: 0,
+        transition: {
+          opacity: { duration: transitionSpeed * 0.75 },
+          height: { duration: transitionSpeed },
+          y: { duration: transitionSpeed * 0.75, ease: "easeOut" }
+        }
+      },
+      exit: { 
+        opacity: 0, 
+        height: 0,
+        y: reduceMotion ? -5 : -10,
+        transition: {
+          opacity: { duration: transitionSpeed * 0.5 },
+          height: { duration: transitionSpeed * 0.75 },
+          y: { duration: transitionSpeed * 0.5 }
+        }
       }
     },
-    exit: { 
-      opacity: 0, 
-      height: 0,
-      y: -10,
-      transition: {
-        opacity: { duration: 0.2 },
-        height: { duration: 0.3 },
-        y: { duration: 0.2 }
-      }
+    parallax: {
+      initial: { y: 0 },
+      animate: (custom: number) => ({
+        y: custom,
+        transition: {
+          type: reduceMotion ? "tween" : "spring",
+          stiffness: 10,
+          damping: 25,
+          mass: 1
+        }
+      })
     }
-  }
+  };
 };
 
-// Simple animation objects
-const HOVER_ANIMATION = {
-  scale: 1.01,
-  transition: { duration: 0.2, ease: "easeOut" }
+// Create animation objects based on performance
+const createAnimationObjects = (performanceSettings: any) => {
+  const { transitionSpeed, enableHoverEffects } = performanceSettings;
+  
+  return {
+    hover: enableHoverEffects ? {
+      scale: 1.01,
+      transition: { duration: transitionSpeed * 0.5, ease: "easeOut" }
+    } : {},
+    
+    tap: {
+      scale: 0.98,
+      transition: { duration: transitionSpeed * 0.25 }
+    }
+  };
 };
 
-const TAP_ANIMATION = {
-  scale: 0.98,
-  transition: { duration: 0.1 }
+// Keyframes for animations - conditionally applied based on performance
+const createKeyframes = (performanceSettings: any) => {
+  const { enableComplexAnimations, reduceMotion } = performanceSettings;
+  
+  // Basic pulse animation with reduced intensity if needed
+  const pulseIntensity = reduceMotion ? '5px' : '10px';
+  const pulse = keyframes`
+    0% { box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.7); }
+    70% { box-shadow: 0 0 0 ${pulseIntensity} rgba(var(--primary-rgb), 0); }
+    100% { box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0); }
+  `;
+  
+  // Optional complex animations
+  const shimmerAnimation = enableComplexAnimations ? keyframes`
+    0% { background-position: 200% center; }
+    100% { background-position: -200% center; }
+  ` : keyframes`
+    0%, 100% { background-position: 0% center; }
+  `;
+  
+  const floatingDistance = reduceMotion ? '3px' : '10px';
+  const floatingAnimation = enableComplexAnimations ? keyframes`
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-${floatingDistance}); }
+    100% { transform: translateY(0); }
+  ` : keyframes`
+    0%, 100% { transform: translateY(0); }
+  `;
+  
+  return {
+    pulse,
+    shimmerAnimation,
+    floatingAnimation
+  };
 };
 
-// Keyframes for animations
-const pulse = keyframes`
-  0% { box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.7); }
-  70% { box-shadow: 0 0 0 10px rgba(var(--primary-rgb), 0); }
-  100% { box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0); }
-`;
-
-const shimmerAnimation = keyframes`
-  0% { background-position: 200% center; }
-  100% { background-position: -200% center; }
-`;
-
-// Styled components with performance optimizations
-const HeroSection = styled.section`
-  min-height: 100vh;
+// Enhanced styled components with responsive and performance optimizations
+const HeroSection = styled.section<{ isSimplified: boolean }>`
+  min-height: ${props => props.isSimplified ? 'auto' : '100vh'};
+  height: ${props => props.isSimplified ? 'auto' : 'calc(var(--vh, 1vh) * 100)'};
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -113,12 +188,56 @@ const HeroSection = styled.section`
   background-color: ${({ theme }) => theme.colors.background};
   color: ${({ theme }) => theme.colors.text};
   overscroll-behavior: none;
+  
+  ${media.touch} {
+    padding: ${props => props.isSimplified ? '5% 5%' : '0 5%'};
+    text-align: center;
+    justify-content: ${props => props.isSimplified ? 'flex-start' : 'center'};
+    padding-top: ${props => props.isSimplified ? '10vh' : '15vh'};
+  }
+  
+  ${media.mobileLg} {
+    padding: 15% 5% 10%;
+  }
 `;
 
-const ContentWrapper = styled(motion.div)<AnimatedElementProps>`
+// New background elements for parallax effect
+const BackgroundElements = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: -1;
+`;
+
+const BackgroundElement = styled(motion.div)<{size: number; opacity: number}>`
+  position: absolute;
+  width: ${props => props.size}px;
+  height: ${props => props.size}px;
+  border-radius: 50%;
+  background: ${({ theme }) => theme.colors.primary};
+  opacity: ${props => props.opacity};
+  filter: blur(5px);
+  will-change: transform;
+`;
+
+const ContentWrapper = styled(motion.div)<AnimatedElementProps & { inView: boolean }>`
   max-width: 800px;
   pointer-events: ${props => props.isInteractive ? 'auto' : 'none'};
   will-change: transform, opacity;
+  position: relative;
+  z-index: 2;
+  opacity: ${props => props.inView ? 1 : 0};
+  transform: translateY(${props => props.inView ? 0 : '20px'});
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  
+  ${media.touch} {
+    max-width: 100%;
+    margin: 0 auto;
+  }
 `;
 
 const Greeting = styled(motion.span)`
@@ -129,13 +248,18 @@ const Greeting = styled(motion.span)`
   margin-bottom: 20px;
   display: block;
   pointer-events: auto;
+  
+  ${media.mobileLg} {
+    margin-bottom: 10px;
+  }
 `;
 
 interface NameProps {
   isHovered: boolean;
+  enableAnimations: boolean;
 }
 
-// Optimized name container with enhanced animations
+// Optimized name container with enhanced animations and responsive design
 const NameContainer = styled(motion.h1)<NameProps>`
   font-size: clamp(40px, 8vw, 80px);
   font-weight: 600;
@@ -146,7 +270,7 @@ const NameContainer = styled(motion.h1)<NameProps>`
   transform-style: preserve-3d;
   perspective: 1000px;
   
-  ${({ isHovered, theme }) => isHovered && css`
+  ${({ isHovered, theme, enableAnimations }) => isHovered && enableAnimations && css`
     background-image: linear-gradient(
       90deg, 
       ${theme.colors.text} 0%,
@@ -159,10 +283,18 @@ const NameContainer = styled(motion.h1)<NameProps>`
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    animation: ${shimmerAnimation} 3s linear infinite;
+    animation: ${theme.shimmerAnimation} 3s linear infinite;
   `}
   
   transition: all 0.3s ease-out;
+  
+  ${media.tablet} {
+    font-size: clamp(36px, 7vw, 60px);
+  }
+  
+  ${media.mobileLg} {
+    font-size: clamp(30px, 6vw, 40px);
+  }
 `;
 
 // New technique for animating name as blocks on initial load
@@ -170,12 +302,26 @@ const NameBlockContainer = styled(motion.div)`
   display: flex;
   flex-wrap: wrap;
   margin: 0;
+  
+  ${media.touch} {
+    justify-content: center;
+  }
+  
+  ${media.mobileLg} {
+    flex-direction: column;
+    align-items: center;
+  }
 `;
 
 const NameBlock = styled(motion.div)`
   display: inline-block;
   margin-right: 0.3em;
   transform-origin: center left;
+  
+  ${media.mobileLg} {
+    margin-right: 0;
+    margin-bottom: 0.1em;
+  }
 `;
 
 const Bio = styled(motion.div)`
@@ -183,12 +329,24 @@ const Bio = styled(motion.div)`
   flex-wrap: wrap;
   gap: 12px;
   margin: 20px 0 30px;
+  
+  ${media.touch} {
+    justify-content: center;
+  }
+  
+  ${media.mobileSm} {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
 `;
 
 interface BioItemStyledProps {
   active: boolean;
+  enablePulse: boolean;
 }
 
+// Enhanced Bio Item with visual feedback for interaction
 const BioItem = styled(motion.button)<BioItemStyledProps>`
   font-size: clamp(16px, 3vw, 20px);
   color: ${({ theme, active }) => active ? theme.colors.backgroundAlt : theme.colors.text};
@@ -206,8 +364,8 @@ const BioItem = styled(motion.button)<BioItemStyledProps>`
   overflow: hidden;
   transition: all 0.3s ease;
   
-  ${({ active }) => active && css`
-    animation: ${pulse} 1.5s infinite;
+  ${({ active, enablePulse, theme }) => active && enablePulse && css`
+    animation: ${theme.pulse} 1.5s infinite;
   `}
   
   &:hover {
@@ -237,8 +395,16 @@ const BioItem = styled(motion.button)<BioItemStyledProps>`
     transform: scale(1);
     transition: transform 0.3s ease, opacity 0s;
   }
+  
+  ${media.touch} {
+    font-size: clamp(14px, 2.5vw, 18px);
+    padding: 6px 14px;
+    width: ${props => props.active ? '100%' : 'auto'};
+    max-width: ${props => props.active ? '100%' : '160px'};
+  }
 `;
 
+// Enhanced skill detail container with more visual feedback
 const SkillDetailContainer = styled(motion.div)`
   width: 100%;
   background: ${({ theme }) => theme.colors.backgroundAlt};
@@ -250,24 +416,81 @@ const SkillDetailContainer = styled(motion.div)`
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   border: 1px solid ${({ theme }) => theme.colors.primary}20;
   overflow: hidden;
+  position: relative;
+  
+  &:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: ${({ theme }) => theme.colors.primary};
+    border-radius: 4px 0 0 4px;
+  }
+  
+  ${media.touch} {
+    padding: 15px 15px 15px 20px;
+    text-align: left;
+  }
+  
+  ${media.mobileSm} {
+    padding: 12px 12px 12px 16px;
+    margin-top: 5px;
+    margin-bottom: 15px;
+  }
 `;
 
-const SkillTitle = styled.h3`
+interface SkillTitleProps {
+  enableAnimation: boolean;
+}
+
+// Enhanced title with icon animation
+const SkillTitle = styled.h3<SkillTitleProps>`
   font-size: clamp(18px, 4vw, 24px);
   color: ${({ theme }) => theme.colors.primary};
   margin: 0 0 15px 0;
   display: flex;
   align-items: center;
   gap: 10px;
+  
+  svg {
+    width: 24px;
+    height: 24px;
+    animation: ${props => props.enableAnimation && props.theme.floatingAnimation
+      ? css`${props.theme.floatingAnimation} 3s ease-in-out infinite` 
+      : 'none'};
+  }
+  
+  ${media.mobileLg} {
+    margin: 0 0 10px 0;
+    font-size: clamp(16px, 3.5vw, 20px);
+    
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
 `;
 
 const SkillDescription = styled.p`
   font-size: 16px;
   line-height: 1.6;
   margin-bottom: 15px;
+  
+  ${media.mobileLg} {
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
 `;
 
-const ProjectList = styled.ul`
+interface ProjectListProps {
+  enableHoverEffects: boolean;
+}
+
+// Enhanced project list with improved mobile styling
+const ProjectList = styled.ul<ProjectListProps>`
   list-style-type: none;
   padding: 0;
   margin: 15px 0 0 0;
@@ -277,16 +500,39 @@ const ProjectList = styled.ul`
     padding-left: 20px;
     margin-bottom: 8px;
     line-height: 1.4;
+    transition: transform 0.2s ease;
     
     &:before {
       content: '→';
       color: ${({ theme }) => theme.colors.primary};
       position: absolute;
       left: 0;
+      transition: transform 0.2s ease;
+    }
+    
+    ${props => props.enableHoverEffects && css`
+      &:hover {
+        transform: translateX(3px);
+        
+        &:before {
+          transform: translateX(2px);
+        }
+      }
+    `}
+  }
+  
+  ${media.mobileLg} {
+    margin: 10px 0 0 0;
+    
+    li {
+      font-size: 13px;
+      padding-left: 15px;
+      margin-bottom: 6px;
     }
   }
 `;
 
+// Enhanced CTA button with animated gradient border on hover
 const CTAButton = styled(motion.a)`
   display: inline-block;
   background-color: transparent;
@@ -322,46 +568,108 @@ const CTAButton = styled(motion.a)`
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background-color: ${({ theme }) => `${theme.colors.primary}10`};
     
     &:after {
       left: 200%;
     }
   }
+  
+  ${media.touch} {
+    width: 100%;
+    max-width: 250px;
+    padding: 1rem 1.5rem;
+    text-align: center;
+  }
+  
+  ${media.mobileSm} {
+    padding: 0.8rem 1.2rem;
+    font-size: 13px;
+  }
 `;
 
-// Skill data
+// Enhanced skill data with icon references
 const SKILLS: Record<string, Skill> = {
   'ui': {
     id: 'ui',
     name: 'UI Designer',
     description: 'Creating intuitive and visually appealing user interfaces that prioritize user experience and accessibility. Proficient in design principles, color theory, and responsive layouts.',
+    icon: 'design',
     projects: ['Portfolio Website Redesign', 'E-commerce Mobile App UI', 'Dashboard Interface for Analytics Platform']
   },
   'api': {
     id: 'api',
     name: 'API Coding',
     description: 'Building robust and secure APIs that connect front-end applications to back-end services. Experience with RESTful design principles, authentication, and data handling.',
+    icon: 'code',
     projects: ['Weather Data API Integration', 'Payment Gateway API Implementation', 'Social Media Platform API Development']
   },
   'db': {
     id: 'db',
     name: 'Database Management',
     description: 'Designing efficient database structures and managing data storage solutions. Skilled in SQL and NoSQL databases, query optimization, and data security practices.',
+    icon: 'database',
     projects: ['Customer Information System', 'Inventory Management Database', 'Analytics Data Warehouse']
   }
 };
 
+// SVG icons for skills
+const SkillIcon = memo(({ type }: { type: string }) => {
+  switch (type) {
+    case 'design':
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 20h9"></path>
+          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+        </svg>
+      );
+    case 'code':
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="16 18 22 12 16 6"></polyline>
+          <polyline points="8 6 2 12 8 18"></polyline>
+        </svg>
+      );
+    case 'database':
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+          <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+          <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+        </svg>
+      );
+    default:
+      return null;
+  }
+});
+SkillIcon.displayName = 'SkillIcon';
+
+// Interface for the AnimatedBioItem component props
+interface AnimatedBioItemProps extends BioItemProps {
+  performanceSettings: any;
+  animationVariants: any;
+  animationObjects: any;
+}
+
 // Optimized components using memoization
-const AnimatedBioItem = memo(({ text, onClick, isActive }: BioItemProps) => {
+const AnimatedBioItem = memo(({ 
+  text, 
+  onClick, 
+  isActive, 
+  performanceSettings,
+  animationVariants,
+  animationObjects
+}: AnimatedBioItemProps) => {
   const skillId = text === 'UI Designer' ? 'ui' : text === 'API Coding' ? 'api' : 'db';
   
   return (
     <BioItem
-      variants={ANIMATION_VARIANTS.item}
-      whileHover={HOVER_ANIMATION}
-      whileTap={TAP_ANIMATION}
+      variants={animationVariants.item}
+      whileHover={animationObjects.hover}
+      whileTap={animationObjects.tap}
       onClick={onClick}
       active={isActive}
+      enablePulse={performanceSettings.enableHoverEffects}
     >
       {text}
     </BioItem>
@@ -369,22 +677,45 @@ const AnimatedBioItem = memo(({ text, onClick, isActive }: BioItemProps) => {
 });
 AnimatedBioItem.displayName = 'AnimatedBioItem';
 
-const SkillDetail = memo(({ skill }: { skill: Skill }) => (
+// Optimized SkillDetail component with performance considerations
+const SkillDetail = memo(({ 
+  skill, 
+  performanceSettings, 
+  animationVariants 
+}: { 
+  skill: Skill; 
+  performanceSettings: any;
+  animationVariants: any;
+}) => (
   <SkillDetailContainer
-    variants={ANIMATION_VARIANTS.skillDetail}
+    variants={animationVariants.skillDetail}
     initial="initial"
     animate="animate"
     exit="exit"
     layout
   >
-    <SkillTitle>{skill.name}</SkillTitle>
+    <SkillTitle
+      enableAnimation={performanceSettings.enableComplexAnimations}
+    >
+      {skill.icon && <SkillIcon type={skill.icon} />}
+      {skill.name}
+    </SkillTitle>
     <SkillDescription>{skill.description}</SkillDescription>
     {skill.projects && skill.projects.length > 0 && (
       <>
         <div style={{ fontSize: '14px', color: 'var(--primary)' }}>Related Projects:</div>
-        <ProjectList>
+        <ProjectList
+          enableHoverEffects={performanceSettings.enableHoverEffects}
+        >
           {skill.projects.map((project, index) => (
-            <li key={index}>{project}</li>
+            <motion.li 
+              key={index}
+              initial={{ opacity: 0, x: -5 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 * index }}
+            >
+              {project}
+            </motion.li>
           ))}
         </ProjectList>
       </>
@@ -393,12 +724,107 @@ const SkillDetail = memo(({ skill }: { skill: Skill }) => (
 ));
 SkillDetail.displayName = 'SkillDetail';
 
-// Optimized and modernized Hero component
+// Main Hero component refactored to use the new hooks
 export const Hero: React.FC = () => {
+  // Get theme from context
   const { theme } = useTheme();
+  
+  // Initialize component state
   const [isNameHovered, setIsNameHovered] = useState(false);
   const [activeSkill, setActiveSkill] = useState<string | null>(null);
+  
+  // Create refs for touch interactions and section visibility
   const bioRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const heroRef = useRef<HTMLElement>(null);
+  
+  // Initialize animation controller for parallax effects
+  const parallaxControls = useAnimation();
+  
+  // Use our new hooks for device optimization
+  const deviceCapabilities = useDeviceCapabilities();
+  const { performanceSettings } = usePerformanceOptimizations();
+  const touchInteractions = useTouchInteractions(heroRef);
+  
+  // Create observation for element visibility
+  const [contentRef, inView] = useInView({
+    threshold: 0.1,
+    triggerOnce: false
+  });
+  
+  // Memoize animation settings based on performance
+  const animationVariants = useMemo(
+    () => createAnimationVariants(performanceSettings),
+    [performanceSettings]
+  );
+  
+  const animationObjects = useMemo(
+    () => createAnimationObjects(performanceSettings),
+    [performanceSettings]
+  );
+  
+  // Memoize animation keyframes and add them to the theme
+  useEffect(() => {
+    const keyframesObj = createKeyframes(performanceSettings);
+    
+    // Add keyframes to the theme for use in styled components
+    if (theme) {
+      Object.entries(keyframesObj).forEach(([key, value]) => {
+        (theme as any)[key] = value;
+      });
+    }
+  }, [performanceSettings, theme]);
+  
+  // Create background elements for parallax effect
+  const bgElements = useMemo(() => {
+    // Only create elements if parallax is enabled
+    if (!performanceSettings.enableParallax) return [];
+    
+    return Array.from({ length: performanceSettings.performanceTier === 'high' ? 10 : 5 }).map((_, i) => ({
+      id: `bg-element-${i}`,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 30 + 20,
+      opacity: Math.random() * 0.1 + 0.05
+    }));
+  }, [performanceSettings.enableParallax, performanceSettings.performanceTier]);
+  
+  // Determine if we're on a touch device for interaction optimizations
+  const isTouchDevice = deviceCapabilities.isTouchDevice;
+  
+  // Window size tracking for responsive adjustments
+  const [windowSize, setWindowSize] = useState({ 
+    width: deviceCapabilities.viewportWidth || 0, 
+    height: deviceCapabilities.viewportHeight || 0 
+  });
+  
+  // Update window size when device capabilities change
+  useEffect(() => {
+    setWindowSize({
+      width: deviceCapabilities.viewportWidth,
+      height: deviceCapabilities.viewportHeight
+    });
+  }, [deviceCapabilities.viewportWidth, deviceCapabilities.viewportHeight]);
+  
+  // Parallax effect on mouse move
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    // Skip parallax on touch devices or if disabled
+    if (isTouchDevice || !performanceSettings.enableParallax) return;
+    
+    const { clientX, clientY } = e;
+    const moveX = (clientX - windowSize.width / 2) / 50;
+    const moveY = (clientY - windowSize.height / 2) / 50;
+    
+    parallaxControls.start((i) => ({
+      x: moveX * (i * 0.5),
+      y: moveY * (i * 0.5),
+    }));
+  }, [isTouchDevice, windowSize, parallaxControls, performanceSettings.enableParallax]);
+  
+  // Reset parallax on mouse leave
+  const handleMouseLeave = useCallback(() => {
+    parallaxControls.start({ x: 0, y: 0 });
+  }, [parallaxControls]);
   
   // Memoize bio items
   const bioItems = useMemo(() => [
@@ -415,55 +841,87 @@ export const Hero: React.FC = () => {
     }));
   }, []);
 
-  // Handlers for name hover
+  // Handlers for name hover - only enable effects on non-touch devices
   const handleNameMouseEnter = useCallback(() => {
-    setIsNameHovered(true);
-  }, []);
+    if (!isTouchDevice) {
+      setIsNameHovered(true);
+    }
+  }, [isTouchDevice]);
 
   const handleNameMouseLeave = useCallback(() => {
     setIsNameHovered(false);
   }, []);
 
-  // Handler for skill button click
+  // Handler for skill button click with improved mobile experience
   const handleSkillClick = useCallback((skill: string) => {
     const skillId = skill === 'UI Designer' ? 'ui' : skill === 'API Coding' ? 'api' : 'db';
     
     // Toggle skill display
     setActiveSkill(prev => prev === skillId ? null : skillId);
     
-    // Scroll to bio section if skill is activated
+    // Scroll to bio section if skill is activated, with special handling for mobile
     if (activeSkill !== skillId && bioRef.current) {
+      const scrollDelay = isTouchDevice ? 300 : 100; // Longer delay on touch for better UX
+      
       setTimeout(() => {
-        bioRef.current?.scrollIntoView({ 
-          behavior: 'smooth',
-          block: 'start'
-        });
-      }, 100);
+        const yOffset = isTouchDevice ? -20 : 0; // Add offset on mobile to improve visibility
+        if (bioRef.current) {
+          const y = bioRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
+          window.scrollTo({
+            top: y,
+            behavior: performanceSettings.reduceMotion ? 'auto' : 'smooth'
+          });
+        }
+      }, scrollDelay);
     }
-  }, [activeSkill]);
+  }, [activeSkill, isTouchDevice, performanceSettings.reduceMotion]);
 
   return (
-    <HeroSection>
+    <HeroSection 
+      ref={heroRef}
+      isSimplified={performanceSettings.useSimplifiedLayout}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      {performanceSettings.enableParallax && !isTouchDevice && (
+        <BackgroundElements>
+          {bgElements.map((elem, index) => (
+            <BackgroundElement
+              key={elem.id}
+              custom={index + 1}
+              initial={{ x: `${elem.x}%`, y: `${elem.y}%` }}
+              animate={parallaxControls}
+              size={elem.size}
+              opacity={elem.opacity}
+            />
+          ))}
+        </BackgroundElements>
+      )}
+      
       <ContentWrapper
-        variants={ANIMATION_VARIANTS.container}
+        ref={contentRef}
+        variants={animationVariants.container}
         initial="hidden"
         animate="visible"
         isInteractive={true}
+        inView={inView}
       >
         <Greeting
-          variants={ANIMATION_VARIANTS.item}
-          whileHover={HOVER_ANIMATION}
-          whileTap={TAP_ANIMATION}
+          variants={animationVariants.item}
+          whileHover={!isTouchDevice ? animationObjects.hover : undefined}
+          whileTap={!isTouchDevice ? animationObjects.tap : undefined}
         >
           Hi there, I'm
         </Greeting>
         
         {/* Optimized name animation using word blocks instead of letters */}
         <NameContainer 
-          variants={ANIMATION_VARIANTS.item}
+          variants={animationVariants.item}
           isHovered={isNameHovered}
+          enableAnimations={performanceSettings.enableComplexAnimations}
           onMouseEnter={handleNameMouseEnter}
           onMouseLeave={handleNameMouseLeave}
+          onClick={() => isTouchDevice && setIsNameHovered(prev => !prev)} // Toggle on touch
         >
           <NameBlockContainer>
             {nameWords.map(({ word, key }, index) => (
@@ -491,7 +949,7 @@ export const Hero: React.FC = () => {
 
         <Bio 
           ref={bioRef}
-          variants={ANIMATION_VARIANTS.container}
+          variants={animationVariants.container}
         >
           {bioItems.map((item) => (
             <AnimatedBioItem 
@@ -499,22 +957,29 @@ export const Hero: React.FC = () => {
               text={item} 
               onClick={() => handleSkillClick(item)} 
               isActive={activeSkill === (item === 'UI Designer' ? 'ui' : item === 'API Coding' ? 'api' : 'db')}
+              performanceSettings={performanceSettings}
+              animationVariants={animationVariants}
+              animationObjects={animationObjects}
             />
           ))}
         </Bio>
 
         {/* Animated skill details */}
-        <AnimatePresence>
+        <AnimatePresence mode="wait">
           {activeSkill && SKILLS[activeSkill] && (
-            <SkillDetail skill={SKILLS[activeSkill]} />
+            <SkillDetail 
+              skill={SKILLS[activeSkill]} 
+              performanceSettings={performanceSettings}
+              animationVariants={animationVariants}
+            />
           )}
         </AnimatePresence>
 
         <CTAButton
           href="#work"
-          variants={ANIMATION_VARIANTS.item}
-          whileHover={HOVER_ANIMATION}
-          whileTap={TAP_ANIMATION}
+          variants={animationVariants.item}
+          whileHover={!isTouchDevice ? animationObjects.hover : undefined}
+          whileTap={!isTouchDevice ? animationObjects.tap : undefined}
         >
           Check out my work
         </CTAButton>
@@ -522,3 +987,5 @@ export const Hero: React.FC = () => {
     </HeroSection>
   );
 };
+
+export default Hero;
