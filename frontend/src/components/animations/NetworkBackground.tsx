@@ -1,7 +1,8 @@
 // src/components/animations/NetworkBackground.tsx
-import React, { useEffect, useRef, useCallback, useState } from 'react';
+import React, { useEffect, useRef, useCallback, useState, useLayoutEffect } from 'react';
 import styled, { css, keyframes } from 'styled-components';
 import { useTheme } from '../../contexts/ThemeContext';
+import { debounce } from 'lodash';
 
 // Enhanced configuration with better visibility
 const ANIMATION_CONFIG = {
@@ -36,7 +37,7 @@ const Container = styled.div`
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 2;               // Behind content but visible (critical fix)
+  z-index: 1;               // Behind content but visible (critical fix)
   overflow: hidden;
   pointer-events: none;      // Allow clicks to pass through to content
   // Debug outline
@@ -410,20 +411,22 @@ class NetworkController {
 }
 
 export const NetworkBackground: React.FC = React.memo(() => {
-  // Setup refs for canvas and animation controller
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const networkRef = useRef<NetworkController | null>(null);
-  const animationFrameRef = useRef<number>(0);
-  const containerRef = useRef<HTMLDivElement>(null);
+  // Use refs to store mutable values without triggering re-renders
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const networkControllerRef = useRef<NetworkController | null>(null);
+  const requestIdRef = useRef<number | null>(null);
+  const mountedRef = useRef<boolean>(true);
+  const resizeHandlerRef = useRef<(() => void) | null>(null);
   
-  // State for glow effect tracking
-  const [isGlowActive, setIsGlowActive] = useState<boolean>(false);
-  const [mousePos, setMousePos] = useState<{ x: number; y: number }>({ x: 50, y: 50 });
-  const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null);
-  
-  // Get theme colors
+  // Get theme for colors
   const { theme } = useTheme();
-  const primaryColor = theme.colors.primary;
+  const primaryColor = theme.colors?.primary || '#6c63ff';
+  
+  // Tracked state
+  const [mousePos, setMousePos] = useState<Point>({ x: 0, y: 0 });
+  const [debug, setDebug] = useState<DebugInfo | null>(null);
+  const [glowActive, setGlowActive] = useState(false);
   
   // Mouse event handlers
   const handleMouseMove = useCallback((e: MouseEvent) => {
@@ -434,14 +437,14 @@ export const NetworkBackground: React.FC = React.memo(() => {
     setMousePos({ x, y });
     
     // Update controller if available
-    if (networkRef.current) {
-      networkRef.current.updateMousePosition(x, y);
+    if (networkControllerRef.current) {
+      networkControllerRef.current.updateMousePosition(x, y);
     }
   }, []);
   
   const handleMouseLeave = useCallback(() => {
-    if (networkRef.current) {
-      networkRef.current.mouseleave();
+    if (networkControllerRef.current) {
+      networkControllerRef.current.mouseleave();
     }
   }, []);
 
@@ -454,8 +457,8 @@ export const NetworkBackground: React.FC = React.memo(() => {
       
       setMousePos({ x, y });
       
-      if (networkRef.current) {
-        networkRef.current.updateMousePosition(x, y);
+      if (networkControllerRef.current) {
+        networkControllerRef.current.updateMousePosition(x, y);
       }
     }
   }, []);
@@ -468,162 +471,119 @@ export const NetworkBackground: React.FC = React.memo(() => {
       
       setMousePos({ x, y });
       
-      if (networkRef.current) {
-        networkRef.current.updateMousePosition(x, y);
+      if (networkControllerRef.current) {
+        networkControllerRef.current.updateMousePosition(x, y);
       }
     }
   }, []);
   
   const handleTouchEnd = useCallback(() => {
-    if (networkRef.current) {
-      networkRef.current.mouseleave();
+    if (networkControllerRef.current) {
+      networkControllerRef.current.mouseleave();
     }
   }, []);
   
-  // Window resize handler with debounce
-  const handleResize = useCallback(() => {
-    if (canvasRef.current && networkRef.current && containerRef.current) {
-      // Get window dimensions directly to ensure full viewport coverage
-      const width = window.innerWidth;
-      const height = window.innerHeight;
+  useLayoutEffect(() => {
+    if (!canvasRef.current || !containerRef.current) return;
+
+    // Get the canvas context
+    const ctx = canvasRef.current.getContext('2d');
+    if (!ctx) return;
+
+    // Initialize canvas dimensions
+    const updateCanvasSize = () => {
+      if (!canvasRef.current || !containerRef.current || !mountedRef.current) return;
       
-      // Ensure we're using the correct DPR for crisp rendering
-      const dpr = window.devicePixelRatio || 1;
+      const { width, height } = containerRef.current.getBoundingClientRect();
+      canvasRef.current.width = width;
+      canvasRef.current.height = height;
       
-      // Update canvas dimensions for full viewport
-      canvasRef.current.width = width * dpr;
-      canvasRef.current.height = height * dpr;
-      
-      // Scale context to match DPR
-      const ctx = canvasRef.current.getContext('2d');
-      if (ctx) {
-        ctx.scale(dpr, dpr);
+      // Only log in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Network background resized:', width, 'x', height);
       }
       
-      // Update container style to explicitly match viewport
-      containerRef.current.style.width = `${width}px`;
-      containerRef.current.style.height = `${height}px`;
-      
-      // Resize the network
-      networkRef.current.resize(width, height);
-      
-      console.log(`NetworkBackground: Resized to ${width}x${height}`);
-    }
-  }, []);
-  
-  // Animation loop
-  const animate = useCallback(() => {
-    if (networkRef.current) {
-      networkRef.current.draw();
-      
-      // Check if glow should be active
-      const intensity = networkRef.current.getGlowIntensity();
-      setIsGlowActive(intensity > 0.1);
-      
-      // Update debug info
-      if (ANIMATION_CONFIG.DEBUG_MODE) {
-        setDebugInfo(networkRef.current.getDebugInfo());
+      // Update the network controller if it exists
+      if (networkControllerRef.current) {
+        networkControllerRef.current.resize(width, height);
       }
-    }
+    };
+
+    // Create a debounced version of the resize handler
+    const debouncedResize = debounce(updateCanvasSize, 200);
     
-    // Continue animation loop
-    animationFrameRef.current = requestAnimationFrame(animate);
-  }, []);
-  
-  // Initialize and cleanup
-  useEffect(() => {
-    console.log('NetworkBackground: Initializing...');
+    // Store the resize handler in a ref so we can remove it later
+    resizeHandlerRef.current = () => debouncedResize();
     
-    // Get canvas element
-    const canvas = canvasRef.current;
-    const container = containerRef.current;
+    // Set up the animation controller
+    networkControllerRef.current = new NetworkController(
+      canvasRef.current,
+      primaryColor
+    );
     
-    if (!canvas || !container) {
-      console.error('NetworkBackground: Canvas or container ref is null');
-      return;
-    }
+    // Initialize dimensions
+    updateCanvasSize();
     
-    try {
-      // Get window dimensions directly to ensure full viewport coverage
-      const width = window.innerWidth;
-      const height = window.innerHeight;
+    // Add resize listener
+    window.addEventListener('resize', resizeHandlerRef.current);
+    
+    // Add mouse/touch event listeners
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    document.body.addEventListener('mouseleave', handleMouseLeave, { passive: true });
+    window.addEventListener('touchstart', handleTouchStart as unknown as EventListener, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove as unknown as EventListener, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd, { passive: true });
+    
+    // Animation loop
+    const animate = () => {
+      if (!mountedRef.current) return;
       
-      console.log(`NetworkBackground: Window dimensions - ${width}x${height}`);
-      
-      // Set container dimensions explicitly to match viewport
-      container.style.width = `${width}px`;
-      container.style.height = `${height}px`;
-      
-      // Ensure we're using the correct DPR for crisp rendering
-      const dpr = window.devicePixelRatio || 1;
-      
-      // Set canvas dimensions
-      canvas.width = width * dpr;
-      canvas.height = height * dpr;
-      
-      // Scale context to match DPR
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.scale(dpr, dpr);
-      }
-      
-      // Create network controller
-      networkRef.current = new NetworkController(canvas, primaryColor);
-      console.log('NetworkBackground: Controller initialized');
-      
-      // Force an initial resize to ensure everything is sized correctly
-      handleResize();
-      
-      // Add event listeners
-      window.addEventListener('mousemove', handleMouseMove, { passive: true });
-      document.body.addEventListener('mouseleave', handleMouseLeave, { passive: true });
-      window.addEventListener('touchstart', handleTouchStart as unknown as EventListener, { passive: true });
-      window.addEventListener('touchmove', handleTouchMove as unknown as EventListener, { passive: true });
-      window.addEventListener('touchend', handleTouchEnd, { passive: true });
-      
-      // Add resize observer for more reliable size updates
-      const resizeObserver = new ResizeObserver(() => {
-        handleResize();
-      });
-      
-      resizeObserver.observe(document.body);
-      
-      // Also add window resize event with debounce
-      let resizeTimeout: NodeJS.Timeout;
-      const debouncedResize = () => {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(handleResize, 200);
-      };
-      
-      window.addEventListener('resize', debouncedResize);
-      
-      // Move to the end of the event queue to ensure DOM is fully rendered
-      setTimeout(() => {
-        handleResize();
+      if (networkControllerRef.current) {
+        networkControllerRef.current.draw();
         
-        // Start animation loop
-        animate();
-        console.log('NetworkBackground: Animation started');
-      }, 0);
+        // Update glow state based on network controller
+        const intensity = networkControllerRef.current.getGlowIntensity();
+        setGlowActive(intensity > 0.1);
+        
+        // Update debug info if in debug mode
+        if (ANIMATION_CONFIG.DEBUG_MODE) {
+          setDebug(networkControllerRef.current.getDebugInfo());
+        }
+      }
       
-      // Cleanup function
-      return () => {
-        console.log('NetworkBackground: Cleaning up...');
-        cancelAnimationFrame(animationFrameRef.current);
-        window.removeEventListener('mousemove', handleMouseMove);
-        document.body.removeEventListener('mouseleave', handleMouseLeave);
-        window.removeEventListener('touchstart', handleTouchStart as unknown as EventListener);
-        window.removeEventListener('touchmove', handleTouchMove as unknown as EventListener);
-        window.removeEventListener('touchend', handleTouchEnd);
-        window.removeEventListener('resize', debouncedResize);
-        resizeObserver.disconnect();
-        clearTimeout(resizeTimeout);
-      };
-    } catch (error) {
-      console.error('NetworkBackground: Failed to initialize:', error);
-      return () => {}; // Empty cleanup if initialization failed
-    }
-  }, [primaryColor, handleMouseMove, handleMouseLeave, handleTouchStart, handleTouchMove, handleTouchEnd, handleResize, animate]);
+      if (mountedRef.current) {
+        requestIdRef.current = requestAnimationFrame(animate);
+      }
+    };
+    
+    // Start the animation
+    animate();
+
+    // Clean up everything when component unmounts
+    return () => {
+      mountedRef.current = false;
+      
+      // Cancel any pending animations
+      if (requestIdRef.current !== null) {
+        cancelAnimationFrame(requestIdRef.current);
+      }
+      
+      // Remove all event listeners
+      window.removeEventListener('resize', resizeHandlerRef.current!);
+      window.removeEventListener('mousemove', handleMouseMove);
+      document.body.removeEventListener('mouseleave', handleMouseLeave);
+      window.removeEventListener('touchstart', handleTouchStart as unknown as EventListener);
+      window.removeEventListener('touchmove', handleTouchMove as unknown as EventListener);
+      window.removeEventListener('touchend', handleTouchEnd);
+      
+      if (debouncedResize && typeof debouncedResize.cancel === 'function') {
+        debouncedResize.cancel();
+      }
+      
+      // Clear the network controller
+      networkControllerRef.current = null;
+    };
+  }, [primaryColor, handleMouseMove, handleMouseLeave, handleTouchStart, handleTouchMove, handleTouchEnd]); // Dependencies for the effect
   
   // Set CSS variables for glow effect positioning
   useEffect(() => {
@@ -636,25 +596,24 @@ export const NetworkBackground: React.FC = React.memo(() => {
       <BackgroundOverlay theme={theme} />
       <Canvas ref={canvasRef} />
       <GlowEffect 
-        active={isGlowActive} 
+        active={glowActive} 
         color={primaryColor}
       />
       
-      {ANIMATION_CONFIG.DEBUG_MODE && debugInfo && (
+      {ANIMATION_CONFIG.DEBUG_MODE && debug && (
         <DebugPanel>
-          <div>FPS: {debugInfo.fps}</div>
-          <div>Particles: {debugInfo.particles}</div>
-          <div>Connections: {debugInfo.connections}</div>
-          <div>Canvas: {debugInfo.canvasWidth}x{debugInfo.canvasHeight}</div>
-          <div>Active: {debugInfo.isActive ? 'Yes' : 'No'}</div>
-          <div>Glow: {debugInfo.glowIntensity.toFixed(2)}</div>
+          <div>FPS: {debug.fps.toFixed(1)}</div>
+          <div>Particles: {debug.particles}</div>
+          <div>Connections: {debug.connections}</div>
+          <div>Canvas: {debug.canvasWidth}x{debug.canvasHeight}</div>
+          <div>Active: {debug.isActive ? 'Yes' : 'No'}</div>
+          <div>Glow: {(debug.glowIntensity * 100).toFixed(1)}%</div>
         </DebugPanel>
       )}
     </Container>
   );
-});
+}, () => true); // Always return true from memo comparison to prevent rerenders
 
-// Add the displayName for better debugging
 NetworkBackground.displayName = 'NetworkBackground';
 
 export default NetworkBackground;
