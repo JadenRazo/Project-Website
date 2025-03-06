@@ -1,5 +1,5 @@
 // src/App.tsx
-import React, { useState, useEffect, useCallback, memo, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, memo, useMemo, useRef } from 'react';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { GlobalStyles } from './styles/GlobalStyles';
@@ -109,42 +109,68 @@ const PROJECTS_DATA: readonly Project[] = Object.freeze([
 
 const LANGUAGES: readonly string[] = Object.freeze(['All', 'JavaScript', 'Python', 'Java']);
 
-// Memoized components to prevent unnecessary re-renders
-const MemoizedNetworkBackground = memo(NetworkBackground);
-MemoizedNetworkBackground.displayName = 'MemoizedNetworkBackground';
+// Completely isolated background component that never rerenders
+// This is a critical optimization for animation-heavy components
+const BackgroundLayer = memo(() => {
+  // Using useRef to ensure this component never needs to rerender
+  const mountedRef = useRef(true);
+  
+  return (
+    <div className="background-layer" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: -1 }}>
+      <NetworkBackground />
+    </div>
+  );
+});
 
-// Separate the app content into its own memoized component to follow React hooks rules
+BackgroundLayer.displayName = 'BackgroundLayer';
+
+// Create a completely isolated project filter state container
+// This prevents filter state changes from affecting other components
+const ProjectsSection: React.FC<{
+  themeMode: string;
+}> = memo(({ themeMode }) => {
+  // Filter state is contained entirely within this component
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('All');
+  
+  // Filter handler doesn't affect parent components
+  const handleLanguageSelect = useCallback((language: string) => {
+    setSelectedLanguage(language);
+  }, []);
+  
+  return (
+    <Projects 
+      projects={PROJECTS_DATA}
+      languages={LANGUAGES}
+      selectedLanguage={selectedLanguage}
+      onLanguageChange={handleLanguageSelect}
+    />
+  );
+});
+
+ProjectsSection.displayName = 'ProjectsSection';
+
+// Main UI content excluding background animations
 const AppContent: React.FC<{
   themeMode: string;
   toggleTheme: () => void;
-  selectedLanguage: string;
-  handleLanguageSelect: (language: string) => void;
-}> = memo(({ themeMode, toggleTheme, selectedLanguage, handleLanguageSelect }) => {
+}> = memo(({ themeMode, toggleTheme }) => {
   return (
-    <>
-      <MemoizedNetworkBackground />
-      <motion.div 
-        className="app-content"
-        variants={ANIMATION_VARIANTS.pageTransition}
-        initial="initial"
-        animate="animate"
-        exit="exit"
-      >
-        <NavigationBar 
-          isDarkMode={themeMode === 'dark'}
-          toggleTheme={toggleTheme}
-        />
-        <Hero />
-        <ScrollIndicator targetId="projects" showAboveFold={true} offset={80} />
-        <Projects 
-          projects={PROJECTS_DATA}
-          languages={LANGUAGES}
-          selectedLanguage={selectedLanguage}
-          onLanguageChange={handleLanguageSelect}
-        />
-        <BurgerMenu />
-      </motion.div>
-    </>
+    <motion.div 
+      className="app-content"
+      variants={ANIMATION_VARIANTS.pageTransition}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+    >
+      <NavigationBar 
+        isDarkMode={themeMode === 'dark'}
+        toggleTheme={toggleTheme}
+      />
+      <Hero />
+      <ScrollIndicator targetId="projects" showAboveFold={true} offset={80} />
+      <ProjectsSection themeMode={themeMode} />
+      <BurgerMenu />
+    </motion.div>
   );
 });
 
@@ -159,13 +185,7 @@ const MainContent: React.FC = () => {
   
   // State
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('All');
   const [mounted, setMounted] = useState<boolean>(false);
-
-  // Callbacks - defined before any conditional returns
-  const handleLanguageSelect = useCallback((language: string) => {
-    setSelectedLanguage(language);
-  }, []);
 
   // Effects
   useEffect(() => {
@@ -180,6 +200,9 @@ const MainContent: React.FC = () => {
   return (
     <Layout>
       <GlobalStyles theme={theme} />
+      {/* BackgroundLayer rendered once and never rerenders */}
+      <BackgroundLayer />
+      
       <LoadingScreen 
         isLoading={isLoading}
         template="profile"
@@ -196,8 +219,6 @@ const MainContent: React.FC = () => {
             <AppContent 
               themeMode={themeMode}
               toggleTheme={toggleTheme}
-              selectedLanguage={selectedLanguage}
-              handleLanguageSelect={handleLanguageSelect}
             />
           </motion.div>
         </AnimatePresence>

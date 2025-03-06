@@ -1,53 +1,83 @@
 // src/components/animations/ParticleBackground.tsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 
+// Container for particles that never changes size
 const ParticleContainer = styled.div`
   position: fixed;
   top: 0;
   left: 0;
+  right: 0;
+  bottom: 0;
   width: 100%;
   height: 100%;
-  z-index: -1;
+  z-index: 1;
+  pointer-events: none;
 `;
 
-export const ParticleBackground = () => {
+// Use a singleton pattern to ensure particlesJS is only initialized once
+let particlesInitialized = false;
+
+export const ParticleBackground = React.memo(() => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mountedRef = useRef<boolean>(true);
+
   useEffect(() => {
-    const particlesJS = (window as any).particlesJS;
+    // Skip if already initialized or window/particlesJS not available
+    if (particlesInitialized || typeof window === 'undefined') return;
     
+    const particlesJS = (window as any).particlesJS;
+    if (!particlesJS) {
+      console.warn('particlesJS not loaded');
+      return;
+    }
+
+    // Set flag immediately to prevent double initialization
+    particlesInitialized = true;
+    
+    // Initialize with optimal settings for performance
     particlesJS('particles-js', {
       particles: {
         number: {
-          value: 80,
+          value: 60,
           density: {
             enable: true,
             value_area: 800
           }
         },
         color: {
-          value: '#ff3366'
+          value: '#ffffff'
         },
         shape: {
-          type: 'circle'
+          type: 'circle',
+          stroke: {
+            width: 0,
+            color: '#000000'
+          }
         },
         opacity: {
-          value: 0.5,
-          random: false
+          value: 0.3,
+          random: true,
+          anim: {
+            enable: true,
+            speed: 0.5,
+            opacity_min: 0.1,
+            sync: false
+          }
         },
         size: {
           value: 3,
-          random: true
-        },
-        line_linked: {
-          enable: true,
-          distance: 150,
-          color: '#ff3366',
-          opacity: 0.4,
-          width: 1
+          random: true,
+          anim: {
+            enable: true,
+            speed: 2,
+            size_min: 0.1,
+            sync: false
+          }
         },
         move: {
           enable: true,
-          speed: 6,
+          speed: 1.5, // Reduced for smoother performance
           direction: 'none',
           random: false,
           straight: false,
@@ -60,7 +90,7 @@ export const ParticleBackground = () => {
         events: {
           onhover: {
             enable: true,
-            mode: 'repulse'
+            mode: 'grab' // Changed from 'repulse' for better performance
           },
           onclick: {
             enable: true,
@@ -71,7 +101,16 @@ export const ParticleBackground = () => {
       },
       retina_detect: true
     });
-  }, []);
+    
+    // Cleanup function
+    return () => {
+      mountedRef.current = false;
+      // particlesJS doesn't provide a destroy method, so we would need
+      // to manually clean up if a destroy method becomes available
+    };
+  }, []); // Empty dependency array - run only once
 
-  return <ParticleContainer id="particles-js" />;
-};
+  return <ParticleContainer ref={containerRef} id="particles-js" />;
+}, () => true); // Always return true from memo comparison to prevent rerenders
+
+ParticleBackground.displayName = 'ParticleBackground';
