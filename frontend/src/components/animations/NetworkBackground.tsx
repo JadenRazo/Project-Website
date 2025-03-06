@@ -409,7 +409,7 @@ class NetworkController {
   }
 }
 
-export const NetworkBackground: React.FC = () => {
+export const NetworkBackground: React.FC = React.memo(() => {
   // Setup refs for canvas and animation controller
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const networkRef = useRef<NetworkController | null>(null);
@@ -652,6 +652,9 @@ export const NetworkBackground: React.FC = () => {
       )}
     </Container>
   );
-};
+});
+
+// Add the displayName for better debugging
+NetworkBackground.displayName = 'NetworkBackground';
 
 export default NetworkBackground;
