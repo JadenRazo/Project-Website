@@ -1,18 +1,29 @@
 // src/App.tsx
-import React, { useState, useEffect, useCallback, memo, useMemo, useRef } from 'react';
-import { ThemeProvider, useTheme } from './contexts/ThemeContext';
-import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { GlobalStyles } from './styles/GlobalStyles';
-import { NavigationBar } from './components/layout/NavigationBar';
+import React, { useEffect, useState, useRef, memo, useCallback, Suspense } from 'react';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import { 
+  BrowserRouter as Router, 
+  Routes, 
+  Route, 
+  useLocation, 
+  useNavigate 
+} from 'react-router-dom';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { Hero } from './components/sections/Hero';
+import { About } from './components/sections/About';
+import { ZIndexProvider, useZIndex } from './hooks/useZIndex';
+import { GlobalStyles } from './styles/GlobalStyles';
 import { Projects } from './components/sections/Projects';
+import type { Theme, ThemeMode } from './styles/theme.types';
 import { LoadingScreen } from './components/animations/LoadingScreen';
-import { NetworkBackground } from './components/animations/NetworkBackground';
+import { ScrollTransformBackground } from './components/animations/ScrollTransformBackground';
 import { ScrollIndicator } from './components/animations/ScrollIndicator';
 import { BurgerMenu } from './components/navigation/BurgerMenu';
 import { Layout } from './components/layout/Layout';
+import { SkillsSection } from './components/sections/SkillsSection';
+import { useTheme } from './contexts/ThemeContext';
 
-// === Types ===
+// Types
 interface Project {
   id: string;
   title: string;
@@ -22,57 +33,61 @@ interface Project {
   language: string;
 }
 
-// === Animation Variants ===
-const fadeVariants: Variants = {
-  initial: {
-    opacity: 0
-  },
-  animate: {
-    opacity: 1,
-    transition: {
-      duration: 0.5,
-      ease: 'easeOut'
+interface ScrollTransform {
+  type: 'opacity' | 'translateY' | 'translateX' | 'scale' | 'rotate';
+  target: string;
+  from: string;
+  to: string;
+  unit?: string;
+  easing?: string;
+}
+
+interface ScrollSection {
+  id: string;
+  startPercent: number;
+  endPercent: number;
+  transforms: ScrollTransform[];
+}
+
+interface ProjectsSectionProps {
+  themeMode: ThemeMode;
+}
+
+interface AppContentProps {
+  themeMode: ThemeMode;
+  toggleTheme: () => void;
+}
+
+// Enhanced animation variants with proper spring physics
+const ANIMATION_VARIANTS = {
+  pageTransition: {
+    initial: { opacity: 0, y: 20 },
+    animate: { 
+      opacity: 1, 
+      y: 0, 
+      transition: { 
+        type: 'spring', 
+        damping: 20, 
+        stiffness: 100
+      } 
+    },
+    exit: { 
+      opacity: 0, 
+      y: -20, 
+      transition: { 
+        type: 'spring', 
+        damping: 25, 
+        stiffness: 120
+      } 
     }
   },
-  exit: {
-    opacity: 0,
-    transition: {
-      duration: 0.3,
-      ease: 'easeIn'
-    }
+  staggerContainer: {
+    animate: { transition: { staggerChildren: 0.1 } }
   }
 };
 
-const slideUpVariants: Variants = {
-  initial: {
-    opacity: 0,
-    y: 20
-  },
-  animate: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.5,
-      ease: [0.645, 0.045, 0.355, 1]
-    }
-  },
-  exit: {
-    opacity: 0,
-    y: -20,
-    transition: {
-      duration: 0.3,
-      ease: [0.645, 0.045, 0.355, 1]
-    }
-  }
-};
-
-// === Constants ===
-const ANIMATION_VARIANTS = Object.freeze({
-  pageTransition: fadeVariants,
-  projectsSection: slideUpVariants
-});
-
-const PROJECTS_DATA: readonly Project[] = Object.freeze([
+// Sample projects data (you can replace with your actual data)
+const PROJECTS_DATA: Project[] = [
   {
     id: '1',
     title: "Project 1",
@@ -81,58 +96,15 @@ const PROJECTS_DATA: readonly Project[] = Object.freeze([
     link: "#",
     language: "JavaScript"
   },
-  {
-    id: '2',
-    title: "Project 2",
-    description: "This is the second project.",
-    image: "https://via.placeholder.com/300",
-    link: "#",
-    language: "Python"
-  },
-  {
-    id: '3',
-    title: "Project 3",
-    description: "This is the third project.",
-    image: "https://via.placeholder.com/300",
-    link: "#",
-    language: "Java"
-  },
-  {
-    id: '4',
-    title: "Project 4",
-    description: "This is the fourth project.",
-    image: "https://via.placeholder.com/300",
-    link: "#",
-    language: "JavaScript"
-  }
-]);
+  // ... other projects
+];
 
-const LANGUAGES: readonly string[] = Object.freeze(['All', 'JavaScript', 'Python', 'Java']);
+const LANGUAGES = Object.freeze(['All', 'JavaScript', 'Python', 'Java']);
 
-// Completely isolated background component that never rerenders
-// This is a critical optimization for animation-heavy components
-const BackgroundLayer = memo(() => {
-  // Using useRef to ensure this component never needs to rerender
-  const mountedRef = useRef(true);
-  
-  return (
-    <div className="background-layer" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: -1 }}>
-      <NetworkBackground />
-    </div>
-  );
-});
-
-BackgroundLayer.displayName = 'BackgroundLayer';
-
-// Create a completely isolated project filter state container
-// This prevents filter state changes from affecting other components
-const ProjectsSection: React.FC<{
-  themeMode: string;
-}> = memo(({ themeMode }) => {
-  // Filter state is contained entirely within this component
+// ProjectsSection component with isolated state
+const ProjectsSection = memo<ProjectsSectionProps>(({ themeMode }) => {
   const [selectedLanguage, setSelectedLanguage] = useState<string>('All');
   
-  // Filter handler doesn't affect parent components
   const handleLanguageSelect = useCallback((language: string) => {
     setSelectedLanguage(language);
   }, []);
@@ -149,123 +121,395 @@ const ProjectsSection: React.FC<{
 
 ProjectsSection.displayName = 'ProjectsSection';
 
-// Main UI content excluding background animations
-const AppContent: React.FC<{
-  themeMode: string;
-  toggleTheme: () => void;
-}> = memo(({ themeMode, toggleTheme }) => {
+// Section observer hook to track visible sections
+const useSectionObserver = (sectionIds: string[]) => {
+  const [activeSection, setActiveSection] = useState<string>(sectionIds[0]);
+  
+  useEffect(() => {
+    const observerOptions = {
+      root: null,
+      rootMargin: '-10% 0px -90% 0px',
+      threshold: 0
+    };
+    
+    const handleIntersect = (entries: IntersectionObserverEntry[]) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setActiveSection(entry.target.id);
+        }
+      });
+    };
+    
+    const observer = new IntersectionObserver(handleIntersect, observerOptions);
+    
+    sectionIds.forEach((id) => {
+      const element = document.getElementById(id);
+      if (element) observer.observe(element);
+    });
+    
+    return () => observer.disconnect();
+  }, [sectionIds]);
+  
+  return activeSection;
+};
+
+// Scroll controls hook for manual navigation
+const useScrollControls = () => {
+  const scrollToSection = useCallback((sectionId: string) => {
+    const section = document.getElementById(sectionId);
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, []);
+  
+  return { scrollToSection };
+};
+
+// Main App Content component with route handling
+const AppContent = memo<AppContentProps>(({ themeMode, toggleTheme }) => {
+  const location = useLocation();
+  const { scrollY } = useScroll();
+  const sections = ['hero', 'skills', 'projects', 'about'];
+  const activeSection = useSectionObserver(sections);
+  const { scrollToSection } = useScrollControls();
+  
+  // Sync URL with active section
+  useEffect(() => {
+    if (location.pathname === '/' && activeSection && activeSection !== 'hero') {
+      window.history.replaceState(null, '', `#${activeSection}`);
+    }
+  }, [activeSection, location.pathname]);
+  
+  // Handle direct navigation from URL hash
+  useEffect(() => {
+    if (location.hash) {
+      const sectionId = location.hash.substring(1);
+      if (sections.includes(sectionId)) {
+        setTimeout(() => scrollToSection(sectionId), 100);
+      }
+    }
+  }, [location.hash, scrollToSection, sections]);
+  
+  // Parallax scroll effect for background
+  const backgroundY = useTransform(scrollY, [0, 1000], [0, -200]);
+  
   return (
     <motion.div 
-      className="app-content"
+      className="app-content content-wrapper"
       variants={ANIMATION_VARIANTS.pageTransition}
       initial="initial"
       animate="animate"
       exit="exit"
     >
-      <NavigationBar 
-        isDarkMode={themeMode === 'dark'}
-        toggleTheme={toggleTheme}
+      <motion.div 
+        className="parallax-background"
+        style={{ y: backgroundY }}
       />
-      <Hero />
-      <ScrollIndicator targetId="projects" showAboveFold={true} offset={80} />
-      <ProjectsSection themeMode={themeMode} />
-      <BurgerMenu />
+      
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={
+            <>
+              <section id="hero" className="section">
+                <Hero />
+                <ScrollIndicator 
+                  targetId="skills" 
+                  offset={80} 
+                  showAboveFold={true} 
+                />
+              </section>
+              
+              <section id="skills" className="section content-section">
+                <SkillsSection />
+              </section>
+              
+              <section id="projects" className="section content-section">
+                <ProjectsSection themeMode={themeMode} />
+              </section>
+              
+              <section id="about" className="section content-section">
+                <About />
+              </section>
+            </>
+          } />
+          <Route path="/projects" element={<ProjectsSection themeMode={themeMode} />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/skills" element={<SkillsSection />} />
+        </Routes>
+      </AnimatePresence>
+      
+      <BurgerMenu 
+        activeSection={activeSection} 
+        toggleTheme={toggleTheme}
+        themeMode={themeMode} 
+        onNavigate={scrollToSection}
+      />
     </motion.div>
   );
 });
 
 AppContent.displayName = 'AppContent';
 
-/**
- * Main content component that handles the application state and UI
- */
-const MainContent: React.FC = () => {
-  // Get theme context
-  const { theme, themeMode, toggleTheme } = useTheme();
+// Progress indicator component
+const ProgressIndicator = () => {
+  const { scrollYProgress } = useScroll();
   
-  // State
+  return (
+    <motion.div 
+      className="progress-bar"
+      style={{ 
+        scaleX: scrollYProgress,
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: '3px',
+        background: 'linear-gradient(90deg, #6c63ff, #ff6b6b)',
+        transformOrigin: '0%',
+        zIndex: 1000
+      }} 
+    />
+  );
+};
+
+// Custom scroll transform sections
+const getScrollSections = (): ScrollSection[] => [
+  {
+    id: 'hero-reveal',
+    startPercent: 0,
+    endPercent: 0.15,
+    transforms: [
+      {
+        type: 'opacity',
+        target: '#hero .hero-title',
+        from: '0',
+        to: '1',
+        easing: 'easeOut'
+      },
+      {
+        type: 'translateY',
+        target: '#hero .hero-subtitle',
+        from: '30',
+        to: '0',
+        unit: 'px',
+        easing: 'easeOut'
+      }
+    ]
+  },
+  {
+    id: 'skills-animation',
+    startPercent: 0.1,
+    endPercent: 0.3,
+    transforms: [
+      {
+        type: 'opacity',
+        target: '#skills .skill-item',
+        from: '0',
+        to: '1'
+      },
+      {
+        type: 'translateX',
+        target: '#skills .skill-item:nth-child(odd)',
+        from: '-50',
+        to: '0',
+        unit: 'px'
+      },
+      {
+        type: 'translateX',
+        target: '#skills .skill-item:nth-child(even)',
+        from: '50',
+        to: '0',
+        unit: 'px'
+      }
+    ]
+  },
+  {
+    id: 'projects-reveal',
+    startPercent: 0.25,
+    endPercent: 0.5,
+    transforms: [
+      {
+        type: 'opacity',
+        target: '#projects .section-title',
+        from: '0',
+        to: '1'
+      },
+      {
+        type: 'translateY',
+        target: '#projects .project-card',
+        from: '50',
+        to: '0',
+        unit: 'px'
+      }
+    ]
+  }
+];
+
+// Asset preloader function
+const preloadAssets = (assets: string[]): Promise<void[]> => {
+  return Promise.all(
+    assets.map(src => {
+      return new Promise<void>((resolve, reject) => {
+        if (src.match(/\.(jpe?g|png|gif|svg|webp)$/i)) {
+          const img = new Image();
+          img.src = src;
+          img.onload = () => resolve();
+          img.onerror = () => {
+            console.warn(`Failed to preload image: ${src}`);
+            resolve(); // Resolve anyway to not block loading
+          };
+        } else {
+          resolve();
+        }
+      });
+    })
+  );
+};
+
+// Main content with loading screen
+const MainContent = () => {
+  const { theme, themeMode, toggleTheme } = useTheme();
+  const { zIndex } = useZIndex();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [mounted, setMounted] = useState<boolean>(false);
+  const [showDebug, setShowDebug] = useState<boolean>(false);
+  const [initialLoadComplete, setInitialLoadComplete] = useState<boolean>(false);
+  const scrollSections = getScrollSections();
 
-  // Effects
+  // Debug panel keyboard shortcut
   useEffect(() => {
-    setMounted(true);
-    const timer = setTimeout(() => setIsLoading(false), 2000);
-    return () => clearTimeout(timer);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey && e.key === 'd') {
+        setShowDebug(prev => !prev);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // No hooks after this point, so conditional returns are safe now
+  // Initial loading sequence
+  useEffect(() => {
+    setMounted(true);
+    
+    // Critical assets to preload
+    const criticalAssets: string[] = [
+      // Add paths to your critical images here
+    ];
+    
+    // Minimum loading time combined with asset preloading
+    const minLoadingTime = new Promise<void>(resolve => {
+      const timeoutId = setTimeout(() => resolve(), 1500);
+      return () => clearTimeout(timeoutId);
+    });
+    
+    Promise.all([
+      preloadAssets(criticalAssets),
+      minLoadingTime
+    ])
+      .then(() => {
+        setIsLoading(false);
+        const timeoutId = setTimeout(() => setInitialLoadComplete(true), 1000);
+        return () => clearTimeout(timeoutId);
+      })
+      .catch(err => {
+        console.error('Failed during loading sequence:', err);
+        setIsLoading(false);
+        const timeoutId = setTimeout(() => setInitialLoadComplete(true), 1000);
+        return () => clearTimeout(timeoutId);
+      });
+  }, []);
+
   if (!mounted) return null;
 
   return (
     <Layout>
       <GlobalStyles theme={theme} />
-      {/* BackgroundLayer rendered once and never rerenders */}
-      <BackgroundLayer />
       
-      <LoadingScreen 
-        isLoading={isLoading}
-        template="profile"
-        fullScreen={true}
-      >
-        <AnimatePresence mode="wait">
-          <motion.div
-            key="content"
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            variants={ANIMATION_VARIANTS.pageTransition}
-          >
+      <div className="app-container" style={{ position: 'relative' }}>
+        <ScrollTransformBackground 
+          showDebug={showDebug} 
+          customSections={scrollSections}
+          enableFloatingOrbs={true}
+        />
+        
+        {initialLoadComplete && <ProgressIndicator />}
+        
+        <LoadingScreen 
+          isLoading={isLoading}
+          template="profile"
+          fullScreen={true}
+          backgroundColor={theme.colors.background}
+        >
+          <Suspense fallback={<div>Loading component...</div>}>
             <AppContent 
               themeMode={themeMode}
               toggleTheme={toggleTheme}
             />
-          </motion.div>
-        </AnimatePresence>
-      </LoadingScreen>
+          </Suspense>
+        </LoadingScreen>
+      </div>
     </Layout>
   );
 };
 
-/**
- * Root App component that provides theme context
- */
-const App: React.FC = () => {
-  return (
-    <ThemeProvider>
-      <ErrorBoundary>
-        <MainContent />
-      </ErrorBoundary>
-    </ThemeProvider>
-  );
-};
-
-/**
- * Error boundary to catch rendering errors
- */
+// Enhanced Error boundary with better UX
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
-  { hasError: boolean }
+  { hasError: boolean; errorInfo: string }
 > {
   constructor(props: { children: React.ReactNode }) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, errorInfo: '' };
   }
 
-  static getDerivedStateFromError(): { hasError: boolean } {
+  static getDerivedStateFromError(error: Error) {
     return { hasError: true };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
-    console.error('Error caught by ErrorBoundary:', error, errorInfo);
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error("Error caught by boundary:", error, errorInfo);
+    this.setState({ errorInfo: errorInfo.componentStack || 'Unknown component error' });
   }
 
-  render(): React.ReactNode {
+  render() {
     if (this.state.hasError) {
       return (
-        <div className="error-boundary">
-          <h1>Something went wrong.</h1>
-          <p>Please refresh the page or try again later.</p>
+        <div className="error-container" style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100vh',
+          padding: '20px',
+          background: '#121212',
+          color: '#fff'
+        }}>
+          <h2>Something went wrong</h2>
+          <p>An unexpected error occurred while rendering the application.</p>
+          <button 
+            onClick={() => window.location.reload()}
+            style={{
+              background: 'linear-gradient(135deg, #6c63ff, #ff6b6b)',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '4px',
+              color: 'white',
+              fontSize: '16px',
+              cursor: 'pointer',
+              marginTop: '20px'
+            }}
+          >
+            Refresh Page
+          </button>
+          {process.env.NODE_ENV === 'development' && (
+            <details style={{ marginTop: '20px', maxWidth: '800px', overflow: 'auto' }}>
+              <summary>Error Details</summary>
+              <pre style={{ whiteSpace: 'pre-wrap', textAlign: 'left' }}>
+                {this.state.errorInfo}
+              </pre>
+            </details>
+          )}
         </div>
       );
     }
@@ -273,5 +517,20 @@ class ErrorBoundary extends React.Component<
     return this.props.children;
   }
 }
+
+// Root App component with providers
+const App = () => {
+  return (
+    <Router>
+      <ThemeProvider>
+        <ZIndexProvider>
+          <ErrorBoundary>
+            <MainContent />
+          </ErrorBoundary>
+        </ZIndexProvider>
+      </ThemeProvider>
+    </Router>
+  );
+};
 
 export default App;

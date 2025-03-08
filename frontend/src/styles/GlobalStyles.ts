@@ -1,122 +1,169 @@
 // src/styles/GlobalStyles.ts
-import { createGlobalStyle, DefaultTheme } from 'styled-components';
-import { Theme } from './theme.types';
+import { createGlobalStyle } from 'styled-components';
 
-export const GlobalStyles = createGlobalStyle<{ theme: Theme }>`
+export const GlobalStyles = createGlobalStyle`
   :root {
-    /* Colors */
-    --background: ${({ theme }) => theme.colors.background};
-    --background-alt: ${({ theme }) => theme.colors.backgroundAlt};
-    --text: ${({ theme }) => theme.colors.text};
     --primary: ${({ theme }) => theme.colors.primary};
-    --primary-light: ${({ theme }) => theme.colors.primaryLight};
-    --primary-hover: ${({ theme }) => theme.colors.primaryHover};
+    --background: ${({ theme }) => theme.colors.background};
+    --text: ${({ theme }) => theme.colors.text};
     --secondary: ${({ theme }) => theme.colors.secondary};
     --accent: ${({ theme }) => theme.colors.accent};
-    --surface-light: ${({ theme }) => theme.colors.surfaceLight};
-    --surface-medium: ${({ theme }) => theme.colors.surfaceMedium};
-    --surface-dark: ${({ theme }) => theme.colors.surfaceDark};
-    --error: ${({ theme }) => theme.colors.error};
-    --success: ${({ theme }) => theme.colors.success};
-    --warning: ${({ theme }) => theme.colors.warning};
-
-    /* Effects */
-    --gradient: ${({ theme }) => theme.effects.gradient};
-    --glass-effect: ${({ theme }) => theme.effects.glassEffect};
-    --shadow: ${({ theme }) => theme.effects.shadow};
-
-    /* Layout */
-    --border-radius: 8px;
-    --nav-height: 100px;
-    --transition: all 0.25s cubic-bezier(0.645, 0.045, 0.355, 1);
-
-    /* Typography */
-    --font-mono: ${({ theme }) => theme.fonts.mono};
-    --font-primary: ${({ theme }) => theme.fonts.primary};
-    --font-sans: ${({ theme }) => theme.fonts.sans};
+    
+    /* Z-index layers */
+    --z-background: -5;
+    --z-content-base: 10;
+    --z-scroll-indicator: 15;
+    --z-navigation: 20;
+    --z-modal: 50;
+    --z-toast: 100;
+    --z-loading-screen: 1000;
   }
 
   * {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
   }
 
-  html {
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+    height: 100%;
+    position: relative;
     scroll-behavior: smooth;
-    font-size: 16px;
-    -webkit-text-size-adjust: 100%;
-  }
-
-  body {
-    background-color: var(--background);
-    color: var(--text);
-    font-family: var(--font-sans);
-    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  .app {
+  body {
+    background-color: ${({ theme }) => theme.colors.background};
+    color: ${({ theme }) => theme.colors.text};
+    font-family: ${({ theme }) => theme.fonts.sans};
+    line-height: 1.6;
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    /* Force a new stacking context at the body level */
+    isolation: isolate;
+  }
+
+  #root {
+    position: relative;
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+    /* Create a stacking context at the root level */
+    isolation: isolate;
+    z-index: 0;
   }
 
-  .app-content {
+  /* Animation background container */
+  .animation-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: var(--z-background);
+    pointer-events: none;
+    will-change: transform;
+  }
+
+  /* Content layering */
+  .content-wrapper {
     position: relative;
-    z-index: 1;
-    flex: 1;
-    width: 100%;
+    z-index: var(--z-content-base);
+    isolation: isolate;
   }
 
-  .container {
+  /* Page wrapper for smooth transitions */
+  .page-transition-wrapper {
     position: relative;
-    z-index: 2;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 2rem;
     width: 100%;
+    overflow-x: hidden;
+    z-index: var(--z-content-base);
   }
 
-  /* Form Elements */
-  button, 
-  input, 
-  textarea {
-    font-family: var(--font-primary);
+  /* Hero section should appear above scroll indicator */
+  section.hero {
+    position: relative;
+    z-index: var(--z-navigation);
   }
 
-  /* Accessibility */
-  @media (prefers-reduced-motion: reduce) {
-    * {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-      scroll-behavior: auto !important;
+  /* Projects section should appear below scroll indicator */
+  section#projects {
+    position: relative;
+    z-index: calc(var(--z-scroll-indicator) - 1);
+  }
+
+  /* Navigation elements */
+  nav, header {
+    position: relative;
+    z-index: var(--z-navigation);
+  }
+
+  /* Reset for potentially problematic elements */
+  canvas {
+    display: block;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: ${({ theme }) => theme.fonts.primary};
+    font-weight: bold;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    margin-bottom: 1rem;
+  }
+
+  a {
+    color: ${({ theme }) => theme.colors.primary};
+    text-decoration: none;
+    transition: color 0.3s ease;
+
+    &:hover {
+      color: ${({ theme }) => theme.colors.secondary};
     }
   }
 
-  /* Selection */
-  ::selection {
-    background-color: var(--primary-light);
-    color: var(--text);
+  img {
+    max-width: 100%;
+    height: auto;
   }
 
-  /* Scrollbar */
-  ::-webkit-scrollbar {
-    width: 8px;
+  button {
+    cursor: pointer;
+    font-family: ${({ theme }) => theme.fonts.sans};
   }
 
-  ::-webkit-scrollbar-track {
-    background: var(--background-alt);
+  /* Fix for iOS fixed positioning */
+  @supports (-webkit-touch-callout: none) {
+    .fixed-background {
+      background-attachment: scroll;
+    }
   }
 
-  ::-webkit-scrollbar-thumb {
-    background: var(--primary-light);
-    border-radius: 4px;
-  }
+  /* Fix for scrollbar inconsistencies */
+  @media screen and (min-width: 768px) {
+    html {
+      scrollbar-width: thin;
+      scrollbar-color: ${({ theme }) => theme.colors.secondary} ${({ theme }) => theme.colors.background};
+    }
 
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--primary);
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: ${({ theme }) => theme.colors.background};
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background-color: ${({ theme }) => theme.colors.secondary};
+      border-radius: 4px;
+    }
   }
 `;
+
+export default GlobalStyles;
