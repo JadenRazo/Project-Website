@@ -1,9 +1,9 @@
 // src/components/navigation/BurgerMenu.tsx
 import React, { useState, useEffect, useCallback, useRef, memo } from 'react';
-import styled, { css, keyframes, useTheme as useStyledTheme } from 'styled-components';
+import styled, { css, keyframes } from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../contexts/ThemeContext';
-import { useClickOutside } from '../../hooks/useClickOutside';
+import type { ThemeMode } from '../../styles/theme.types';
 
 // Types and Interfaces
 interface MenuItem {
@@ -16,10 +16,15 @@ interface MenuItem {
 
 interface BurgerMenuProps {
   className?: string;
+  activeSection: string;
+  toggleTheme: () => void;
+  themeMode: ThemeMode;
+  onNavigate: (sectionId: string) => void;
 }
 
 interface MenuItemProps extends MenuItem {
   onClick: () => void;
+  isActive?: boolean;
   children: React.ReactNode;
 }
 
@@ -93,6 +98,12 @@ const Icons = {
   Moon: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+    </svg>
+  ),
+  Skills: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
     </svg>
   )
 };
@@ -247,7 +258,7 @@ const MenuContainer = styled(motion.div)`
   }
 `;
 
-const MenuLink = styled(motion.a)`
+const MenuLink = styled(motion.a)<{ isActive?: boolean }>`
   display: flex;
   align-items: center;
   padding: 1rem;
@@ -255,8 +266,10 @@ const MenuLink = styled(motion.a)`
   text-decoration: none;
   font-size: 1rem;
   font-weight: 500;
-  background: ${({ theme }) => theme.colors.primaryLight};
-  color: ${({ theme }) => theme.colors.primary};
+  background: ${({ theme, isActive }) => 
+    isActive ? theme.colors.primary : theme.colors.primaryLight};
+  color: ${({ theme, isActive }) => 
+    isActive ? '#ffffff' : theme.colors.primary};
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
 
@@ -270,17 +283,19 @@ const MenuLink = styled(motion.a)`
     &::after {
       content: '';
       position: absolute;
-      width: 0;
+      width: ${({ isActive }) => isActive ? '100%' : '0'};
       height: 2px;
       bottom: -2px;
       left: 0;
-      background: ${({ theme }) => theme.colors.primary};
+      background: ${({ theme, isActive }) => 
+        isActive ? '#ffffff' : theme.colors.primary};
       transition: width 0.3s ease;
     }
   }
 
   &:hover {
-    background: ${({ theme }) => theme.colors.primaryHover};
+    background: ${({ theme, isActive }) => 
+      isActive ? theme.colors.primary : theme.colors.primaryHover};
     transform: translateY(-2px);
 
     span::after {
@@ -350,44 +365,40 @@ class MenuErrorBoundary extends React.Component<{ children: React.ReactNode }, {
 // Define menu items with proper typing
 const MENU_ITEMS: MenuItem[] = [
   { 
-    href: '#home',
+    href: '#hero',
     icon: Icons.Home,
     label: 'Home',
-    delay: 0.1,
-    isExternal: false
+    delay: 0.1
+  },
+  { 
+    href: '#skills',
+    icon: Icons.Skills,
+    label: 'Skills',
+    delay: 0.2
   },
   { 
     href: '#projects',
     icon: Icons.Projects,
     label: 'Projects',
-    delay: 0.2,
-    isExternal: false
+    delay: 0.3
   },
   { 
     href: '#about',
     icon: Icons.About,
     label: 'About',
-    delay: 0.3,
-    isExternal: false
-  },
-  { 
-    href: '#contact',
-    icon: Icons.Contact,
-    label: 'Contact',
-    delay: 0.4,
-    isExternal: false
-  },
-  { 
-    href: '#resume',
-    icon: Icons.Resume,
-    label: 'Resume',
-    delay: 0.5,
-    isExternal: false
+    delay: 0.4
   },
   { 
     href: 'https://linkedin.com/in/jadenrazo',
     icon: Icons.LinkedIn,
     label: 'LinkedIn',
+    delay: 0.5,
+    isExternal: true
+  },
+  { 
+    href: '/resume.pdf',
+    icon: Icons.Resume,
+    label: 'Resume',
     delay: 0.6,
     isExternal: true
   }
@@ -400,22 +411,15 @@ const MenuItemComponent: React.FC<MenuItemProps> = ({
   icon, 
   children, 
   onClick, 
-  isExternal 
+  isExternal,
+  isActive
 }) => {
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     try {
       if (isExternal) {
-        return;
+        return; // Let browser handle external links
       }
       e.preventDefault();
-      const element = document.querySelector(href);
-      if (!element) {
-        throw new NavigationError(`Element with selector "${href}" not found`);
-      }
-      element.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'start' 
-      });
       onClick();
     } catch (error) {
       console.error('Navigation error:', error);
@@ -436,6 +440,7 @@ const MenuItemComponent: React.FC<MenuItemProps> = ({
       whileTap={{ scale: 0.98 }}
       target={isExternal ? "_blank" : undefined}
       rel={isExternal ? "noopener noreferrer" : undefined}
+      isActive={isActive}
     >
       {icon}
       <span>{children}</span>
@@ -446,22 +451,50 @@ const MenuItemComponent: React.FC<MenuItemProps> = ({
 // Memoize the MenuItem component to prevent unnecessary re-renders
 const MenuItem = memo(MenuItemComponent);
 
-// Manual implementation of click outside logic without the hook
-const useManualClickOutside = <T extends HTMLElement>(
-  ref: React.RefObject<T>,
-  buttonRef: React.RefObject<HTMLElement>,
-  isOpen: boolean,
-  closeMenu: () => void
-) => {
+// Main BurgerMenu component with error boundary
+export const BurgerMenu: React.FC<BurgerMenuProps> = ({ 
+  className,
+  activeSection,
+  toggleTheme: externalToggleTheme,
+  themeMode: externalThemeMode,
+  onNavigate
+}) => {
+  // Use provided props with context as fallback
+  const themeContext = useTheme();
+  const finalThemeMode = externalThemeMode || themeContext.themeMode;
+  const finalToggleTheme = externalToggleTheme || themeContext.toggleTheme;
+  
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const isDarkMode = finalThemeMode === 'dark';
+
+  const closeMenu = useCallback(() => {
+    setIsOpen(false);
+  }, []);
+
+  // Handle navigation for menu items
+  const handleItemClick = useCallback((href: string, isExternal: boolean = false) => {
+    if (isExternal) return;
+    
+    try {
+      const sectionId = href.replace('#', '');
+      onNavigate(sectionId);
+      closeMenu();
+    } catch (error) {
+      console.error('Navigation error:', error);
+    }
+  }, [onNavigate, closeMenu]);
+
+  // Manual click outside logic
   useEffect(() => {
-    // Return early if not open - no need to add listeners
     if (!isOpen) return;
     
     const handleClickOutside = (event: MouseEvent) => {
-      // Check if the click was outside both the menu and the button
       if (
-        ref.current && 
-        !ref.current.contains(event.target as Node) && 
+        menuRef.current && 
+        !menuRef.current.contains(event.target as Node) && 
         buttonRef.current && 
         !buttonRef.current.contains(event.target as Node)
       ) {
@@ -474,25 +507,9 @@ const useManualClickOutside = <T extends HTMLElement>(
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [ref, buttonRef, isOpen, closeMenu]);
-};
+  }, [isOpen, closeMenu]);
 
-// Main BurgerMenu component with error boundary
-export const BurgerMenu: React.FC<BurgerMenuProps> = ({ className }) => {
-  const { themeMode, toggleTheme } = useTheme();
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const isDarkMode = themeMode === 'dark';
-
-  const closeMenu = useCallback(() => {
-    setIsOpen(false);
-  }, []);
-
-  // Use manual click outside logic instead of the hook to avoid TypeScript errors
-  useManualClickOutside(menuRef, buttonRef, isOpen, closeMenu);
-
+  // Keyboard handler for ESC key and prevent scrolling when menu is open
   useEffect(() => {
     if (!isOpen) return;
 
@@ -514,10 +531,8 @@ export const BurgerMenu: React.FC<BurgerMenuProps> = ({ className }) => {
     }
   }, [isOpen, closeMenu]);
 
-  // Log to debug if the component is rendering
+  // Initialize pulse animation CSS variables
   useEffect(() => {
-    console.log('BurgerMenu component rendered');
-    
     // Additional setup for the pulse animation
     const root = document.documentElement;
     const primaryColor = getComputedStyle(document.body).getPropertyValue('--primary-color') || '#0078ff';
@@ -561,6 +576,7 @@ export const BurgerMenu: React.FC<BurgerMenuProps> = ({ className }) => {
         aria-label={isOpen ? "Close menu" : "Open menu"}
         aria-expanded={isOpen}
         role="button"
+        className={className}
       >
         {Array(3).fill(null).map((_, i) => (
           <BurgerLine
@@ -604,7 +620,8 @@ export const BurgerMenu: React.FC<BurgerMenuProps> = ({ className }) => {
                   <MenuItem
                     key={item.href}
                     {...item}
-                    onClick={closeMenu}
+                    onClick={() => handleItemClick(item.href, item.isExternal)}
+                    isActive={!item.isExternal && item.href.replace('#', '') === activeSection}
                   >
                     {item.label}
                   </MenuItem>
@@ -613,7 +630,7 @@ export const BurgerMenu: React.FC<BurgerMenuProps> = ({ className }) => {
 
               <ThemeToggle
                 onClick={() => {
-                  toggleTheme();
+                  finalToggleTheme();
                   closeMenu();
                 }}
                 whileHover={{ scale: 1.05 }}
