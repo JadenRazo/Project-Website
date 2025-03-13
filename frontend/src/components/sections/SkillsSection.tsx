@@ -1,6 +1,7 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import styled from 'styled-components';
-import { motion, useAnimation, useInView, Variants } from 'framer-motion';
+import { motion, useAnimation, AnimatePresence, Variants } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useZIndex } from '../../hooks/useZIndex';
 
@@ -41,20 +42,33 @@ interface Skill {
   color: string;
 }
 
-const SkillsSectionContainer = styled.div`
+const SkillsSectionContainer = styled.section`
   position: relative;
   width: 100%;
   padding: 6rem 2rem;
+  min-height: 100vh;
+  overflow-x: hidden;
   
   @media (min-width: 768px) {
     padding: 8rem 4rem;
   }
 `;
 
+const ContentWrapper = styled(motion.div)`
+  max-width: 1400px;
+  margin: 0 auto;
+  will-change: opacity, transform;
+`;
+
+const SectionHeader = styled(motion.div)`
+  margin-bottom: 3.5rem;
+  position: relative;
+`;
+
 const SectionTitle = styled(motion.h2)`
   font-size: 2.5rem;
   font-weight: 700;
-  margin-bottom: 4rem;
+  margin-bottom: 1.5rem;
   position: relative;
   display: inline-block;
   
@@ -67,6 +81,14 @@ const SectionTitle = styled(motion.h2)`
     width: 60%;
     background: ${({ theme }) => theme.colors.accent};
   }
+`;
+
+const SectionDescription = styled(motion.p)`
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: ${({ theme }) => theme.colors.textSecondary || theme.colors.text};
+  max-width: 800px;
+  opacity: 0.9;
 `;
 
 const SkillsGrid = styled(motion.div)`
@@ -87,7 +109,10 @@ const SkillCard = styled(motion.div)`
   height: 100%;
   display: flex;
   flex-direction: column;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+  will-change: transform, box-shadow;
   
   &:hover {
     transform: translateY(-8px);
@@ -126,7 +151,7 @@ const SkillLevel = styled.div`
 const ProgressBar = styled.div`
   height: 6px;
   width: 100%;
-  background: ${({ theme }) => theme.colors.surfaceLight};
+  background: ${({ theme }) => theme.colors.surfaceLight || 'rgba(255, 255, 255, 0.1)'};
   border-radius: 3px;
   overflow: hidden;
   margin-top: 0.5rem;
@@ -137,6 +162,7 @@ const Progress = styled(motion.div)<{ level: number; color: string }>`
   width: ${props => props.level}%;
   background: ${props => props.color};
   border-radius: 3px;
+  transform-origin: left center;
 `;
 
 const SkillDescription = styled.p`
@@ -165,74 +191,194 @@ const ProjectTags = styled.div`
   gap: 0.5rem;
 `;
 
-const ProjectTag = styled(motion.span)<{ color: string }>`
+const ProjectTag = styled.span<{ color: string }>`
   font-size: 0.75rem;
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
   background: ${props => props.color}15;
   color: ${props => props.color};
-  transition: background 0.2s ease;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+  transform: translateZ(0);
+  cursor: pointer;
   
   &:hover {
     background: ${props => props.color}30;
+    transform: translateY(-2px);
   }
 `;
-
-const animationVariants: Record<string, Variants> = {
-  title: {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0, 
-      transition: { duration: 0.6, ease: [0.23, 1, 0.32, 1] } 
-    }
-  },
-  container: {
-    hidden: { opacity: 0 },
-    visible: { 
-      opacity: 1, 
-      transition: { staggerChildren: 0.1, delayChildren: 0.3 } 
-    }
-  },
-  skill: {
-    hidden: { opacity: 0, y: 30 },
-    visible: { 
-      opacity: 1, 
-      y: 0, 
-      transition: { duration: 0.5, ease: [0.23, 1, 0.32, 1] } 
-    }
-  },
-  progress: {
-    hidden: { width: 0 },
-    visible: (level: number) => ({ 
-      width: `${level}%`, 
-      transition: { duration: 1, ease: [0.23, 1, 0.32, 1], delay: 0.2 } 
-    })
-  },
-  tag: {
-    hidden: { opacity: 0, scale: 0.8 },
-    visible: { 
-      opacity: 1, 
-      scale: 1, 
-      transition: { duration: 0.3, ease: [0.23, 1, 0.32, 1] } 
-    }
-  }
-};
 
 export const SkillsSection: React.FC = () => {
   const { theme } = useTheme();
   const { zIndex } = useZIndex();
   
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(sectionRef, { once: false, amount: 0.2 });
+  // Optimized animation configuration for faster animations
+  const animationConfig = useMemo(() => ({
+    staggerChildren: 0.05, // Reduced from 0.1 for faster sequence
+    childrenDelay: 0.08, // Reduced from 0.15 for faster initial delay
+    duration: {
+      enter: 0.5, // Reduced from 0.7 for faster entrance
+      exit: 0.3 // Reduced from 0.5 for faster exit
+    },
+    threshold: 0.1, // Slightly reduced for earlier triggering
+    rootMargin: "-5% 0px -5% 0px" // Adjusted for earlier triggering
+  }), []);
+  
+  // InView hook with optimized threshold
+  const [sectionRef, inView] = useInView({
+    threshold: animationConfig.threshold,
+    rootMargin: animationConfig.rootMargin,
+    triggerOnce: false
+  });
+  
+  // Animation controls
   const controls = useAnimation();
   
-  useEffect(() => {
-    if (isInView) {
-      controls.start('visible');
+  // Animation state
+  const [hasAnimated, setHasAnimated] = useState(false);
+  
+  // Optimized animation variants with faster transitions
+  const variants: Record<string, Variants> = useMemo(() => ({
+    section: {
+      hidden: { opacity: 0 },
+      visible: { 
+        opacity: 1,
+        transition: { 
+          when: "beforeChildren",
+          staggerChildren: animationConfig.staggerChildren,
+          duration: animationConfig.duration.enter * 0.8, // Even faster for container
+          ease: [0.16, 1, 0.3, 1] // Snappier easing
+        }
+      },
+      exit: {
+        opacity: 0,
+        transition: {
+          when: "afterChildren",
+          staggerChildren: animationConfig.staggerChildren / 2,
+          staggerDirection: -1,
+          duration: animationConfig.duration.exit,
+          ease: [0.43, 0.13, 0.23, 0.96]
+        }
+      }
+    },
+    title: {
+      hidden: { 
+        opacity: 0, 
+        y: 15 // Reduced from 20 for less movement
+      },
+      visible: { 
+        opacity: 1, 
+        y: 0,
+        transition: { 
+          duration: animationConfig.duration.enter * 0.8, // Faster title animation
+          ease: [0.16, 1, 0.3, 1] // Snappier easing
+        }
+      },
+      exit: {
+        opacity: 0,
+        y: 5, // Reduced from 10 for less movement
+        transition: {
+          duration: animationConfig.duration.exit,
+          ease: [0.43, 0.13, 0.23, 0.96]
+        }
+      }
+    },
+    description: {
+      hidden: { 
+        opacity: 0, 
+        y: 15 // Reduced from 20 for less movement
+      },
+      visible: { 
+        opacity: 1, 
+        y: 0,
+        transition: { 
+          duration: animationConfig.duration.enter * 0.8, // Faster description animation
+          delay: animationConfig.childrenDelay / 2,
+          ease: [0.16, 1, 0.3, 1] // Snappier easing
+        }
+      },
+      exit: {
+        opacity: 0,
+        y: 5, // Reduced from 10 for less movement
+        transition: {
+          duration: animationConfig.duration.exit,
+          ease: [0.43, 0.13, 0.23, 0.96]
+        }
+      }
+    },
+    card: {
+      hidden: { 
+        opacity: 0, 
+        y: 20, // Reduced from 30 for less movement
+        scale: 0.98 // Closer to final scale for faster visual appearance
+      },
+      visible: (index: number) => ({ 
+        opacity: 1, 
+        y: 0,
+        scale: 1,
+        transition: { 
+          duration: animationConfig.duration.enter * 0.8, // Faster card animation
+          delay: animationConfig.childrenDelay + (index * 0.05), // Reduced from 0.08 for faster staggering
+          ease: [0.16, 1, 0.3, 1] // Snappier easing
+        }
+      }),
+      exit: {
+        opacity: 0,
+        y: 10, // Reduced from 20 for less movement
+        scale: 0.98,
+        transition: {
+          duration: animationConfig.duration.exit,
+          ease: [0.43, 0.13, 0.23, 0.96]
+        }
+      }
+    },
+    progress: {
+      hidden: { 
+        scaleX: 0,
+        originX: 0
+      },
+      visible: (index: number) => ({ 
+        scaleX: 1,
+        transition: { 
+          duration: 0.8, // Reduced from 1.2 for faster progress animation
+          delay: animationConfig.childrenDelay + (index * 0.05) + 0.1, // Reduced delays
+          ease: [0.16, 1, 0.3, 1] // Snappier easing
+        }
+      }),
+      exit: {
+        scaleX: 0,
+        transition: {
+          duration: animationConfig.duration.exit / 2,
+          ease: [0.43, 0.13, 0.23, 0.96]
+        }
+      }
     }
-  }, [isInView, controls]);
-
+  }), [animationConfig]);
+  
+  // Animation synchronization based on visibility with faster response
+  useEffect(() => {
+    if (inView) {
+      // Start animations immediately when in view
+      controls.start("visible").catch(() => {});
+      setHasAnimated(true);
+    } else if (hasAnimated) {
+      controls.start("exit").catch(() => {});
+    }
+  }, [controls, inView, hasAnimated]);
+  
+  // Generate staggered delays with faster timing
+  const getRandomDelay = useMemo(() => {
+    return (index: number) => ({
+      visible: { 
+        transition: { 
+          delay: 0.05 + (index * 0.04), // Reduced from 0.1 + (index * 0.07)
+          duration: animationConfig.duration.enter * 0.8,
+          ease: [0.16, 1, 0.3, 1] // Snappier easing
+        }
+      }
+    });
+  }, [animationConfig]);
+  
+  // Skills data
   const skills: Skill[] = [
     {
       id: 'frontend',
@@ -291,66 +437,76 @@ export const SkillsSection: React.FC = () => {
   ];
 
   return (
-    <SkillsSectionContainer ref={sectionRef}>
-      <SectionTitle
-        variants={animationVariants.title}
-        initial="hidden"
-        animate={controls}
-      >
-        My Skills
-      </SectionTitle>
-      
-      <SkillsGrid
-        variants={animationVariants.container}
-        initial="hidden"
-        animate={controls}
-      >
-        {skills.map((skill) => (
-          <SkillCard
-            key={skill.id}
-            variants={animationVariants.skill}
-          >
-            <SkillHeader>
-              <IconWrapper color={skill.color}>
-                {skill.icon}
-              </IconWrapper>
-              <SkillName>{skill.name}</SkillName>
-            </SkillHeader>
+    <SkillsSectionContainer ref={sectionRef} id="skills">
+      <AnimatePresence mode="wait">
+        <ContentWrapper
+          key="skills-content"
+          initial="hidden"
+          animate={controls}
+          variants={variants.section}
+          exit="exit"
+        >
+          <SectionHeader>
+            <SectionTitle variants={variants.title}>
+              My Skills
+            </SectionTitle>
             
-            <SkillLevel>
-              <ProgressBar>
-                <Progress 
-                  level={skill.level} 
-                  color={skill.color}
-                  variants={animationVariants.progress}
-                  custom={skill.level}
-                  initial="hidden"
-                  animate={controls}
-                />
-              </ProgressBar>
-            </SkillLevel>
-            
-            <SkillDescription>
-              {skill.description}
-            </SkillDescription>
-            
-            <ProjectsList>
-              <ProjectsTitle>Related Projects</ProjectsTitle>
-              <ProjectTags>
-                {skill.projects.map((project, index) => (
-                  <ProjectTag 
-                    key={index} 
-                    color={skill.color}
-                    variants={animationVariants.tag}
-                  >
-                    {project}
-                  </ProjectTag>
-                ))}
-              </ProjectTags>
-            </ProjectsList>
-          </SkillCard>
-        ))}
-      </SkillsGrid>
+            <SectionDescription variants={variants.description}>
+              I specialize in building responsive, high-performance applications 
+              with modern web technologies. My experience spans both frontend and 
+              backend development with a focus on clean, maintainable code.
+            </SectionDescription>
+          </SectionHeader>
+          
+          <SkillsGrid>
+            {skills.map((skill, index) => (
+              <SkillCard
+                key={skill.id}
+                custom={index}
+                variants={variants.card}
+                whileHover={{ y: -8, boxShadow: "0 10px 30px rgba(0, 0, 0, 0.15)" }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <SkillHeader>
+                  <IconWrapper color={skill.color}>
+                    {skill.icon}
+                  </IconWrapper>
+                  <SkillName>{skill.name}</SkillName>
+                </SkillHeader>
+                
+                <SkillLevel>
+                  <ProgressBar>
+                    <Progress 
+                      level={skill.level} 
+                      color={skill.color}
+                      variants={variants.progress}
+                      custom={index}
+                    />
+                  </ProgressBar>
+                </SkillLevel>
+                
+                <SkillDescription>
+                  {skill.description}
+                </SkillDescription>
+                
+                <ProjectsList>
+                  <ProjectsTitle>Related Projects</ProjectsTitle>
+                  <ProjectTags>
+                    {skill.projects.map((project, projectIndex) => (
+                      <ProjectTag 
+                        key={`${skill.id}-project-${projectIndex}`}
+                        color={skill.color}
+                      >
+                        {project}
+                      </ProjectTag>
+                    ))}
+                  </ProjectTags>
+                </ProjectsList>
+              </SkillCard>
+            ))}
+          </SkillsGrid>
+        </ContentWrapper>
+      </AnimatePresence>
     </SkillsSectionContainer>
   );
 };
