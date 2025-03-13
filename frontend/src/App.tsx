@@ -122,56 +122,248 @@ const ProjectsSection = memo<ProjectsSectionProps>(({ themeMode }) => {
 ProjectsSection.displayName = 'ProjectsSection';
 
 // Section observer hook to track visible sections
-const useSectionObserver = (sectionIds: string[]) => {
-  const [activeSection, setActiveSection] = useState<string>(sectionIds[0]);
+const useSectionObserver = (sectionIds: string[]): string | null => {
+  const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [userHasScrolled, setUserHasScrolled] = useState(false);
+  const previousPosition = useRef(0);
+  const scrollTimeoutRef = useRef<number | null>(null);
   
   useEffect(() => {
-    const observerOptions = {
-      root: null,
-      rootMargin: '-10% 0px -90% 0px',
-      threshold: 0
+    // Track if user has manually scrolled
+    const handleUserScroll = () => {
+      setUserHasScrolled(true);
+      
+      // Reset the flag after some time to allow auto-scrolling again
+      if (scrollTimeoutRef.current) {
+        window.clearTimeout(scrollTimeoutRef.current);
+      }
+      
+      scrollTimeoutRef.current = window.setTimeout(() => {
+        setUserHasScrolled(false);
+      }, 1000) as unknown as number;
     };
     
+    window.addEventListener('wheel', handleUserScroll, { passive: true });
+    window.addEventListener('touchmove', handleUserScroll, { passive: true });
+    
+    return () => {
+      window.removeEventListener('wheel', handleUserScroll);
+      window.removeEventListener('touchmove', handleUserScroll);
+      if (scrollTimeoutRef.current) {
+        window.clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
+  
+  useEffect(() => {
+    if (sectionIds.length === 0) return;
+    
     const handleIntersect = (entries: IntersectionObserverEntry[]) => {
-      entries.forEach((entry) => {
+      // If user is actively scrolling, just track position without forcing scroll
+      if (userHasScrolled) {
+        previousPosition.current = window.scrollY;
+        return;
+      }
+      
+      entries.forEach(entry => {
         if (entry.isIntersecting) {
-          setActiveSection(entry.target.id);
+          const sectionId = entry.target.id;
+          
+          if (sectionIds.includes(sectionId)) {
+            setActiveSection(sectionId);
+            
+            // Only update URL without forcing scroll
+            if (window.history && window.location.pathname) {
+              window.history.replaceState(
+                null,
+                document.title,
+                `${window.location.pathname}${sectionId ? `#${sectionId}` : ''}`
+              );
+            }
+          }
         }
       });
     };
     
-    const observer = new IntersectionObserver(handleIntersect, observerOptions);
+    const options = {
+      rootMargin: '-10% 0px -10% 0px',
+      threshold: 0.2
+    };
     
-    sectionIds.forEach((id) => {
+    const observer = new IntersectionObserver(handleIntersect, options);
+    
+    sectionIds.forEach(id => {
       const element = document.getElementById(id);
       if (element) observer.observe(element);
     });
     
     return () => observer.disconnect();
-  }, [sectionIds]);
+  }, [sectionIds, userHasScrolled]);
   
   return activeSection;
 };
 
 // Scroll controls hook for manual navigation
 const useScrollControls = () => {
+  const [isScrollable, setIsScrollable] = useState(true);
+  const [scrollDirection, setScrollDirection] = useState<'up' | 'down' | null>(null);
+  const lastScrollPosition = useRef(0);
+  const scrollLockTimeoutRef = useRef<number | null>(null);
+  
+  // Add back scrollToSection for compatibility with existing code
   const scrollToSection = useCallback((sectionId: string) => {
     const section = document.getElementById(sectionId);
     if (section) {
-      section.scrollIntoView({ behavior: 'smooth' });
+      // Get the element's position
+      const rect = section.getBoundingClientRect();
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const targetPosition = scrollTop + rect.top - 80; // Adjust for any header offset
+      
+      // Use native smooth scrolling instead of scrollIntoView
+      window.scrollTo({
+        top: targetPosition,
+        behavior: 'smooth'
+      });
     }
   }, []);
   
-  return { scrollToSection };
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollPosition = window.scrollY;
+      
+      if (lastScrollPosition.current < currentScrollPosition) {
+        setScrollDirection('down');
+      } else if (lastScrollPosition.current > currentScrollPosition) {
+        setScrollDirection('up');
+      }
+      
+      lastScrollPosition.current = currentScrollPosition;
+    };
+    
+    // Allow normal scrolling by default
+    document.body.style.overflow = isScrollable ? 'auto' : 'hidden';
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      document.body.style.overflow = 'auto';
+      if (scrollLockTimeoutRef.current) {
+        window.clearTimeout(scrollLockTimeoutRef.current);
+      }
+    };
+  }, [isScrollable]);
+  
+  const lockScroll = useCallback(() => {
+    setIsScrollable(false);
+    document.body.style.overflow = 'hidden';
+  }, []);
+  
+  const unlockScroll = useCallback(() => {
+    setIsScrollable(true);
+    document.body.style.overflow = 'auto';
+  }, []);
+  
+  const temporarilyLockScroll = useCallback((durationMs: number = 800) => {
+    lockScroll();
+    
+    if (scrollLockTimeoutRef.current) {
+      window.clearTimeout(scrollLockTimeoutRef.current);
+    }
+    
+    scrollLockTimeoutRef.current = window.setTimeout(() => {
+      unlockScroll();
+      scrollLockTimeoutRef.current = null;
+    }, durationMs) as unknown as number;
+  }, [lockScroll, unlockScroll]);
+  
+  return {
+    isScrollable,
+    scrollDirection,
+    lockScroll,
+    unlockScroll,
+    temporarilyLockScroll,
+    scrollToSection
+  };
+};
+
+// Implement a scroll restoration function to handle browser history navigation
+
+const useScrollRestoration = () => {
+  const scrollPositions = useRef<Record<string, number>>({});
+  
+  useEffect(() => {
+    // Save scroll position before navigating away
+    const handleBeforeUnload = () => {
+      scrollPositions.current[window.location.pathname] = window.scrollY;
+      sessionStorage.setItem('scrollPositions', JSON.stringify(scrollPositions.current));
+    };
+    
+    // Restore scroll position when navigating back
+    const handleLoad = () => {
+      const savedPositions = sessionStorage.getItem('scrollPositions');
+      if (savedPositions) {
+        scrollPositions.current = JSON.parse(savedPositions);
+        
+        const savedPosition = scrollPositions.current[window.location.pathname];
+        if (savedPosition) {
+          // Allow the page to render properly before scrolling
+          setTimeout(() => {
+            window.scrollTo(0, savedPosition);
+          }, 100);
+        }
+      }
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('load', handleLoad);
+    
+    // Handle browser back/forward buttons
+    window.addEventListener('popstate', () => {
+      const savedPosition = scrollPositions.current[window.location.pathname];
+      if (savedPosition) {
+        setTimeout(() => {
+          window.scrollTo(0, savedPosition);
+        }, 100);
+      }
+    });
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('load', handleLoad);
+    };
+  }, []);
 };
 
 // Main App Content component with route handling
-const AppContent = memo<AppContentProps>(({ themeMode, toggleTheme }) => {
+const AppContent: React.FC<AppContentProps> = ({ themeMode, toggleTheme }) => {
   const location = useLocation();
   const { scrollY } = useScroll();
   const sections = ['hero', 'skills', 'projects', 'about'];
-  const activeSection = useSectionObserver(sections);
+  const defaultSectionId = 'hero';
+  const activeSection = useSectionObserver(sections) || defaultSectionId;
   const { scrollToSection } = useScrollControls();
+  
+  // State to track viewport width
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Set initial mobile state and add resize listener
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    // Set initial value
+    checkMobile();
+    
+    // Add resize listener
+    window.addEventListener('resize', checkMobile);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []);
   
   // Sync URL with active section
   useEffect(() => {
@@ -212,11 +404,26 @@ const AppContent = memo<AppContentProps>(({ themeMode, toggleTheme }) => {
             <>
               <section id="hero" className="section">
                 <Hero />
-                <ScrollIndicator 
-                  targetId="skills" 
-                  offset={80} 
-                  showAboveFold={true} 
-                />
+                <div
+                  style={{
+                    position: 'relative',
+                    width: '100%',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    marginTop: isMobile ? '10px' : '-90px',
+                    left: 0,
+                    right: 0,
+                    zIndex: 40,
+                    pointerEvents: 'none'
+                  }}
+                >
+                  <ScrollIndicator 
+                    targetId="skills" 
+                    offset={isMobile ? 60 : 80}
+                    showAboveFold={true} 
+                  />
+                </div>
               </section>
               
               <section id="skills" className="section content-section">
@@ -246,7 +453,7 @@ const AppContent = memo<AppContentProps>(({ themeMode, toggleTheme }) => {
       />
     </motion.div>
   );
-});
+};
 
 AppContent.displayName = 'AppContent';
 

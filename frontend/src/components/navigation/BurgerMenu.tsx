@@ -237,24 +237,30 @@ const MenuContainer = styled(motion.div)`
   right: 0;
   width: 300px;
   height: 100vh;
-  padding: 5rem 2rem 2rem;
+  background: ${({ theme }) => theme.colors.background};
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 995;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  background: ${({ theme }) => `${theme.colors.backgroundAlt}F0`};
-  box-shadow: -5px 0 25px rgba(0, 0, 0, 0.2);
-  z-index: 995;
+  padding: 5rem 2rem 2rem;
   overflow-y: auto;
 
   nav {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
+    flex: 1 0 auto;
   }
 
   @media (max-width: 768px) {
-    width: 80%;
+    width: 100%;
+    padding: 5rem 1.5rem 1.5rem;
+    
+    nav {
+      flex: 0 0 auto;
+      margin-bottom: 0;
+    }
   }
 `;
 
@@ -306,36 +312,60 @@ const MenuLink = styled(motion.a)<{ isActive?: boolean }>`
   &:active {
     transform: translateY(1px);
   }
+  
+  @media (max-width: 768px) {
+    padding: 0.9rem;
+    font-size: 0.95rem;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 0.8rem;
+    font-size: 0.9rem;
+    
+    svg {
+      width: 18px;
+      height: 18px;
+      margin-right: 0.8rem;
+    }
+  }
 `;
 
+// Ensure ThemeToggle is properly styled and visible
 const ThemeToggle = styled(motion.button)`
   display: flex;
   align-items: center;
-  padding: 1rem;
+  justify-content: center;
+  gap: 8px;
+  margin-top: auto; 
+  margin-bottom: 1rem;
+  padding: 12px 16px;
+  background-color: ${({ theme }) => theme.colors.primaryLight || `${theme.colors.background}80`};
+  border: 1px solid ${({ theme }) => theme.colors.primary}30;
   border-radius: 8px;
-  border: none;
-  font-size: 1rem;
-  font-weight: 500;
-  font-family: inherit;
-  cursor: pointer;
-  background: ${({ theme }) => theme.colors.primaryLight};
   color: ${({ theme }) => theme.colors.primary};
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  margin-top: auto;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  z-index: 5;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
-  svg {
-    margin-right: 1rem;
-  }
-
-  &:hover {
-    background: ${({ theme }) => theme.colors.primaryHover};
+  &:hover, &:focus {
+    background-color: ${({ theme }) => theme.colors.primaryHover || `${theme.colors.primary}10`};
     transform: translateY(-2px);
   }
 
-  &:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primary};
+  &:active {
+    transform: translateY(0);
+  }
+
+  @media (max-width: 768px) {
+    margin-top: 16px; /* Fixed spacing on mobile */
+    margin-bottom: 1.5rem;
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
   }
 `;
 
@@ -466,9 +496,28 @@ export const BurgerMenu: React.FC<BurgerMenuProps> = ({
   
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const isDarkMode = finalThemeMode === 'dark';
+
+  // Check if mobile on initial render and window resize
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    // Initial check
+    checkMobile();
+    
+    // Add listener for window resize
+    window.addEventListener('resize', checkMobile);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []);
 
   const closeMenu = useCallback(() => {
     setIsOpen(false);
@@ -628,18 +677,31 @@ export const BurgerMenu: React.FC<BurgerMenuProps> = ({
                 ))}
               </motion.nav>
 
-              <ThemeToggle
-                onClick={() => {
-                  finalToggleTheme();
-                  closeMenu();
+              {/* Fixed positioning for theme toggle */}
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ delay: 0.3 }}
+                style={{ 
+                  width: '100%', 
+                  display: 'block', 
+                  marginTop: isMobile ? '16px' : 'auto' 
                 }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
               >
-                {isDarkMode ? Icons.Sun : Icons.Moon}
-                <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
-              </ThemeToggle>
+                <ThemeToggle
+                  onClick={() => {
+                    finalToggleTheme();
+                    // Don't close menu on theme toggle to improve UX
+                  }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+                >
+                  {isDarkMode ? Icons.Sun : Icons.Moon}
+                  <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                </ThemeToggle>
+              </motion.div>
             </MenuContainer>
           </>
         )}

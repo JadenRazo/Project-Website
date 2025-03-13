@@ -1,6 +1,13 @@
 // src/styles/GlobalStyles.ts
 import { createGlobalStyle } from 'styled-components';
 
+// Define default system fonts for fallback
+const systemFonts = {
+  sans: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif",
+  primary: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+  mono: "'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace"
+};
+
 export const GlobalStyles = createGlobalStyle`
   :root {
     --primary: ${({ theme }) => theme.colors.primary};
@@ -38,7 +45,7 @@ export const GlobalStyles = createGlobalStyle`
   body {
     background-color: ${({ theme }) => theme.colors.background};
     color: ${({ theme }) => theme.colors.text};
-    font-family: ${({ theme }) => theme.fonts.sans};
+    font-family: ${systemFonts.sans};
     line-height: 1.6;
     overflow-y: auto;
     margin: 0;
@@ -107,7 +114,7 @@ export const GlobalStyles = createGlobalStyle`
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: ${({ theme }) => theme.fonts.primary};
+    font-family: ${systemFonts.primary};
     font-weight: bold;
     line-height: 1.2;
     margin-bottom: 1rem;
@@ -134,7 +141,7 @@ export const GlobalStyles = createGlobalStyle`
 
   button {
     cursor: pointer;
-    font-family: ${({ theme }) => theme.fonts.sans};
+    font-family: ${systemFonts.sans};
   }
 
   /* Fix for iOS fixed positioning */

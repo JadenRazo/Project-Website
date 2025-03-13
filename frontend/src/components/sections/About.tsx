@@ -1,5 +1,5 @@
-import React, { useRef, useEffect } from 'react';
-import { motion, useInView, useAnimation, Variants } from 'framer-motion';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
+import { motion, useInView, useAnimation } from 'framer-motion';
 import styled from 'styled-components';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useZIndex } from '../../hooks/useZIndex';
@@ -10,21 +10,25 @@ interface Milestone {
   description: string;
 }
 
-interface SkillGroup {
-  category: string;
-  skills: string[];
-}
-
-const AboutContainer = styled.div`
+// Main container with stable positioning
+const AboutContainer = styled.section`
   position: relative;
   width: 100%;
-  padding: 4rem 2rem;
+  padding: 6rem 2rem;
+  min-height: 100vh;
+  overflow-x: hidden;
   
   @media (min-width: 768px) {
     padding: 8rem 4rem;
   }
 `;
 
+const ContentWrapper = styled.div`
+  max-width: 1400px;
+  margin: 0 auto;
+`;
+
+// Section title with underline animation
 const SectionHeading = styled(motion.h2)`
   font-size: 2.5rem;
   font-weight: 700;
@@ -40,9 +44,11 @@ const SectionHeading = styled(motion.h2)`
     height: 3px;
     width: 60%;
     background: ${({ theme }) => theme.colors.accent};
+    transform-origin: left center;
   }
 `;
 
+// Grid layout for sections
 const AboutGrid = styled.div`
   display: grid;
   grid-template-columns: 1fr;
@@ -54,6 +60,7 @@ const AboutGrid = styled.div`
   }
 `;
 
+// Bio section with staggered text
 const BioSection = styled(motion.div)`
   display: flex;
   flex-direction: column;
@@ -67,8 +74,10 @@ const BioText = styled(motion.p)`
   max-width: 650px;
 `;
 
+// Timeline section with visual line
 const TimelineSection = styled(motion.div)`
   position: relative;
+  padding-left: 2rem;
   
   &::before {
     content: '';
@@ -79,23 +88,24 @@ const TimelineSection = styled(motion.div)`
     height: 100%;
     background: ${({ theme }) => theme.colors.accent};
     opacity: 0.3;
+    transform-origin: top center;
   }
 `;
 
 const MilestoneItem = styled(motion.div)`
   position: relative;
-  padding-left: 2rem;
   margin-bottom: 3rem;
   
   &::before {
     content: '';
     position: absolute;
-    left: -6px;
+    left: -2rem;
     top: 8px;
     width: 14px;
     height: 14px;
     border-radius: 50%;
     background: ${({ theme }) => theme.colors.accent};
+    transform-origin: center;
   }
 `;
 
@@ -119,104 +129,49 @@ const MilestoneDescription = styled.p`
   opacity: 0.7;
 `;
 
-const SkillsContainer = styled(motion.div)`
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2rem;
-  margin-top: 3rem;
-  
-  @media (min-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-`;
-
-const SkillGroupContainer = styled(motion.div)`
-  margin-bottom: 2rem;
-`;
-
-const SkillCategory = styled.h3`
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  color: ${({ theme }) => theme.colors.text};
-`;
-
-const SkillList = styled.ul`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  padding: 0;
-  list-style: none;
-`;
-
-const SkillItem = styled(motion.li)`
-  padding: 0.5rem 1rem;
-  background: ${({ theme }) => theme.colors.backgroundAlt};
-  border-radius: 20px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    background: ${({ theme }) => theme.colors.accent};
-    color: #fff;
-    transform: translateY(-2px);
-  }
-`;
-
-const animationVariants: Record<string, Variants> = {
+// Animation variants with simpler transitions
+const animationVariants = {
+  // Heading animation
   heading: {
     hidden: { opacity: 0, y: 20 },
     visible: { 
       opacity: 1, 
       y: 0, 
-      transition: { duration: 0.6, ease: [0.23, 1, 0.32, 1] } 
+      transition: { duration: 0.6, ease: "easeOut" } 
     }
   },
-  bio: {
-    hidden: { opacity: 0, y: 30 },
+  // Bio text animation with stagger
+  container: {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1, 
+      transition: { staggerChildren: 0.15, delayChildren: 0.1 } 
+    }
+  },
+  // Individual bio paragraph
+  item: {
+    hidden: { opacity: 0, y: 20 },
     visible: { 
       opacity: 1, 
       y: 0, 
-      transition: { duration: 0.7, ease: [0.23, 1, 0.32, 1] } 
+      transition: { duration: 0.5, ease: "easeOut" } 
     }
   },
+  // Timeline wrapper
   timeline: {
     hidden: { opacity: 0 },
     visible: { 
       opacity: 1, 
-      transition: { staggerChildren: 0.2 } 
+      transition: { staggerChildren: 0.15, delayChildren: 0.2 } 
     }
   },
+  // Individual milestone
   milestone: {
     hidden: { opacity: 0, x: -20 },
     visible: { 
       opacity: 1, 
       x: 0, 
-      transition: { duration: 0.5, ease: [0.23, 1, 0.32, 1] } 
-    }
-  },
-  skills: {
-    hidden: { opacity: 0 },
-    visible: { 
-      opacity: 1, 
-      transition: { staggerChildren: 0.1 } 
-    }
-  },
-  skillGroup: {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0, 
-      transition: { duration: 0.5, ease: [0.23, 1, 0.32, 1] } 
-    }
-  },
-  skill: {
-    hidden: { opacity: 0, scale: 0.9 },
-    visible: { 
-      opacity: 1, 
-      scale: 1,
-      transition: { duration: 0.3, ease: [0.23, 1, 0.32, 1] } 
+      transition: { duration: 0.5, ease: "easeOut" } 
     }
   }
 };
@@ -224,95 +179,134 @@ const animationVariants: Record<string, Variants> = {
 export const About: React.FC = () => {
   const { theme } = useTheme();
   const { zIndex } = useZIndex();
+  const [isFirstRender, setIsFirstRender] = useState(true);
   
+  // Animation controls for better performance
+  const sectionControls = useAnimation();
+  const bioControls = useAnimation();
+  const timelineControls = useAnimation();
+  
+  // Refs for sections with stable thresholds
   const sectionRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(sectionRef, { once: false, amount: 0.2 });
-  const controls = useAnimation();
+  const bioRef = useRef<HTMLDivElement>(null);
+  const timelineRef = useRef<HTMLDivElement>(null);
   
+  // InView with optimized settings - removed 'once: true' to allow re-animation
+  const isSectionInView = useInView(sectionRef, { amount: 0.2, once: false });
+  const isBioInView = useInView(bioRef, { amount: 0.2, once: false });
+  const isTimelineInView = useInView(timelineRef, { amount: 0.2, once: false });
+  
+  // Handle scroll-based animations with performance optimizations
   useEffect(() => {
-    if (isInView) {
-      controls.start('visible');
+    // Skip animations on first render to avoid initial jank
+    if (isFirstRender) {
+      setIsFirstRender(false);
+      sectionControls.set("visible");
+      bioControls.set("visible");
+      timelineControls.set("visible");
+      return;
     }
-  }, [isInView, controls]);
+    
+    // Animate section heading
+    if (isSectionInView) {
+      sectionControls.start("visible");
+    } else {
+      sectionControls.start("hidden");
+    }
+    
+    // Animate bio section
+    if (isBioInView) {
+      bioControls.start("visible");
+    } else {
+      bioControls.start("hidden");
+    }
+    
+    // Animate timeline
+    if (isTimelineInView) {
+      timelineControls.start("visible");
+    } else {
+      timelineControls.start("hidden");
+    }
+  }, [
+    isFirstRender,
+    isSectionInView, 
+    isBioInView, 
+    isTimelineInView,
+    sectionControls,
+    bioControls,
+    timelineControls
+  ]);
 
+  // Define milestone data
   const milestones: Milestone[] = [
     {
+      year: '2025',
+      title: 'DevOps Trainee',
+      description: 'Studying at Western Governors University to become a DevOps Engineer. B.S in Cloud Computing.'
+    },
+    {
       year: '2023',
-      title: 'Senior Developer',
-      description: 'Led development teams and architected enterprise-scale applications with a focus on performance optimization.'
+      title: 'Linux Server Admin',
+      description: 'Developed persistent critical server solutions for clients using Linux and Tmux to achieve high availability and scalability.'
     },
     {
       year: '2021',
-      title: 'Full Stack Developer',
-      description: 'Created modern web applications utilizing React, Node.js, and cloud infrastructure.'
+      title: 'API Specialist',
+      description: 'Specialized in creating responsive, accessible web applications. Specifically accessing APIs and integrating them into the application.'
     },
     {
       year: '2019',
-      title: 'Frontend Specialist',
-      description: 'Developed responsive user interfaces and interactive web experiences with cutting-edge technologies.'
+      title: 'Backend Developer',
+      description: 'Expanded skills to cover backend technologies. Specifically focused on database management and server-side logic.'
     },
     {
       year: '2017',
-      title: 'Started Coding Journey',
-      description: 'Began learning programming fundamentals and building small projects to develop skills.'
-    }
-  ];
-
-  const skillGroups: SkillGroup[] = [
-    {
-      category: 'Frontend',
-      skills: ['React', 'TypeScript', 'Next.js', 'CSS/SCSS', 'Framer Motion', 'Redux', 'Styled Components']
-    },
-    {
-      category: 'Backend',
-      skills: ['Node.js', 'Express', 'PostgreSQL', 'MongoDB', 'GraphQL', 'REST API Design']
-    },
-    {
-      category: 'DevOps & Tools',
-      skills: ['Git', 'Docker', 'AWS', 'CI/CD', 'Jest', 'Webpack', 'Performance Optimization']
-    },
-    {
-      category: 'Design & UX',
-      skills: ['Figma', 'UI Design', 'Accessibility', 'User Research', 'Animation', 'Design Systems']
+      title: 'Junior Developer',
+      description: 'Started as a hobbyist as a mod developer focused on Java.'
     }
   ];
 
   return (
-    <AboutContainer ref={sectionRef}>
-      <SectionHeading
-        variants={animationVariants.heading}
-        initial="hidden"
-        animate={controls}
-      >
-        About Me
-      </SectionHeading>
-      
-      <AboutGrid>
-        <BioSection
-          variants={animationVariants.bio}
+    <AboutContainer ref={sectionRef} id="about">
+      <ContentWrapper>
+        <SectionHeading
+          variants={animationVariants.heading}
           initial="hidden"
-          animate={controls}
+          animate={sectionControls}
+          aria-label="About Me Section"
         >
-          <BioText>
-            I'm a passionate developer with a keen eye for detail and a love for creating beautiful, functional web experiences. My journey in technology began with a curiosity about how digital products shape our daily lives.
-          </BioText>
-          
-          <BioText>
-            With expertise in both frontend and backend technologies, I bring a holistic approach to development. I believe in writing clean, maintainable code that scales with your business needs while providing exceptional user experiences.
-          </BioText>
-          
-          <BioText>
-            When I'm not coding, you can find me exploring new technologies, contributing to open source projects, or sharing knowledge with the developer community.
-          </BioText>
+          About Me
+        </SectionHeading>
+        
+        <AboutGrid>
+          <BioSection
+            ref={bioRef}
+            variants={animationVariants.container}
+            initial="hidden"
+            animate={bioControls}
+          >
+            <BioText variants={animationVariants.item}>
+              I'm a passionate web developer and designer with a focus on creating
+              engaging digital experiences. With expertise in modern frameworks and
+              a keen eye for design, I bridge the gap between functionality and aesthetics.
+            </BioText>
+            
+            <BioText variants={animationVariants.item}>
+              My approach combines technical knowledge with creative problem-solving,
+              resulting in performant and visually appealing solutions. I'm constantly
+              exploring new technologies and techniques to enhance my craft.
+            </BioText>
+          </BioSection>
           
           <TimelineSection
+            ref={timelineRef}
             variants={animationVariants.timeline}
             initial="hidden"
-            animate={controls}
+            animate={timelineControls}
           >
             {milestones.map((milestone, index) => (
               <MilestoneItem 
-                key={index}
+                key={`${milestone.year}-${index}`}
                 variants={animationVariants.milestone}
               >
                 <MilestoneYear>{milestone.year}</MilestoneYear>
@@ -321,33 +315,8 @@ export const About: React.FC = () => {
               </MilestoneItem>
             ))}
           </TimelineSection>
-        </BioSection>
-        
-        <SkillsContainer
-          variants={animationVariants.skills}
-          initial="hidden"
-          animate={controls}
-        >
-          {skillGroups.map((group, groupIndex) => (
-            <SkillGroupContainer 
-              key={groupIndex}
-              variants={animationVariants.skillGroup}
-            >
-              <SkillCategory>{group.category}</SkillCategory>
-              <SkillList>
-                {group.skills.map((skill, skillIndex) => (
-                  <SkillItem 
-                    key={skillIndex}
-                    variants={animationVariants.skill}
-                  >
-                    {skill}
-                  </SkillItem>
-                ))}
-              </SkillList>
-            </SkillGroupContainer>
-          ))}
-        </SkillsContainer>
-      </AboutGrid>
+        </AboutGrid>
+      </ContentWrapper>
     </AboutContainer>
   );
 };

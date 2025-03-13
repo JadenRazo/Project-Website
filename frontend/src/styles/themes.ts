@@ -173,18 +173,51 @@ export const getColorValue = (theme: Theme, colorKey: keyof Theme['colors']): st
   return color;
 };
 
-export const getFontValue = (theme: Theme, fontKey: keyof Theme['fonts']): string => {
-  const font = theme.fonts[fontKey];
-  if (!font) {
-    throw new Error(`Font "${String(fontKey)}" not found in theme`);
+export const getBorderRadiusValue = (
+  theme: Theme, 
+  radiusKey: keyof Theme['borderRadius']
+): string => {
+  const radius = theme.borderRadius[radiusKey];
+  if (!radius) {
+    throw new Error(`Border radius "${String(radiusKey)}" not found in theme`);
   }
-  return font;
+  return radius;
 };
 
-export const getEffectValue = (theme: Theme, effectKey: keyof Theme['effects']): string => {
-  const effect = theme.effects[effectKey];
-  if (!effect) {
-    throw new Error(`Effect "${String(effectKey)}" not found in theme`);
+export const getShadowValue = (
+  theme: Theme, 
+  shadowKey: keyof Theme['shadows']
+): string => {
+  const shadow = theme.shadows[shadowKey];
+  if (!shadow) {
+    throw new Error(`Shadow "${String(shadowKey)}" not found in theme`);
   }
-  return effect;
+  return shadow;
+};
+
+export const getTransitionValue = (
+  theme: Theme, 
+  transitionKey: keyof Theme['transitions']
+): string => {
+  const transition = theme.transitions[transitionKey];
+  if (!transition) {
+    throw new Error(`Transition "${String(transitionKey)}" not found in theme`);
+  }
+  return transition;
+};
+
+export const getSpacingValue = (
+  theme: Theme, 
+  spacingKey: keyof Theme['spacing']
+): string => {
+  const spacing = theme.spacing[spacingKey];
+  if (!spacing) {
+    throw new Error(`Spacing "${String(spacingKey)}" not found in theme`);
+  }
+  return spacing;
+};
+
+// Utility function to combine multiple theme values
+export const combineThemeValues = <T>(values: T[]): T[] => {
+  return values;
 };

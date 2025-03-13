@@ -6,6 +6,7 @@ import useDeviceCapabilities from '../../hooks/useDeviceCapabilities';
 import useTouchInteractions from '../../hooks/useTouchInteractions';
 import usePerformanceOptimizations from '../../hooks/usePerformanceOptimizations';
 import { useInView } from 'react-intersection-observer';
+import { CreativeShaderBackground } from '../animations/CreativeShaderBackground';
 
 // Types
 interface AnimatedElementProps extends HTMLMotionProps<"div"> {
@@ -172,6 +173,13 @@ const createKeyframes = (performanceSettings: any) => {
   };
 };
 
+// Define default system fonts to replace theme.fonts references
+const systemFonts = {
+  sans: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif",
+  primary: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+  mono: "'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace"
+};
+
 // Enhanced styled components with responsive and performance optimizations
 const HeroSection = styled.section<{ isSimplified: boolean }>`
   min-height: ${props => props.isSimplified ? 'auto' : '100vh'};
@@ -201,27 +209,21 @@ const HeroSection = styled.section<{ isSimplified: boolean }>`
   }
 `;
 
-// New background elements for parallax effect
-const BackgroundElements = styled.div`
+// Replace BackgroundElements styled component with a cleaner, more subtle version
+const BackgroundGradient = styled.div`
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  background: radial-gradient(
+    circle at 50% 50%,
+    ${({ theme }) => `${theme.colors.background}00`} 0%,
+    ${({ theme }) => `${theme.colors.background}20`} 70%,
+    ${({ theme }) => `${theme.colors.background}50`} 100%
+  );
+  z-index: 0;
   pointer-events: none;
-  z-index: -1;
-`;
-
-const BackgroundElement = styled(motion.div)<{size: number; opacity: number}>`
-  position: absolute;
-  width: ${props => props.size}px;
-  height: ${props => props.size}px;
-  border-radius: 50%;
-  background: ${({ theme }) => theme.colors.primary};
-  opacity: ${props => props.opacity};
-  filter: blur(5px);
-  will-change: transform;
 `;
 
 const ContentWrapper = styled(motion.div)<AnimatedElementProps & { inView: boolean }>`
@@ -242,7 +244,7 @@ const ContentWrapper = styled(motion.div)<AnimatedElementProps & { inView: boole
 
 const Greeting = styled(motion.span)`
   color: ${({ theme }) => theme.colors.primary};
-  font-family: ${({ theme }) => theme.fonts.mono};
+  font-family: ${systemFonts.mono};
   font-size: clamp(14px, 2vw, 16px);
   font-weight: 400;
   margin-bottom: 20px;
@@ -259,7 +261,7 @@ interface NameProps {
   enableAnimations: boolean;
 }
 
-// Optimized name container with enhanced animations and responsive design
+// Optimized name container with typing animation and responsive design
 const NameContainer = styled(motion.h1)<NameProps>`
   font-size: clamp(40px, 8vw, 80px);
   font-weight: 600;
@@ -269,24 +271,8 @@ const NameContainer = styled(motion.h1)<NameProps>`
   cursor: pointer;
   transform-style: preserve-3d;
   perspective: 1000px;
-  
-  ${({ isHovered, theme, enableAnimations }) => isHovered && enableAnimations && css`
-    background-image: linear-gradient(
-      90deg, 
-      ${theme.colors.text} 0%,
-      ${theme.colors.primary} 30%,
-      ${theme.colors.accent || theme.colors.secondary || theme.colors.primary} 50%,
-      ${theme.colors.primary} 70%,
-      ${theme.colors.text} 100%
-    );
-    background-size: 200% auto;
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: ${theme.shimmerAnimation} 3s linear infinite;
-  `}
-  
-  transition: all 0.3s ease-out;
+  display: flex;
+  flex-wrap: wrap;
   
   ${media.tablet} {
     font-size: clamp(36px, 7vw, 60px);
@@ -295,33 +281,39 @@ const NameContainer = styled(motion.h1)<NameProps>`
   ${media.mobileLg} {
     font-size: clamp(30px, 6vw, 40px);
   }
-`;
-
-// New technique for animating name as blocks on initial load
-const NameBlockContainer = styled(motion.div)`
-  display: flex;
-  flex-wrap: wrap;
-  margin: 0;
   
   ${media.touch} {
     justify-content: center;
   }
+`;
+
+const TypewriterContainer = styled.div`
+  position: relative;
+  display: inline-flex;
+  flex-wrap: wrap;
+  letter-spacing: 0;
   
-  ${media.mobileLg} {
-    flex-direction: column;
-    align-items: center;
+  ${media.touch} {
+    justify-content: center;
   }
 `;
 
-const NameBlock = styled(motion.div)`
+const TypewriterCharacter = styled(motion.span)<{ isSlash?: boolean }>`
   display: inline-block;
-  margin-right: 0.3em;
-  transform-origin: center left;
-  
-  ${media.mobileLg} {
-    margin-right: 0;
-    margin-bottom: 0.1em;
-  }
+  color: ${props => props.isSlash ? props.theme.colors.primary : 'inherit'};
+  position: relative;
+  white-space: pre;
+`;
+
+const TypewriterCursor = styled(motion.div)`
+  position: relative;
+  display: inline-block;
+  width: 0.4em;
+  height: 0.8em;
+  background-color: ${({ theme }) => theme.colors.text}88;
+  margin-top: 0.15em;
+  margin-left: 0;
+  border-radius: 2px;
 `;
 
 const Bio = styled(motion.div)`
@@ -539,7 +531,7 @@ const CTAButton = styled(motion.a)`
   border: 1px solid ${({ theme }) => theme.colors.primary};
   border-radius: 8px;
   color: ${({ theme }) => theme.colors.primary};
-  font-family: ${({ theme }) => theme.fonts.mono};
+  font-family: ${systemFonts.mono};
   font-size: clamp(14px, 2vw, 16px);
   padding: 1.25rem 1.75rem;
   text-decoration: none;
@@ -775,20 +767,6 @@ export const Hero: React.FC = () => {
     }
   }, [performanceSettings, theme]);
   
-  // Create background elements for parallax effect
-  const bgElements = useMemo(() => {
-    // Only create elements if parallax is enabled
-    if (!performanceSettings.enableParallax) return [];
-    
-    return Array.from({ length: performanceSettings.performanceTier === 'high' ? 10 : 5 }).map((_, i) => ({
-      id: `bg-element-${i}`,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 30 + 20,
-      opacity: Math.random() * 0.1 + 0.05
-    }));
-  }, [performanceSettings.enableParallax, performanceSettings.performanceTier]);
-  
   // Determine if we're on a touch device for interaction optimizations
   const isTouchDevice = deviceCapabilities.isTouchDevice;
   
@@ -833,13 +811,41 @@ export const Hero: React.FC = () => {
     'Database Management'
   ], []);
 
-  // Split name into words instead of letters for better performance
-  const nameWords = useMemo(() => {
-    return "Jaden Scott Razo".split(' ').map((word, i) => ({
-      word,
-      key: `word-${i}`
-    }));
+  // Split name into characters for typing animation
+  const nameCharacters = useMemo(() => {
+    return "Jaden Scott Razo/".split('');
   }, []);
+
+  // Simplify typing animation control
+  const [typedCount, setTypedCount] = useState(0);
+  const [showCursor, setShowCursor] = useState(true);
+  const isSlash = useCallback((index: number) => nameCharacters[index] === '/', [nameCharacters]);
+
+  // Start typing animation when component becomes visible
+  useEffect(() => {
+    if (!inView) return;
+    
+    if (typedCount < nameCharacters.length) {
+      // Variable typing speed for more natural effect
+      const baseDelay = 100; // base delay
+      const variableDelay = Math.random() * 60; // random variation
+      
+      // Make certain characters type a bit slower (like spaces)
+      const currentChar = nameCharacters[typedCount];
+      const characterDelay = currentChar === ' ' ? 100 : 0;
+      
+      const typingDelay = baseDelay + variableDelay + characterDelay;
+      
+      const typingTimer = setTimeout(() => {
+        setTypedCount(prev => prev + 1);
+      }, typingDelay);
+      
+      return () => clearTimeout(typingTimer);
+    } else {
+      // Immediately hide cursor when typing completes
+      setShowCursor(false);
+    }
+  }, [inView, typedCount, nameCharacters]);
 
   // Handlers for name hover - only enable effects on non-touch devices
   const handleNameMouseEnter = useCallback(() => {
@@ -883,19 +889,16 @@ export const Hero: React.FC = () => {
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
-      {performanceSettings.enableParallax && !isTouchDevice && (
-        <BackgroundElements>
-          {bgElements.map((elem, index) => (
-            <BackgroundElement
-              key={elem.id}
-              custom={index + 1}
-              initial={{ x: `${elem.x}%`, y: `${elem.y}%` }}
-              animate={parallaxControls}
-              size={elem.size}
-              opacity={elem.opacity}
-            />
-          ))}
-        </BackgroundElements>
+      {performanceSettings.enableParallax && (
+        <>
+          <CreativeShaderBackground 
+            disableParallax={performanceSettings.reduceMotion}
+            intensity={0.9}
+            speed={0.7}
+            colorIntensity={0.6}
+          />
+          <BackgroundGradient />
+        </>
       )}
       
       <ContentWrapper
@@ -914,37 +917,42 @@ export const Hero: React.FC = () => {
           Hi there, I'm
         </Greeting>
         
-        {/* Optimized name animation using word blocks instead of letters */}
+        {/* Typewriter name animation */}
         <NameContainer 
           variants={animationVariants.item}
           isHovered={isNameHovered}
           enableAnimations={performanceSettings.enableComplexAnimations}
           onMouseEnter={handleNameMouseEnter}
           onMouseLeave={handleNameMouseLeave}
-          onClick={() => isTouchDevice && setIsNameHovered(prev => !prev)} // Toggle on touch
         >
-          <NameBlockContainer>
-            {nameWords.map(({ word, key }, index) => (
-              <NameBlock
-                key={key}
-                initial={{ opacity: 0, y: 25, rotateX: 30 }}
-                animate={{ 
-                  opacity: 1, 
-                  y: 0, 
-                  rotateX: 0,
-                  transition: {
-                    type: 'spring',
-                    stiffness: 100,
-                    damping: 15,
-                    mass: 1,
-                    delay: 0.3 + (index * 0.1)
+          <TypewriterContainer>
+            {nameCharacters.slice(0, typedCount).map((char, index) => (
+              <TypewriterCharacter 
+                key={`char-${index}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.2 }}
+                isSlash={isSlash(index)}
+              >
+                {char}
+              </TypewriterCharacter>
+            ))}
+            
+            {/* Position cursor right after the last character */}
+            {showCursor && typedCount < nameCharacters.length && (
+              <TypewriterCursor
+                initial={{ opacity: 1 }}
+                animate={{ opacity: [1, 0.4, 1] }}
+                transition={{ 
+                  opacity: { 
+                    repeat: Infinity, 
+                    duration: 0.8,
+                    repeatType: "loop"
                   }
                 }}
-              >
-                {word}
-              </NameBlock>
-            ))}
-          </NameBlockContainer>
+              />
+            )}
+          </TypewriterContainer>
         </NameContainer>
 
         <Bio 
@@ -976,7 +984,7 @@ export const Hero: React.FC = () => {
         </AnimatePresence>
 
         <CTAButton
-          href="#work"
+          href="#projects"
           variants={animationVariants.item}
           whileHover={!isTouchDevice ? animationObjects.hover : undefined}
           whileTap={!isTouchDevice ? animationObjects.tap : undefined}
