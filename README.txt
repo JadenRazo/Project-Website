@@ -6,40 +6,258 @@ This repository contains my personal website showcasing various software develop
 
 ```
 Project-Website/
-├─ backend/
-│  ├─ config/
-│  │  ├─ config.go
-│  ├─ data/
-│  ├─ db/
-│  │  ├─ analytics.go
-│  │  ├─ database.go
-│  │  ├─ migrations.go
-│  │  ├─ models.go
-│  │  ├─ repository.go
-│  │  ├─ url_model.go
-│  ├─ handlers/
-│  │  ├─ analytics_handlers.go
-│  │  ├─ url_handlers.go
-│  │  ├─ user_handlers.go
-│  ├─ middleware/
-│  │  ├─ auth.go
-│  │  ├─ rate_limiter.go
-│  ├─ static/
-│  │  ├─ css/
-│  │  │  ├─ style.css
-│  ├─ templates/
-│  │  ├─ 404.html
-│  │  ├─ expired.html
-│  │  ├─ index.html
-│  ├─ utils/
-│  │  ├─ token.go
-│  │  ├─ url_validator.go
-│  ├─ go.mod
-│  ├─ main.go
+├── cmd
+│   ├── admin
+│   │   └── main.go
+│   ├── api
+│   │   └── main.go
+│   ├── migration
+│   │   └── main.go
+│   ├── server
+│   │   └── main.go
+│   └── worker
+│       └── main.go
+├── config
+│   ├── app.yaml
+│   ├── config.go
+│   ├── development.yaml
+│   ├── env.go
+│   ├── production.yaml
+│   └── testing.yaml
+├── deployments
+│   ├── docker
+│   │   ├── api
+│   │   │   └── Dockerfile
+│   │   ├── docker-compose.dev.yml
+│   │   ├── docker-compose.yml
+│   │   └── worker
+│   │       └── Dockerfile
+│   ├── kubernetes
+│   │   ├── base
+│   │   └── overlays
+│   │       ├── development
+│   │       ├── production
+│   │       └── staging
+│   ├── nginx
+│   │   ├── api.conf
+│   │   └── ssl
+│   └── systemd
+│       ├── api.service
+│       └── worker.service
+├── docs
+│   ├── api
+│   │   ├── endpoints
+│   │   │   ├── messaging.md
+│   │   │   └── urlshortener.md
+│   │   ├── openapi.json
+│   │   └── swagger.yaml
+│   └── architecture.md
+├── go.mod
+├── go.sum
+├── internal
+│   ├── app
+│   │   ├── bootstrap.go
+│   │   ├── config
+│   │   │   └── config.go
+│   │   ├── context
+│   │   │   └── context.go
+│   │   ├── health
+│   │   └── server
+│   │       ├── middleware
+│   │       │   ├── auth.go
+│   │       │   ├── cors.go
+│   │       │   ├── logging.go
+│   │       │   ├── recovery.go
+│   │       │   └── spa.go
+│   │       ├── router.go
+│   │       └── server.go
+│   ├── common
+│   │   ├── auth
+│   │   │   ├── jwt.go
+│   │   │   └── password.go
+│   │   ├── cache
+│   │   │   └── redis.go
+│   │   ├── database
+│   │   │   ├── db.go
+│   │   │   └── transaction.go
+│   │   ├── errors
+│   │   │   └── errors.go
+│   │   ├── logger
+│   │   │   └── logger.go
+│   │   ├── metrics
+│   │   │   ├── grafana.go
+│   │   │   └── prometheus.go
+│   │   ├── ratelimit
+│   │   ├── resilience
+│   │   ├── storage
+│   │   │   └── storage.go
+│   │   ├── tracing
+│   │   │   ├── jaeger.go
+│   │   │   └── opentelemetry.go
+│   │   ├── utils
+│   │   │   ├── token.go
+│   │   │   └── url_validator.go
+│   │   └── validator
+│   │       └── validator.go
+│   ├── core
+│   ├── domain
+│   │   ├── entity
+│   │   │   ├── audit.go
+│   │   │   └── user.go
+│   │   ├── errors
+│   │   │   └── errors.go
+│   │   └── models.go
+│   ├── messaging
+│   │   ├── attachments
+│   │   │   └── service.go
+│   │   ├── delivery
+│   │   │   ├── http
+│   │   │   │   ├── handlers.go
+│   │   │   │   ├── middleware.go
+│   │   │   │   ├── read_receipt_handler.go
+│   │   │   │   └── routes.go
+│   │   │   └── websocket
+│   │   │       ├── client.go
+│   │   │       ├── connection_manager.go
+│   │   │       ├── hub.go
+│   │   │       ├── presence.go
+│   │   │       └── types.go
+│   │   ├── domain
+│   │   │   ├── channel.go
+│   │   │   ├── message.go
+│   │   │   ├── reaction.go
+│   │   │   ├── read_receipts.go
+│   │   │   └── repository.go
+│   │   ├── errors
+│   │   │   └── errors.go
+│   │   ├── events
+│   │   │   ├── dispatcher.go
+│   │   │   ├── event_types.go
+│   │   │   └── handlers.go
+│   │   ├── middleware
+│   │   │   └── auth.go
+│   │   ├── repository
+│   │   │   ├── attachment_repository.go
+│   │   │   ├── cache
+│   │   │   │   ├── channel.go
+│   │   │   │   └── message.go
+│   │   │   ├── errors.go
+│   │   │   ├── gorm_repository.go
+│   │   │   ├── mock
+│   │   │   │   └── repository.go
+│   │   │   ├── postgres
+│   │   │   │   ├── attachment_repository.go
+│   │   │   │   ├── channel_repository.go
+│   │   │   │   ├── message_repository.go
+│   │   │   │   ├── reaction_repository.go
+│   │   │   │   └── read_receipt_repository.go
+│   │   │   └── read_receipt_repository.go
+│   │   ├── service
+│   │   │   ├── attachment_service.go
+│   │   │   ├── channel_service.go
+│   │   │   ├── messaging_service.go
+│   │   │   ├── reaction_service.go
+│   │   │   ├── read_receipt_service.go
+│   │   │   └── service.go
+│   │   ├── storage
+│   │   └── usecase
+│   │       ├── mark_as_read.go
+│   │       ├── search_messages.go
+│   │       ├── send_message.go
+│   │       └── upload_attachment.go
+│   ├── urlshortener
+│   │   ├── delivery
+│   │   │   └── http
+│   │   │       ├── handlers.go
+│   │   │       ├── middleware.go
+│   │   │       └── routes.go
+│   │   ├── domain
+│   │   │   ├── repository.go
+│   │   │   ├── stats.go
+│   │   │   └── url.go
+│   │   ├── repository
+│   │   │   ├── cache
+│   │   │   │   └── url.go
+│   │   │   ├── gorm_repository.go
+│   │   │   ├── mock
+│   │   │   │   └── repository.go
+│   │   │   ├── postgres
+│   │   │   │   ├── stats.go
+│   │   │   │   └── url.go
+│   │   │   └── repository.go
+│   │   ├── service
+│   │   │   ├── service.go
+│   │   │   ├── service_imp.go
+│   │   │   ├── stats.go
+│   │   │   └── url.go
+│   │   ├── usecase
+│   │   │   ├── resolve_url.go
+│   │   │   ├── shorten_url.go
+│   │   │   └── track_click.go
+│   │   └── validator
+│   └── worker
+│       ├── queue
+│       │   ├── kafka.go
+│       │   └── rabbitmq.go
+│       └── tasks
+│           ├── messaging_tasks.go
+│           └── scheduled.go
+├── migrations
+│   ├── common
+│   │   ├── 000001_create_users_table.down.sql
+│   │   └── 000001_create_users_table.up.sql
+│   ├── messaging
+│   │   ├── 000001_create_channels_table.down.sql
+│   │   └── 000001_create_channels_table.up.sql
+│   └── urlshortener
+│       ├── 000001_create_urls_table.down.sql
+│       └── 000001_create_urls_table.up.sql
+├── pkg
+│   ├── httputil
+│   ├── pagination
+│   └── validator
+├── scripts
+│   ├── backup_db.sh
+│   ├── lint.sh
+│   ├── restore_db.sh
+│   ├── seed.sh
+│   └── setup.sh
+└─── web
+│    ├── static
+│    │   ├── css
+│    │   ├── images
+│    │   └── js
+│    └── templates
+│        ├── layouts
+│        ├── pages
+│        └── partials
 ├─ frontend/
 │  ├─ build/
+│  │  ├─ static
+│  │  │  ├─ css
+│  │  │  │  ├── main.e6c13ad2.css
+│  │  │  │  └── main.e6c13ad2.css.map
+│  │  │  ├─ js
+│  │  │  │  ├── main.e896c9ee.js
+│  │  │  │  ├── main.e896c9ee.js.LICENSE.txt
+│  │  │  │  └── main.e896c9ee.js.map
+│  │  ├── apple-touch-icon.png
+│  │  ├── asset-manifest.json
+│  │  ├── favicon-16x16.png
+│  │  ├── favicon-32x32.png
+│  │  ├── favicon.ico
+│  │  ├── index.html
+│  │  ├── manifest.json
+│  │  └── robots.txt
 │  ├─ node_modules/
 │  ├─ public/
+│  │  ├── apple-touch-icon.png
+│  │  ├── favicon-16x16.png
+│  │  ├── favicon-32x32.png
+│  │  ├── favicon.ico
+│  │  ├── index.html
+│  │  ├── manifest.json
+│  │  └── robots.txt
 │  ├─ src/
 │  │  ├─ assests/
 │  │  │  ├─ images/
@@ -64,14 +282,27 @@ Project-Website/
 │  │  │  │  ├─ ProjectCard.tsx
 │  │  │  │  ├─ SkillBar.tsx
 │  │  │  │  ├─ Timeline.tsx
+│  │  ├─ constants/
 │  │  ├─ contexts/
 │  │  │  ├─ Themecontext.tsx
+│  │  ├─ docs/
+│  │  │  ├─ ScrollTransform.md
+│  │  ├─ types/
+│  │  ├─ utils/
+│  │  │  ├─ debugHelpers.ts 
+│  │  │  ├─ MemoryManager.ts
+│  │  │  └── performence.ts
 │  │  ├─ hooks/
 │  │  │  ├─ useClickOutside.ts
+│  │  │  ├─ useAnimationController.ts
+│  │  │  ├─ useDeviceCapabilities.ts
+│  │  │  ├─ usePerformenceOptimizations.ts
+│  │  │  ├─ useTouchInteractions.ts
+│  │  │  └── useZIndex.ts
 │  │  ├─ styles/
 │  │  │  ├─ GlobalStyles.ts
 │  │  │  ├─ theme.types.ts
-│  │  │  ├─ themes.ts
+│  │  │  └── themes.ts
 │  │  ├─ app.css
 │  │  ├─ app.tsx
 │  │  ├─ custom.d.ts
