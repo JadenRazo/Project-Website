@@ -6,72 +6,71 @@
 
 export type ThemeMode = 'light' | 'dark';
 
-export interface ThemeColors {
-  // Base colors
-  background: string;
-  backgroundAlt: string;
-  backgroundSecondary: string; 
-  backgroundTertiary: string;
-  
-  // Text colors
-  text: string; 
-  textSecondary: string;
-  textMuted: string;
-  textPrimary: string;
-  
-  // Brand colors
-  primary: string;
-  primaryLight: string;
-  primaryDark: string;
-  primaryHover: string;
-  secondary: string;
-  secondaryLight: string;
-  secondaryDark: string;
-  accent: string;
-  
-  // UI colors
-  surfaceLight: string;
-  surfaceMedium: string;
-  surfaceDark: string;
-  
-  // Feedback colors
-  error: string;
-  success: string;
-  warning: string;
-  info: string;
-  
-  // Special effect colors
-  glass: string;
-  shadow: string;
-  border: string;
-}
-
 export interface Theme {
-  id: ThemeMode;
-  colors: ThemeColors;
-  
-  // Additional theme properties
+  colors: {
+    primary: string;
+    primaryLight: string;
+    primaryHover: string;
+    secondary: string;
+    secondaryLight: string;
+    secondaryHover: string;
+    accent: string;
+    accentLight: string;
+    accentHover: string;
+    background: string;
+    backgroundAlt: string;
+    backgroundHover: string;
+    surface: string;
+    surfaceLight: string;
+    surfaceHover: string;
+    surfaceActive: string;
+    surfaceDisabled: string;
+    text: string;
+    textHover: string;
+    textSecondary: string;
+    textInverse: string;
+    textDisabled: string;
+    border: string;
+    borderHover: string;
+    borderActive: string;
+    borderDisabled: string;
+    error: string;
+    errorLight: string;
+    errorHover: string;
+    success: string;
+    successLight: string;
+    successHover: string;
+    warning: string;
+    warningLight: string;
+    warningHover: string;
+  };
+  shadows: {
+    small: string;
+    medium: string;
+    large: string;
+  };
+  breakpoints: {
+    mobile: string;
+    tablet: string;
+    desktop: string;
+  };
+  transitions: {
+    fast: string;
+    normal: string;
+    slow: string;
+  };
+  zIndex: {
+    modal: number;
+    overlay: number;
+    dropdown: number;
+    header: number;
+  };
   borderRadius: {
     small: string;
     medium: string;
     large: string;
     pill: string;
   };
-  
-  shadows: {
-    small: string;
-    medium: string;
-    large: string;
-    button: string;
-    text: string;
-  };
-  
-  transitions: {
-    fast: string;
-    normal: string;
-    slow: string;
-  };
-  
   spacing: {
     xxs: string;
     xs: string;

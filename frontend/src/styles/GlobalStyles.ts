@@ -1,5 +1,6 @@
 // src/styles/GlobalStyles.ts
 import { createGlobalStyle } from 'styled-components';
+import type { Theme } from './theme.types';
 
 // Define default system fonts for fallback
 const systemFonts = {
@@ -8,13 +9,45 @@ const systemFonts = {
   mono: "'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace"
 };
 
-export const GlobalStyles = createGlobalStyle`
+export const GlobalStyles = createGlobalStyle<{ theme: Theme }>`
   :root {
-    --primary: ${({ theme }) => theme.colors.primary};
-    --background: ${({ theme }) => theme.colors.background};
-    --text: ${({ theme }) => theme.colors.text};
+    --primary-color: ${({ theme }) => theme.colors.primary};
+    --primary-light: ${({ theme }) => theme.colors.primaryLight};
+    --primary-hover: ${({ theme }) => theme.colors.primaryHover};
     --secondary: ${({ theme }) => theme.colors.secondary};
+    --secondary-light: ${({ theme }) => theme.colors.secondaryLight};
+    --secondary-hover: ${({ theme }) => theme.colors.secondaryHover};
     --accent: ${({ theme }) => theme.colors.accent};
+    --accent-light: ${({ theme }) => theme.colors.accentLight};
+    --accent-hover: ${({ theme }) => theme.colors.accentHover};
+    --background: ${({ theme }) => theme.colors.background};
+    --background-alt: ${({ theme }) => theme.colors.backgroundAlt};
+    --background-hover: ${({ theme }) => theme.colors.backgroundHover};
+    --surface: ${({ theme }) => theme.colors.surface};
+    --surface-light: ${({ theme }) => theme.colors.surfaceLight};
+    --surface-hover: ${({ theme }) => theme.colors.surfaceHover};
+    --surface-active: ${({ theme }) => theme.colors.surfaceActive};
+    --surface-disabled: ${({ theme }) => theme.colors.surfaceDisabled};
+    --text: ${({ theme }) => theme.colors.text};
+    --text-hover: ${({ theme }) => theme.colors.textHover};
+    --text-secondary: ${({ theme }) => theme.colors.textSecondary};
+    --text-inverse: ${({ theme }) => theme.colors.textInverse};
+    --text-disabled: ${({ theme }) => theme.colors.textDisabled};
+    --border: ${({ theme }) => theme.colors.border};
+    --border-hover: ${({ theme }) => theme.colors.borderHover};
+    --border-active: ${({ theme }) => theme.colors.borderActive};
+    --border-disabled: ${({ theme }) => theme.colors.borderDisabled};
+    --error: ${({ theme }) => theme.colors.error};
+    --error-light: ${({ theme }) => theme.colors.errorLight};
+    --error-hover: ${({ theme }) => theme.colors.errorHover};
+    --success: ${({ theme }) => theme.colors.success};
+    --success-light: ${({ theme }) => theme.colors.successLight};
+    --success-hover: ${({ theme }) => theme.colors.successHover};
+    --warning: ${({ theme }) => theme.colors.warning};
+    --warning-light: ${({ theme }) => theme.colors.warningLight};
+    --warning-hover: ${({ theme }) => theme.colors.warningHover};
+    
+    --primary-rgb: 0, 120, 255; // Default RGB values for primary color
     
     /* Z-index layers */
     --z-background: -5;
@@ -27,29 +60,27 @@ export const GlobalStyles = createGlobalStyle`
   }
 
   * {
-    box-sizing: border-box;
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
   }
 
-  html, body {
-    overflow-x: hidden;
-    width: 100%;
-    height: 100%;
-    position: relative;
+  html {
+    font-size: 16px;
     scroll-behavior: smooth;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
   }
 
   body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     background-color: ${({ theme }) => theme.colors.background};
     color: ${({ theme }) => theme.colors.text};
-    font-family: ${systemFonts.sans};
-    line-height: 1.6;
-    overflow-y: auto;
-    margin: 0;
-    padding: 0;
+    line-height: 1.5;
+    transition: background-color ${({ theme }) => theme.transitions.normal}, 
+                color ${({ theme }) => theme.transitions.normal};
     overflow-x: hidden;
     /* Force a new stacking context at the body level */
     isolation: isolate;
@@ -127,10 +158,10 @@ export const GlobalStyles = createGlobalStyle`
   a {
     color: ${({ theme }) => theme.colors.primary};
     text-decoration: none;
-    transition: color 0.3s ease;
+    transition: color ${({ theme }) => theme.transitions.fast};
 
     &:hover {
-      color: ${({ theme }) => theme.colors.secondary};
+      color: ${({ theme }) => theme.colors.primaryHover};
     }
   }
 
@@ -141,7 +172,7 @@ export const GlobalStyles = createGlobalStyle`
 
   button {
     cursor: pointer;
-    font-family: ${systemFonts.sans};
+    font-family: inherit;
   }
 
   /* Fix for iOS fixed positioning */
@@ -151,25 +182,36 @@ export const GlobalStyles = createGlobalStyle`
     }
   }
 
-  /* Fix for scrollbar inconsistencies */
-  @media screen and (min-width: 768px) {
-    html {
-      scrollbar-width: thin;
-      scrollbar-color: ${({ theme }) => theme.colors.secondary} ${({ theme }) => theme.colors.background};
-    }
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
 
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
+  ::-webkit-scrollbar-track {
+    background: ${({ theme }) => theme.colors.background};
+  }
 
-    ::-webkit-scrollbar-track {
-      background: ${({ theme }) => theme.colors.background};
-    }
+  ::-webkit-scrollbar-thumb {
+    background: ${({ theme }) => theme.colors.primaryLight};
+    border-radius: 4px;
 
-    ::-webkit-scrollbar-thumb {
-      background-color: ${({ theme }) => theme.colors.secondary};
-      border-radius: 4px;
+    &:hover {
+      background: ${({ theme }) => theme.colors.primary};
     }
+  }
+
+  /* Utility classes */
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 `;
 

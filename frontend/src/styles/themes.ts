@@ -1,145 +1,130 @@
 // src/styles/themes.ts
-import type { Theme, ThemeMode } from './theme.types';
+import type { Theme } from './theme.types';
 
-export const themes: Record<ThemeMode, Theme> = {
-  light: {
-    id: 'light',
-    colors: {
-      // Base colors
-      background: '#ffffff',
-      backgroundAlt: '#f8f9fa',
-      backgroundSecondary: '#f0f2f5',
-      backgroundTertiary: '#e9ecef',
-      
-      // Text colors
-      text: '#212529',
-      textSecondary: '#495057',
-      textMuted: '#6c757d',
-      textPrimary: '#212529',
-      
-      // Brand colors
-      primary: '#0066ff',
-      primaryLight: '#4d94ff',
-      primaryDark: '#0047b3',
-      primaryHover: '#0052cc',
-      secondary: '#6c757d',
-      secondaryLight: '#adb5bd',
-      secondaryDark: '#495057',
-      accent: '#ff9500',
-      
-      // UI colors
-      surfaceLight: '#e9ecef',
-      surfaceMedium: '#dee2e6',
-      surfaceDark: '#ced4da',
-      
-      // Feedback colors
-      error: '#dc3545',
-      success: '#28a745',
-      warning: '#ffc107',
-      info: '#17a2b8',
-      
-      // Special effect colors
-      glass: 'rgba(255, 255, 255, 0.8)',
-      shadow: 'rgba(0, 0, 0, 0.1)',
-      border: '#dee2e6'
-    },
-    borderRadius: {
-      small: '4px',
-      medium: '8px',
-      large: '16px',
-      pill: '9999px'
-    },
-    shadows: {
-      small: '0 2px 4px rgba(0, 0, 0, 0.05)',
-      medium: '0 4px 8px rgba(0, 0, 0, 0.08)',
-      large: '0 8px 16px rgba(0, 0, 0, 0.1)',
-      button: '0 4px 6px rgba(0, 0, 0, 0.1)',
-      text: '0 1px 2px rgba(0, 0, 0, 0.1)'
-    },
-    transitions: {
-      fast: '150ms ease',
-      normal: '300ms ease',
-      slow: '500ms ease'
-    },
-    spacing: {
-      xxs: '0.25rem',
-      xs: '0.5rem',
-      sm: '1rem',
-      md: '1.5rem',
-      lg: '2rem',
-      xl: '3rem',
-      xxl: '4rem'
-    }
+const baseTheme = {
+  breakpoints: {
+    mobile: '320px',
+    tablet: '768px',
+    desktop: '1024px',
   },
-  dark: {
-    id: 'dark',
-    colors: {
-      // Base colors
-      background: '#121212',
-      backgroundAlt: '#1e1e1e',
-      backgroundSecondary: '#252525',
-      backgroundTertiary: '#2c2c2c',
-      
-      // Text colors
-      text: '#e0e0e0',
-      textSecondary: '#b0b0b0',
-      textMuted: '#808080',
-      textPrimary: '#ffffff',
-      
-      // Brand colors
-      primary: '#4d94ff',
-      primaryLight: '#80b3ff',
-      primaryDark: '#0052cc',
-      primaryHover: '#1a75ff',
-      secondary: '#6c757d',
-      secondaryLight: '#adb5bd',
-      secondaryDark: '#495057',
-      accent: '#ff9500',
-      
-      // UI colors
-      surfaceLight: '#2c2c2c',
-      surfaceMedium: '#3c3c3c',
-      surfaceDark: '#4c4c4c',
-      
-      // Feedback colors
-      error: '#f55a4e',
-      success: '#5cb85c',
-      warning: '#f0ad4e',
-      info: '#5bc0de',
-      
-      // Special effect colors
-      glass: 'rgba(30, 30, 30, 0.8)',
-      shadow: 'rgba(0, 0, 0, 0.2)',
-      border: '#333333'
-    },
-    borderRadius: {
-      small: '4px',
-      medium: '8px',
-      large: '16px',
-      pill: '9999px'
-    },
-    shadows: {
-      small: '0 2px 4px rgba(0, 0, 0, 0.2)',
-      medium: '0 4px 8px rgba(0, 0, 0, 0.3)',
-      large: '0 8px 16px rgba(0, 0, 0, 0.4)',
-      button: '0 4px 6px rgba(0, 0, 0, 0.3)',
-      text: '0 1px 2px rgba(0, 0, 0, 0.5)'
-    },
-    transitions: {
-      fast: '150ms ease',
-      normal: '300ms ease',
-      slow: '500ms ease'
-    },
-    spacing: {
-      xxs: '0.25rem',
-      xs: '0.5rem',
-      sm: '1rem',
-      md: '1.5rem',
-      lg: '2rem',
-      xl: '3rem',
-      xxl: '4rem'
-    }
-  }
+  transitions: {
+    fast: '0.2s',
+    normal: '0.3s',
+    slow: '0.5s',
+  },
+  shadows: {
+    small: '0 2px 4px rgba(0,0,0,0.1)',
+    medium: '0 4px 8px rgba(0,0,0,0.1)',
+    large: '0 8px 16px rgba(0,0,0,0.1)',
+  },
+  zIndex: {
+    modal: 1000,
+    overlay: 900,
+    dropdown: 800,
+    header: 700,
+  },
+  borderRadius: {
+    small: '4px',
+    medium: '8px',
+    large: '16px',
+    pill: '9999px',
+  },
+  spacing: {
+    xxs: '0.25rem',
+    xs: '0.5rem',
+    sm: '1rem',
+    md: '1.5rem',
+    lg: '2rem',
+    xl: '3rem',
+    xxl: '4rem',
+  },
+};
+
+export const lightTheme: Theme = {
+  ...baseTheme,
+  colors: {
+    primary: '#0078ff',
+    primaryLight: '#e6f3ff',
+    primaryHover: '#0056b3',
+    secondary: '#6c757d',
+    secondaryLight: '#f8f9fa',
+    secondaryHover: '#5a6268',
+    accent: '#4ecdc4',
+    accentLight: '#a7ebe7',
+    accentHover: '#3dbeb5',
+    background: '#f8f9fa',
+    backgroundAlt: '#ffffff',
+    backgroundHover: '#e9ecef',
+    surface: '#ffffff',
+    surfaceLight: '#f8f9fa',
+    surfaceHover: '#e9ecef',
+    surfaceActive: '#dee2e6',
+    surfaceDisabled: '#f8f9fa',
+    text: '#212529',
+    textHover: '#000000',
+    textSecondary: '#6c757d',
+    textInverse: '#ffffff',
+    textDisabled: '#adb5bd',
+    border: '#dee2e6',
+    borderHover: '#adb5bd',
+    borderActive: '#6c757d',
+    borderDisabled: '#dee2e6',
+    error: '#dc3545',
+    errorLight: '#f8d7da',
+    errorHover: '#c82333',
+    success: '#28a745',
+    successLight: '#d4edda',
+    successHover: '#218838',
+    warning: '#ffc107',
+    warningLight: '#fff3cd',
+    warningHover: '#e0a800',
+  },
+};
+
+export const darkTheme: Theme = {
+  ...baseTheme,
+  colors: {
+    primary: '#0078ff',
+    primaryLight: '#1a1f24',
+    primaryHover: '#339dff',
+    secondary: '#6c757d',
+    secondaryLight: '#2a2d3a',
+    secondaryHover: '#868e96',
+    accent: '#4ecdc4',
+    accentLight: '#2a4a47',
+    accentHover: '#5fe0d7',
+    background: '#121212',
+    backgroundAlt: '#1e1e1e',
+    backgroundHover: '#2a2a2a',
+    surface: '#1e1e1e',
+    surfaceLight: '#2a2a2a',
+    surfaceHover: '#343a40',
+    surfaceActive: '#495057',
+    surfaceDisabled: '#2a2a2a',
+    text: '#e9ecef',
+    textHover: '#ffffff',
+    textSecondary: '#adb5bd',
+    textInverse: '#212529',
+    textDisabled: '#6c757d',
+    border: '#343a40',
+    borderHover: '#495057',
+    borderActive: '#6c757d',
+    borderDisabled: '#343a40',
+    error: '#dc3545',
+    errorLight: '#481a1f',
+    errorHover: '#c82333',
+    success: '#28a745',
+    successLight: '#1a3b28',
+    successHover: '#218838',
+    warning: '#ffc107',
+    warningLight: '#4d3b04',
+    warningHover: '#e0a800',
+  },
+};
+
+export const themes = {
+  light: lightTheme,
+  dark: darkTheme,
 };
 
 /**

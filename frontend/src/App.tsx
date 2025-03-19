@@ -15,6 +15,7 @@ import { ZIndexProvider, useZIndex } from './hooks/useZIndex';
 import { GlobalStyles } from './styles/GlobalStyles';
 import { Projects } from './components/sections/Projects';
 import type { Theme, ThemeMode } from './styles/theme.types';
+import { lightTheme, darkTheme } from './styles/themes';
 import { LoadingScreen } from './components/animations/LoadingScreen';
 import { ScrollTransformBackground } from './components/animations/ScrollTransformBackground';
 import { ScrollIndicator } from './components/animations/ScrollIndicator';
@@ -22,14 +23,11 @@ import { BurgerMenu } from './components/navigation/BurgerMenu';
 import { Layout } from './components/layout/Layout';
 import { SkillsSection } from './components/sections/SkillsSection';
 import { useTheme } from './contexts/ThemeContext';
-import { lightTheme, darkTheme } from './styles/Theme';
 import { useThemeToggle } from './hooks/useThemeToggle';
 import NavigationBar from './components/NavigationBar/NavigationBar';
 import Home from './pages/Home/Home';
 import AboutPage from './pages/About/About';
-import Portfolio from './pages/Portfolio/Portfolio';
 import Contact from './pages/Contact/Contact';
-import Blog from './pages/Blog/Blog';
 import NotFound from './pages/NotFound/NotFound';
 import Footer from './components/Footer/Footer';
 import DevPanel from './pages/devpanel/DevPanel';
@@ -740,28 +738,28 @@ class ErrorBoundary extends React.Component<
 
 // Root App component with providers
 const App = () => {
-  const { theme, toggleTheme } = useThemeToggle();
-  const themeMode = theme === 'light' ? lightTheme : darkTheme;
+  const { theme, themeMode, toggleTheme } = useThemeToggle();
 
   return (
-    <ThemeProvider theme={themeMode}>
-      <GlobalStyles />
-      <Router>
-        <NavigationBar theme={theme} toggleTheme={toggleTheme} />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/portfolio" element={<Portfolio />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/devpanel" element={<DevPanel />} />
-          <Route path="/urlshortener" element={<UrlShortener />} />
-          <Route path="/messaging" element={<Messaging />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        <Footer />
-      </Router>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider defaultTheme="dark">
+        <GlobalStyles theme={theme} />
+        <Router>
+          <NavigationBar themeMode={themeMode} toggleTheme={toggleTheme} />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/portfolio" element={<Home />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/devpanel" element={<DevPanel />} />
+            <Route path="/urlshortener" element={<UrlShortener />} />
+            <Route path="/messaging" element={<Messaging />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          <Footer />
+        </Router>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 };
 
