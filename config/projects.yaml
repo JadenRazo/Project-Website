@@ -1,0 +1,43 @@
+projects:
+  - id: "urlshortener"
+    name: "URL Shortener"
+    description: "A service for shortening URLs with analytics"
+    enabled: true
+    routes:
+      - path: "/s"
+        description: "URL shortener API"
+        methods: ["GET", "POST", "DELETE"]
+      - path: "/s/{shortCode}"
+        description: "Redirect to original URL"
+        methods: ["GET"]
+    binaries:
+      - path: "bin/urlshortener"
+        buildCommand: "go build -o bin/urlshortener cmd/urlshortener/main.go"
+        runCommand: "./bin/urlshortener --config config/urlshortener.yaml"
+        environment:
+          PORT: "8081"
+          BASE_URL: "https://jadenrazo.dev/s/"
+    dependencies:
+      - "go"
+      - "postgres"
+
+  - id: "messaging"
+    name: "Messaging Platform"
+    description: "Discord-like messaging platform with real-time communication"
+    enabled: false
+    routes:
+      - path: "/api/messaging"
+        description: "Messaging REST API"
+        methods: ["GET", "POST", "PUT", "DELETE"]
+      - path: "/ws"
+        description: "WebSocket endpoint for real-time messaging"
+        methods: ["GET"]
+    binaries:
+      - path: "bin/messaging"
+        buildCommand: "go build -o bin/messaging cmd/messaging/main.go"
+        runCommand: "./bin/messaging --config config/messaging.yaml"
+        environment:
+          PORT: "8082"
+    dependencies:
+      - "go"
+      - "sqlite" 

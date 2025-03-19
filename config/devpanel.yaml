@@ -1,0 +1,27 @@
+server:
+  host: "0.0.0.0"
+  port: 8080
+  basePath: "/devpanel"
+  tlsEnabled: false
+  tlsCertFile: ""
+  tlsKeyFile: ""
+
+auth:
+  enabled: true
+  secretKey: "change-this-in-production"
+  adminUsers:
+    - "admin"
+  tokenExpiry: 24
+
+projects:
+  configPath: "config/projects.yaml"
+
+database:
+  type: "sqlite"
+  path: "data/devpanel.db"
+  host: ""
+  port: 0
+  user: ""
+  password: ""
+  dbName: ""
+  sslMode: "" 

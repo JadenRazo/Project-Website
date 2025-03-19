@@ -1,0 +1,19 @@
+[Unit]
+Description=Jaden Razo Website Backend Services
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/Project-Website
+ExecStart=/bin/bash /root/Project-Website/deploy/start-services.sh
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=jadenrazo-backend
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target 
