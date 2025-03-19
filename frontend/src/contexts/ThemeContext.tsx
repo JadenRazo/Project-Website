@@ -3,7 +3,6 @@ import { ThemeProvider as StyledThemeProvider } from 'styled-components';
 import { themes } from '../styles/themes';
 import type { Theme, ThemeMode } from '../styles/theme.types';
 
-// Context interface
 interface ThemeContextValue {
   theme: Theme;
   themeMode: ThemeMode;
@@ -30,7 +29,6 @@ const getPreferredTheme = (): ThemeMode => {
     return prefersDark ? 'dark' : 'light';
   }
   
-  // Default to dark theme
   return 'dark';
 };
 
@@ -43,11 +41,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   const theme = useMemo(() => themes[themeMode], [themeMode]);
   
   const toggleTheme = () => {
-    setThemeMode(prevMode => {
-      const newMode = prevMode === 'dark' ? 'light' : 'dark';
-      localStorage.setItem('theme', newMode);
-      return newMode;
-    });
+    setThemeMode(prev => prev === 'light' ? 'dark' : 'light');
   };
   
   const handleSetThemeMode = (mode: ThemeMode) => {
@@ -66,20 +60,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       }
     };
     
-    if (mediaQuery.addEventListener) {
-      mediaQuery.addEventListener('change', handleChange);
-    } else {
-      mediaQuery.addListener(handleChange);
-    }
+    mediaQuery.addEventListener('change', handleChange);
     
     document.documentElement.dataset.theme = themeMode;
     
     return () => {
-      if (mediaQuery.removeEventListener) {
-        mediaQuery.removeEventListener('change', handleChange);
-      } else {
-        mediaQuery.removeListener(handleChange);
-      }
+      mediaQuery.removeEventListener('change', handleChange);
     };
   }, []);
   
@@ -95,7 +81,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     }
   }, [themeMode]);
   
-  const contextValue = useMemo(() => ({
+  const contextValue = useMemo<ThemeContextValue>(() => ({
     theme,
     themeMode,
     toggleTheme,
@@ -120,3 +106,5 @@ export const useTheme = (): ThemeContextValue => {
   
   return context;
 };
+
+export default ThemeContext;
