@@ -12,6 +12,8 @@ interface MenuItem {
   label: string;
   delay: number;
   isExternal?: boolean;
+  isService?: boolean; // Flag for backend services
+  description?: string; // Optional description for services
 }
 
 interface BurgerMenuProps {
@@ -104,6 +106,38 @@ const Icons = {
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
       <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+    </svg>
+  ),
+  // New icons for backend services
+  DevPanel: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+      <line x1="3" y1="9" x2="21" y2="9"></line>
+      <line x1="9" y1="21" x2="9" y2="9"></line>
+    </svg>
+  ),
+  URLShortener: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M13.5 10.5L21 3"></path>
+      <path d="M16 3h5v5"></path>
+      <path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"></path>
+      <line x1="10" y1="14" x2="18" y2="14"></line>
+      <line x1="7" y1="17" x2="18" y2="17"></line>
+    </svg>
+  ),
+  Messaging: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+      <line x1="8" y1="10" x2="16" y2="10"></line>
+      <line x1="8" y1="14" x2="14" y2="14"></line>
+    </svg>
+  ),
+  Services: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7"></rect>
+      <rect x="14" y="3" width="7" height="7"></rect>
+      <rect x="14" y="14" width="7" height="7"></rect>
+      <rect x="3" y="14" width="7" height="7"></rect>
     </svg>
   )
 };
@@ -264,7 +298,7 @@ const MenuContainer = styled(motion.div)`
   }
 `;
 
-const MenuLink = styled(motion.a)<{ isActive?: boolean }>`
+const MenuLink = styled(motion.a)<{ isActive?: boolean; isService?: boolean }>`
   display: flex;
   align-items: center;
   padding: 1rem;
@@ -272,10 +306,12 @@ const MenuLink = styled(motion.a)<{ isActive?: boolean }>`
   text-decoration: none;
   font-size: 1rem;
   font-weight: 500;
-  background: ${({ theme, isActive }) => 
-    isActive ? theme.colors.primary : theme.colors.primaryLight};
-  color: ${({ theme, isActive }) => 
-    isActive ? '#ffffff' : theme.colors.primary};
+  background: ${({ theme, isActive, isService }) => 
+    isActive ? theme.colors.primary : 
+    isService ? `linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.primaryHover})` : 
+    theme.colors.primaryLight};
+  color: ${({ theme, isActive, isService }) => 
+    isActive || isService ? '#ffffff' : theme.colors.primary};
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
 
@@ -300,8 +336,10 @@ const MenuLink = styled(motion.a)<{ isActive?: boolean }>`
   }
 
   &:hover {
-    background: ${({ theme, isActive }) => 
-      isActive ? theme.colors.primary : theme.colors.primaryHover};
+    background: ${({ theme, isActive, isService }) => 
+      isActive ? theme.colors.primary : 
+      isService ? `linear-gradient(135deg, ${theme.colors.primaryHover}, ${theme.colors.primary})` : 
+      theme.colors.primaryHover};
     transform: translateY(-2px);
 
     span::after {
@@ -327,6 +365,42 @@ const MenuLink = styled(motion.a)<{ isActive?: boolean }>`
       height: 18px;
       margin-right: 0.8rem;
     }
+  }
+`;
+
+// Service description for the menu items
+const ServiceDescription = styled.small`
+  display: block;
+  font-size: 0.8rem;
+  margin-top: 4px;
+  opacity: 0.85;
+  font-weight: normal;
+`;
+
+// Section divider for menu categories
+const MenuDivider = styled.div`
+  display: flex;
+  align-items: center;
+  margin: 1rem 0 0.5rem 0;
+  color: ${({ theme }) => theme.colors.text}80;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  
+  &::before, &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: ${({ theme }) => theme.colors.text}20;
+  }
+  
+  &::before {
+    margin-right: 0.5rem;
+  }
+  
+  &::after {
+    margin-left: 0.5rem;
   }
 `;
 
@@ -417,19 +491,51 @@ const MENU_ITEMS: MenuItem[] = [
     icon: Icons.About,
     label: 'About',
     delay: 0.4
+  }
+];
+
+// Backend services menu items
+const SERVICES_ITEMS: MenuItem[] = [
+  {
+    href: '/devpanel',
+    icon: Icons.DevPanel,
+    label: 'Developer Panel',
+    delay: 0.5,
+    isService: true,
+    description: 'Manage your projects and website'
   },
+  {
+    href: '/urlshortener',
+    icon: Icons.URLShortener,
+    label: 'URL Shortener',
+    delay: 0.6,
+    isService: true,
+    description: 'Create and manage short URLs'
+  },
+  {
+    href: '/messaging',
+    icon: Icons.Messaging,
+    label: 'Messaging',
+    delay: 0.7,
+    isService: true,
+    description: 'Real-time messaging platform'
+  }
+];
+
+// External links
+const EXTERNAL_ITEMS: MenuItem[] = [
   { 
     href: 'https://linkedin.com/in/jadenrazo',
     icon: Icons.LinkedIn,
     label: 'LinkedIn',
-    delay: 0.5,
+    delay: 0.8,
     isExternal: true
   },
   { 
     href: '/resume.pdf',
     icon: Icons.Resume,
     label: 'Resume',
-    delay: 0.6,
+    delay: 0.9,
     isExternal: true
   }
 ];
@@ -442,7 +548,9 @@ const MenuItemComponent: React.FC<MenuItemProps> = ({
   children, 
   onClick, 
   isExternal,
-  isActive
+  isActive,
+  isService,
+  description
 }) => {
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     try {
@@ -471,9 +579,13 @@ const MenuItemComponent: React.FC<MenuItemProps> = ({
       target={isExternal ? "_blank" : undefined}
       rel={isExternal ? "noopener noreferrer" : undefined}
       isActive={isActive}
+      isService={isService}
     >
       {icon}
-      <span>{children}</span>
+      <div>
+        <span>{children}</span>
+        {description && <ServiceDescription>{description}</ServiceDescription>}
+      </div>
     </MenuLink>
   );
 };
@@ -524,10 +636,19 @@ export const BurgerMenu: React.FC<BurgerMenuProps> = ({
   }, []);
 
   // Handle navigation for menu items
-  const handleItemClick = useCallback((href: string, isExternal: boolean = false) => {
+  const handleItemClick = useCallback((href: string, isExternal: boolean = false, isService: boolean = false) => {
     if (isExternal) return;
     
     try {
+      // If it's a service route, handle with normal browser navigation
+      if (isService || href.startsWith('/')) {
+        // For service links, navigate using window.location
+        window.location.href = href;
+        closeMenu();
+        return;
+      }
+      
+      // For section navigation within the page
       const sectionId = href.replace('#', '');
       onNavigate(sectionId);
       closeMenu();
@@ -665,12 +786,38 @@ export const BurgerMenu: React.FC<BurgerMenuProps> = ({
                 exit={{ opacity: 0 }}
                 transition={{ delay: 0.2 }}
               >
+                {/* Main navigation items */}
                 {MENU_ITEMS.map((item) => (
                   <MenuItem
                     key={item.href}
                     {...item}
+                    onClick={() => handleItemClick(item.href, item.isExternal, item.isService)}
+                    isActive={!item.isExternal && !item.isService && item.href.replace('#', '') === activeSection}
+                  >
+                    {item.label}
+                  </MenuItem>
+                ))}
+
+                {/* Services section */}
+                <MenuDivider>Services</MenuDivider>
+                {SERVICES_ITEMS.map((item) => (
+                  <MenuItem
+                    key={item.href}
+                    {...item}
+                    onClick={() => handleItemClick(item.href, item.isExternal, item.isService)}
+                    description={item.description}
+                  >
+                    {item.label}
+                  </MenuItem>
+                ))}
+                
+                {/* External links */}
+                <MenuDivider>Links</MenuDivider>
+                {EXTERNAL_ITEMS.map((item) => (
+                  <MenuItem
+                    key={item.href}
+                    {...item}
                     onClick={() => handleItemClick(item.href, item.isExternal)}
-                    isActive={!item.isExternal && item.href.replace('#', '') === activeSection}
                   >
                     {item.label}
                   </MenuItem>

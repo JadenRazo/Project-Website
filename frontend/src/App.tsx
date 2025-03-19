@@ -22,6 +22,19 @@ import { BurgerMenu } from './components/navigation/BurgerMenu';
 import { Layout } from './components/layout/Layout';
 import { SkillsSection } from './components/sections/SkillsSection';
 import { useTheme } from './contexts/ThemeContext';
+import { lightTheme, darkTheme } from './styles/Theme';
+import { useThemeToggle } from './hooks/useThemeToggle';
+import NavigationBar from './components/NavigationBar/NavigationBar';
+import Home from './pages/Home/Home';
+import AboutPage from './pages/About/About';
+import Portfolio from './pages/Portfolio/Portfolio';
+import Contact from './pages/Contact/Contact';
+import Blog from './pages/Blog/Blog';
+import NotFound from './pages/NotFound/NotFound';
+import Footer from './components/Footer/Footer';
+import DevPanel from './pages/devpanel/DevPanel';
+import UrlShortener from './pages/urlshortener/UrlShortener';
+import Messaging from './pages/messaging/Messaging';
 
 // Types
 interface Project {
@@ -727,16 +740,28 @@ class ErrorBoundary extends React.Component<
 
 // Root App component with providers
 const App = () => {
+  const { theme, toggleTheme } = useThemeToggle();
+  const themeMode = theme === 'light' ? lightTheme : darkTheme;
+
   return (
-    <Router>
-      <ThemeProvider>
-        <ZIndexProvider>
-          <ErrorBoundary>
-            <MainContent />
-          </ErrorBoundary>
-        </ZIndexProvider>
-      </ThemeProvider>
-    </Router>
+    <ThemeProvider theme={themeMode}>
+      <GlobalStyles />
+      <Router>
+        <NavigationBar theme={theme} toggleTheme={toggleTheme} />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/portfolio" element={<Portfolio />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/devpanel" element={<DevPanel />} />
+          <Route path="/urlshortener" element={<UrlShortener />} />
+          <Route path="/messaging" element={<Messaging />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        <Footer />
+      </Router>
+    </ThemeProvider>
   );
 };
 
