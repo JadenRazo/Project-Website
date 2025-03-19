@@ -1,0 +1,53 @@
+server:
+  host: "0.0.0.0"
+  port: 8082
+  base_path: "/api/messaging"
+  tls:
+    enabled: false
+    cert_file: ""
+    key_file: ""
+
+websocket:
+  enabled: true
+  path: "/ws"
+  ping_interval: 60
+  write_wait: 10
+  pong_wait: 60
+  max_message_size: 4096
+
+database:
+  type: "sqlite"
+  path: "data/messaging.db"
+  connection_string: ""
+  max_open_conns: 10
+  max_idle_conns: 5
+  conn_max_lifetime: 3600
+
+auth:
+  enabled: true
+  secretKey: "change-this-in-production"
+  tokenExpiry: 24
+
+cache:
+  enabled: true
+  defaultExpiry: 5
+  cleanupInterval: 10
+
+logging:
+  level: "info"
+  format: "text"
+  output: "stdout"
+
+features:
+  readReceipts: true
+  typing: true
+  fileUploads: false
+  embeds: true
+  reactions: true
+
+channels:
+  default:
+    - name: "general"
+      description: "General discussion"
+    - name: "announcements"
+      description: "Important announcements" 

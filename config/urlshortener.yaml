@@ -1,0 +1,21 @@
+server:
+  host: "0.0.0.0"
+  port: 8081
+  basePath: "/s"
+  tlsEnabled: false
+  tlsCertFile: ""
+  tlsKeyFile: ""
+
+database:
+  type: "postgres"
+  host: "localhost"
+  port: 5432
+  user: "postgres"
+  password: "postgres"  # In production, use environment variables
+  dbName: "urlshortener"
+  sslMode: "disable"
+
+shortener:
+  codeLength: 6
+  baseURL: "https://jadenrazo.dev/s/"
+  allowedDomains: []  # Empty means all domains are allowed 
