@@ -2,12 +2,15 @@ package postgres
 
 import (
 	"context"
+	"errors"
+	"time"
 
+	"github.com/JadenRazo/Project-Website/backend/internal/domain"
 	"github.com/JadenRazo/Project-Website/backend/internal/messaging/repository"
 	"gorm.io/gorm"
 )
 
-// ReadReceiptRepo implements the ReadReceiptRepository interface
+// ReadReceiptRepo implements repository.ReadReceiptRepository using PostgreSQL
 type ReadReceiptRepo struct {
 	db *gorm.DB
 }
@@ -19,67 +22,115 @@ func NewReadReceiptRepository(db *gorm.DB) repository.ReadReceiptRepository {
 	}
 }
 
-// CreateReadReceipt creates a new read receipt
-func (r *ReadReceiptRepo) CreateReadReceipt(ctx context.Context, receipt *repository.ReadReceipt) error {
+// Create implements repository.BaseRepository
+func (r *ReadReceiptRepo) Create(ctx context.Context, receipt *domain.MessagingReadReceipt) error {
+	if receipt.CreatedAt.IsZero() {
+		receipt.CreatedAt = time.Now()
+	}
+	if receipt.UpdatedAt.IsZero() {
+		receipt.UpdatedAt = time.Now()
+	}
 	return r.db.WithContext(ctx).Create(receipt).Error
 }
 
-// CreateBulkReadReceipts creates multiple read receipts in a single operation
-func (r *ReadReceiptRepo) CreateBulkReadReceipts(ctx context.Context, receipts []repository.ReadReceipt) error {
-	// Use a transaction for batch insert
-	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		return tx.Create(&receipts).Error
-	})
+// FindByID implements repository.BaseRepository
+func (r *ReadReceiptRepo) FindByID(ctx context.Context, id uint) (*domain.MessagingReadReceipt, error) {
+	var receipt domain.MessagingReadReceipt
+	err := r.db.WithContext(ctx).
+		Preload("Message").
+		Preload("User").
+		First(&receipt, id).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, repository.ErrNotFound
+		}
+		return nil, err
+	}
+	return &receipt, nil
 }
 
-// ReadReceiptExists checks if a read receipt already exists for a message and user
-func (r *ReadReceiptRepo) ReadReceiptExists(ctx context.Context, messageID, userID uint) (bool, error) {
-	var count int64
-	err := r.db.WithContext(ctx).
-		Model(&repository.ReadReceipt{}).
-		Where("message_id = ? AND user_id = ?", messageID, userID).
-		Count(&count).
-		Error
-
-	return count > 0, err
+// Update implements repository.BaseRepository
+func (r *ReadReceiptRepo) Update(ctx context.Context, receipt *domain.MessagingReadReceipt) error {
+	receipt.UpdatedAt = time.Now()
+	return r.db.WithContext(ctx).Save(receipt).Error
 }
 
-// GetMessageReadReceipts gets all read receipts for a message
-func (r *ReadReceiptRepo) GetMessageReadReceipts(ctx context.Context, messageID uint) ([]repository.ReadReceipt, error) {
-	var receipts []repository.ReadReceipt
+// Delete implements repository.BaseRepository
+func (r *ReadReceiptRepo) Delete(ctx context.Context, id uint) error {
+	result := r.db.WithContext(ctx).Delete(&domain.MessagingReadReceipt{}, id)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return repository.ErrNotFound
+	}
+	return nil
+}
+
+// FindAll implements repository.BaseRepository
+func (r *ReadReceiptRepo) FindAll(ctx context.Context) ([]domain.MessagingReadReceipt, error) {
+	var receipts []domain.MessagingReadReceipt
 	err := r.db.WithContext(ctx).
+		Preload("Message").
+		Preload("User").
+		Find(&receipts).Error
+	return receipts, err
+}
+
+// GetMessageReadReceipts retrieves all read receipts for a message
+func (r *ReadReceiptRepo) GetMessageReadReceipts(ctx context.Context, messageID uint) ([]domain.MessagingReadReceipt, error) {
+	var receipts []domain.MessagingReadReceipt
+	err := r.db.WithContext(ctx).
+		Preload("User").
 		Where("message_id = ?", messageID).
-		Find(&receipts).
-		Error
+		Find(&receipts).Error
+	return receipts, err
+}
 
+// GetUserReadReceipts retrieves all read receipts for a user
+func (r *ReadReceiptRepo) GetUserReadReceipts(ctx context.Context, userID uint) ([]domain.MessagingReadReceipt, error) {
+	var receipts []domain.MessagingReadReceipt
+	err := r.db.WithContext(ctx).
+		Preload("Message").
+		Where("user_id = ?", userID).
+		Find(&receipts).Error
 	return receipts, err
 }
 
 // GetUnreadCount gets the count of unread messages for a user in a channel
-func (r *ReadReceiptRepo) GetUnreadCount(ctx context.Context, channelID, userID uint) (int, error) {
-	// This query counts messages that:
-	// 1. Are in the specified channel
-	// 2. Weren't sent by the current user
-	// 3. Don't have a read receipt from the current user
+func (r *ReadReceiptRepo) GetUnreadCount(ctx context.Context, channelID uint, userID uint) (int, error) {
 	var count int64
-	err := r.db.WithContext(ctx).Raw(`
-		SELECT COUNT(*) FROM messages m
-		WHERE m.channel_id = ? 
-		AND m.sender_id != ?
-		AND NOT EXISTS (
-			SELECT 1 FROM read_receipts rr 
-			WHERE rr.message_id = m.id 
-			AND rr.user_id = ?
-		)
-	`, channelID, userID, userID).Count(&count).Error
-
+	err := r.db.WithContext(ctx).
+		Model(&domain.MessagingMessage{}).
+		Where("channel_id = ? AND sender_id != ?", channelID, userID).
+		Where("NOT EXISTS (SELECT 1 FROM messaging_read_receipts WHERE message_id = messaging_messages.id AND user_id = ?)", userID).
+		Count(&count).Error
 	return int(count), err
 }
 
-// DeleteReadReceipts deletes all read receipts for a message
-func (r *ReadReceiptRepo) DeleteReadReceipts(ctx context.Context, messageID uint) error {
-	return r.db.WithContext(ctx).
-		Where("message_id = ?", messageID).
-		Delete(&repository.ReadReceipt{}).
-		Error
+// MarkAsRead marks a message as read by a user
+func (r *ReadReceiptRepo) MarkAsRead(ctx context.Context, messageID uint, userID uint) error {
+	receipt := &domain.MessagingReadReceipt{
+		MessageID: messageID,
+		UserID:    userID,
+		ReadAt:    time.Now(),
+	}
+	return r.db.WithContext(ctx).Create(receipt).Error
+}
+
+// GetLastReadTime gets the last time a user read messages in a channel
+func (r *ReadReceiptRepo) GetLastReadTime(ctx context.Context, channelID uint, userID uint) (*time.Time, error) {
+	var receipt domain.MessagingReadReceipt
+	err := r.db.WithContext(ctx).
+		Joins("JOIN messaging_messages ON messaging_messages.id = messaging_read_receipts.message_id").
+		Where("messaging_messages.channel_id = ? AND messaging_read_receipts.user_id = ?", channelID, userID).
+		Order("messaging_read_receipts.read_at DESC").
+		First(&receipt).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &receipt.ReadAt, nil
 }

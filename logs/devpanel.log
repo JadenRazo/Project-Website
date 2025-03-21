@@ -1,3 +1,1 @@
-2025/03/19 20:36:50 Starting developer panel server on 0.0.0.0:8080
-2025/03/19 20:46:42 [localhost/WlXbz1x10R-000001] "GET http://205.185.120.5:8080/ HTTP/1.1" from 103.59.156.16:49286 - 404 19B in 987.39µs
-2025/03/19 20:56:31 [localhost/WlXbz1x10R-000002] "GET http:/// HTTP/1.0" from 198.235.24.90:51237 - 404 19B in 1.210941ms
+2025/03/21 18:52:35 Starting developer panel server on 0.0.0.0:8080

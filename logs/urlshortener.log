@@ -1,2 +1,2 @@
-2025/03/19 20:36:52 Starting URL shortener service on :8081
-2025/03/19 20:38:19 [localhost/pdF3mh0aF8-000001] "GET http://205.185.120.5:8081/cgi-bin/luci/;stok=/locale HTTP/1.1" from 87.121.84.196:53094 - 404 19B in 46.177µs
+2025/03/21 18:52:37 Starting URL shortener service on :8081
+2025/03/21 19:48:55 [localhost/4QCoBNPEvT-000001] "GET http:/// HTTP/1.0" from 147.185.132.52:55838 - 404 19B in 749.169µs
