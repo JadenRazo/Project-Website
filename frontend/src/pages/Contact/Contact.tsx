@@ -8,7 +8,9 @@ const ContactContainer = styled.div`
   flex-direction: column;
   align-items: center;
   padding: ${({ theme }) => theme.spacing.xxl} ${({ theme }) => theme.spacing.xl};
+  padding-top: calc(${({ theme }) => theme.spacing.xxl} + 70px); // Add extra padding for navbar
   background: ${({ theme }) => theme.colors.background};
+  margin-top: 60px; // Add margin to push content below navbar
 `;
 
 const ContactContent = styled.div`

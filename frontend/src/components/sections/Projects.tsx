@@ -34,10 +34,15 @@ const ProjectsSection = styled.section<{ isReducedMotion?: boolean }>`
   max-width: 1600px;
   margin: 0 auto;
   overflow: hidden;
-  containment: content; /* Optimize paint performance */
+  containment: content;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
   
   @media (max-width: 768px) {
     padding: clamp(3rem, 8vw, 4rem) clamp(1rem, 5vw, 2rem);
+    width: 100%;
   }
   
   @media (max-width: 480px) {
@@ -48,11 +53,21 @@ const ProjectsSection = styled.section<{ isReducedMotion?: boolean }>`
 // Content wrapper with intersection-based animations
 const ContentWrapper = styled(motion.div)<{ inView: boolean }>`
   max-width: 1200px;
+  width: 100%;
   margin: 0 auto;
   opacity: ${props => props.inView ? 1 : 0};
   transform: translateY(${props => props.inView ? 0 : '30px'});
   transition: opacity 0.6s ease, transform 0.6s ease;
-  will-change: opacity, transform; /* Hint for browser optimization */
+  will-change: opacity, transform;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    padding: 0 1rem;
+  }
 `;
 
 // Responsive heading with dynamic sizing
@@ -61,13 +76,15 @@ const Heading = styled(motion.h2)`
   margin-bottom: 0.5rem;
   position: relative;
   display: inline-block;
-  text-rendering: optimizeLegibility; /* Improve text rendering */
+  text-rendering: optimizeLegibility;
+  text-align: center;
   
   &::after {
     content: '';
     position: absolute;
     bottom: -5px;
-    left: 0;
+    left: 50%;
+    transform: translateX(-50%);
     width: 60px;
     height: 3px;
     background-color: ${({ theme }) => theme.colors?.primary || 'var(--primary)'};
@@ -83,10 +100,12 @@ const Subtitle = styled(motion.p)`
   margin-bottom: 2rem;
   max-width: 600px;
   opacity: 0.8;
+  text-align: center;
   
   @media (max-width: 768px) {
     font-size: 1rem;
     margin-bottom: 1.5rem;
+    padding: 0 1rem;
   }
 `;
 
@@ -96,11 +115,14 @@ const ProjectGrid = styled(motion.div)`
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: clamp(1.5rem, 3vw, 3rem);
   margin-top: 2rem;
-  contain: layout; /* Optimize layout calculations */
+  contain: layout;
+  width: 100%;
+  justify-items: center;
   
   @media (max-width: 768px) {
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1.5rem;
+    padding: 0 1rem;
   }
   
   @media (max-width: 480px) {
@@ -117,7 +139,11 @@ const EmptyState = styled(motion.div)`
   background-color: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
   backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px); /* Safari support */
+  -webkit-backdrop-filter: blur(5px);
+  width: 100%;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
   
   h3 {
     font-size: 1.5rem;
@@ -135,12 +161,13 @@ const EmptyState = styled(motion.div)`
 // Project card wrapper for consistent sizing and animation
 const ProjectCardWrapper = styled(motion.div)`
   width: 100%;
+  max-width: 400px;
   display: flex;
   justify-content: center;
-  contain: layout style; /* Optimize rendering */
+  contain: layout style;
   
   @media (max-width: 480px) {
-    justify-content: center;
+    max-width: 100%;
   }
 `;
 
