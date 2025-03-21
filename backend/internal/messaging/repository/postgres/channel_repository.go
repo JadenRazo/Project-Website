@@ -22,185 +22,141 @@ func NewChannelRepository(db *gorm.DB) repository.ChannelRepository {
 	}
 }
 
-// CreateChannel creates a new channel
-func (r *ChannelRepo) CreateChannel(ctx context.Context, channel *domain.Channel) error {
-	// Set creation time if not already set
+// Create implements repository.BaseRepository
+func (r *ChannelRepo) Create(ctx context.Context, channel *domain.MessagingChannel) error {
 	if channel.CreatedAt.IsZero() {
 		channel.CreatedAt = time.Now()
 	}
-
-	result := r.db.WithContext(ctx).Create(channel)
-	if result.Error != nil {
-		return result.Error
+	if channel.UpdatedAt.IsZero() {
+		channel.UpdatedAt = time.Now()
 	}
-
-	// Create channel membership for owner
-	membership := domain.ChannelMember{
-		ChannelID: channel.ID,
-		UserID:    channel.OwnerID,
-		Role:      "owner",
-		JoinedAt:  time.Now(),
-	}
-
-	return r.db.WithContext(ctx).Create(&membership).Error
+	return r.db.WithContext(ctx).Create(channel).Error
 }
 
-// GetChannel retrieves a channel by ID
-func (r *ChannelRepo) GetChannel(ctx context.Context, channelID uint) (*domain.Channel, error) {
-	var channel domain.Channel
-	result := r.db.WithContext(ctx).First(&channel, channelID)
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return nil, repository.ErrChannelNotFound
+// FindByID implements repository.BaseRepository
+func (r *ChannelRepo) FindByID(ctx context.Context, id uint) (*domain.MessagingChannel, error) {
+	var channel domain.MessagingChannel
+	err := r.db.WithContext(ctx).
+		Preload("Members").
+		Preload("PinnedMessages").
+		First(&channel, id).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, repository.ErrNotFound
 		}
-		return nil, result.Error
+		return nil, err
 	}
 	return &channel, nil
 }
 
-// ListUserChannels lists all channels a user is a member of
-func (r *ChannelRepo) ListUserChannels(ctx context.Context, userID uint) ([]domain.Channel, error) {
-	var channels []domain.Channel
+// Update implements repository.BaseRepository
+func (r *ChannelRepo) Update(ctx context.Context, channel *domain.MessagingChannel) error {
+	channel.UpdatedAt = time.Now()
+	return r.db.WithContext(ctx).Save(channel).Error
+}
+
+// Delete implements repository.BaseRepository
+func (r *ChannelRepo) Delete(ctx context.Context, id uint) error {
+	result := r.db.WithContext(ctx).Delete(&domain.MessagingChannel{}, id)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return repository.ErrNotFound
+	}
+	return nil
+}
+
+// FindAll implements repository.BaseRepository
+func (r *ChannelRepo) FindAll(ctx context.Context) ([]domain.MessagingChannel, error) {
+	var channels []domain.MessagingChannel
 	err := r.db.WithContext(ctx).
-		Joins("JOIN channel_members ON channel_members.channel_id = channels.id").
-		Where("channel_members.user_id = ?", userID).
+		Preload("Members").
+		Preload("PinnedMessages").
 		Find(&channels).Error
-
-	if err != nil {
-		return nil, err
-	}
-	return channels, nil
+	return channels, err
 }
 
-// AddUserToChannel adds a user to a channel
-func (r *ChannelRepo) AddUserToChannel(ctx context.Context, channelID uint, userID uint) error {
-	// Check if channel exists
-	var channel domain.Channel
-	if err := r.db.WithContext(ctx).First(&channel, channelID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return repository.ErrChannelNotFound
-		}
-		return err
-	}
-
-	// Check if user already a member
-	var count int64
-	r.db.WithContext(ctx).
-		Model(&domain.ChannelMember{}).
-		Where("channel_id = ? AND user_id = ?", channelID, userID).
-		Count(&count)
-
-	if count > 0 {
-		return repository.ErrUserAlreadyMember
-	}
-
-	// Add user to channel
-	membership := domain.ChannelMember{
-		ChannelID: channelID,
-		UserID:    userID,
-		Role:      "member",
-		JoinedAt:  time.Now(),
-	}
-
-	return r.db.WithContext(ctx).Create(&membership).Error
+// AddMember adds a user to a channel
+func (r *ChannelRepo) AddMember(ctx context.Context, member *domain.MessagingChannelMember) error {
+	member.CreatedAt = time.Now()
+	member.UpdatedAt = time.Now()
+	return r.db.WithContext(ctx).Create(member).Error
 }
 
-// RemoveUserFromChannel removes a user from a channel
-func (r *ChannelRepo) RemoveUserFromChannel(ctx context.Context, channelID uint, userID uint) error {
-	// Check if channel exists
-	var channel domain.Channel
-	if err := r.db.WithContext(ctx).First(&channel, channelID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return repository.ErrChannelNotFound
-		}
-		return err
-	}
-
-	// Don't allow removal of channel owner
-	if channel.OwnerID == userID {
-		return repository.ErrCannotRemoveOwner
-	}
-
-	// Delete membership
+// RemoveMember removes a user from a channel
+func (r *ChannelRepo) RemoveMember(ctx context.Context, channelID uint, userID uint) error {
 	result := r.db.WithContext(ctx).
 		Where("channel_id = ? AND user_id = ?", channelID, userID).
-		Delete(&domain.ChannelMember{})
-
-	if result.RowsAffected == 0 {
-		return repository.ErrUserNotMember
+		Delete(&domain.MessagingChannelMember{})
+	if result.Error != nil {
+		return result.Error
 	}
-
-	return result.Error
+	if result.RowsAffected == 0 {
+		return repository.ErrNotFound
+	}
+	return nil
 }
 
 // GetChannelMembers retrieves all members of a channel
-func (r *ChannelRepo) GetChannelMembers(ctx context.Context, channelID uint) ([]domain.User, error) {
-	var users []domain.User
+func (r *ChannelRepo) GetChannelMembers(ctx context.Context, channelID uint) ([]domain.MessagingChannelMember, error) {
+	var members []domain.MessagingChannelMember
 	err := r.db.WithContext(ctx).
-		Joins("JOIN channel_members ON channel_members.user_id = users.id").
-		Where("channel_members.channel_id = ?", channelID).
-		Find(&users).Error
-
-	if err != nil {
-		return nil, err
-	}
-	return users, nil
+		Preload("User").
+		Where("channel_id = ?", channelID).
+		Find(&members).Error
+	return members, err
 }
 
-// UpdateChannel updates channel information
-func (r *ChannelRepo) UpdateChannel(ctx context.Context, channel *domain.Channel) error {
-	// Fetch existing to verify it exists
-	var existing domain.Channel
-	if err := r.db.WithContext(ctx).First(&existing, channel.ID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return repository.ErrChannelNotFound
-		}
-		return err
-	}
-
-	// Set some fields that shouldn't be updated
-	channel.CreatedAt = existing.CreatedAt
-	channel.OwnerID = existing.OwnerID // Don't allow changing the owner
-
-	// Update only selected fields
-	return r.db.WithContext(ctx).Model(channel).
-		Select("name", "description", "type", "icon", "topic", "updated_at").
-		Updates(channel).Error
+// GetUserChannels retrieves all channels a user is a member of
+func (r *ChannelRepo) GetUserChannels(ctx context.Context, userID uint) ([]domain.MessagingChannel, error) {
+	var channels []domain.MessagingChannel
+	err := r.db.WithContext(ctx).
+		Joins("JOIN messaging_channel_members ON messaging_channel_members.channel_id = messaging_channels.id").
+		Where("messaging_channel_members.user_id = ?", userID).
+		Find(&channels).Error
+	return channels, err
 }
 
-// DeleteChannel deletes a channel
-func (r *ChannelRepo) DeleteChannel(ctx context.Context, channelID uint) error {
-	// Verify channel exists
-	var channel domain.Channel
-	if err := r.db.WithContext(ctx).First(&channel, channelID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return repository.ErrChannelNotFound
-		}
-		return err
-	}
+// PinMessage pins a message in a channel
+func (r *ChannelRepo) PinMessage(ctx context.Context, pin *domain.MessagingPinnedMessage) error {
+	pin.CreatedAt = time.Now()
+	pin.UpdatedAt = time.Now()
+	return r.db.WithContext(ctx).Create(pin).Error
+}
 
-	// Start transaction
-	tx := r.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return tx.Error
+// UnpinMessage unpins a message from a channel
+func (r *ChannelRepo) UnpinMessage(ctx context.Context, channelID uint, messageID uint) error {
+	result := r.db.WithContext(ctx).
+		Where("channel_id = ? AND message_id = ?", channelID, messageID).
+		Delete(&domain.MessagingPinnedMessage{})
+	if result.Error != nil {
+		return result.Error
 	}
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-
-	// Delete channel members
-	if err := tx.Where("channel_id = ?", channelID).Delete(&domain.ChannelMember{}).Error; err != nil {
-		tx.Rollback()
-		return err
+	if result.RowsAffected == 0 {
+		return repository.ErrNotFound
 	}
+	return nil
+}
 
-	// Delete channel
-	if err := tx.Delete(&domain.Channel{}, channelID).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
+// GetPinnedMessages retrieves all pinned messages in a channel
+func (r *ChannelRepo) GetPinnedMessages(ctx context.Context, channelID uint) ([]domain.MessagingPinnedMessage, error) {
+	var pins []domain.MessagingPinnedMessage
+	err := r.db.WithContext(ctx).
+		Preload("Message").
+		Preload("PinnedBy").
+		Where("channel_id = ?", channelID).
+		Order("created_at DESC").
+		Find(&pins).Error
+	return pins, err
+}
 
-	return tx.Commit().Error
+// GetPinnedMessageCount gets the count of pinned messages in a channel
+func (r *ChannelRepo) GetPinnedMessageCount(ctx context.Context, channelID uint) (int, error) {
+	var count int64
+	err := r.db.WithContext(ctx).
+		Model(&domain.MessagingPinnedMessage{}).
+		Where("channel_id = ?", channelID).
+		Count(&count).Error
+	return int(count), err
 }
