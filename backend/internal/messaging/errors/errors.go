@@ -289,3 +289,31 @@ func HandleError(err error) (int, interface{}) {
 		"type":  string(ErrorTypeInternal),
 	}
 }
+
+var (
+	ErrUnauthorized     = errors.New("unauthorized")
+	ErrFileTooLarge     = errors.New("file size exceeds limit")
+	ErrInvalidFileType  = errors.New("file type not allowed")
+	ErrPinLimitExceeded = errors.New("channel pin limit exceeded")
+)
+
+// Common repository errors
+var (
+	// ErrNotFound is returned when an entity is not found
+	ErrNotFound = errors.New("entity not found")
+
+	// ErrInvalidInput is returned when the input is invalid
+	ErrInvalidInput = errors.New("invalid input")
+
+	// ErrUnauthorized is returned when the user is not authorized
+	ErrUnauthorized = errors.New("unauthorized")
+
+	// ErrDuplicateEntry is returned when a duplicate entry is found
+	ErrDuplicateEntry = errors.New("duplicate entry")
+
+	// ErrInvalidOperation is returned when an invalid operation is attempted
+	ErrInvalidOperation = errors.New("invalid operation")
+
+	// ErrDatabaseOperation is returned when a database operation fails
+	ErrDatabaseOperation = errors.New("database operation failed")
+)
