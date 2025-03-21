@@ -180,219 +180,121 @@ const systemFonts = {
   mono: "'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace"
 };
 
+interface StyledMotionProps extends HTMLMotionProps<"div"> {
+  $isHovered?: boolean;
+  $enableAnimations?: boolean;
+}
+
 // Enhanced styled components with responsive and performance optimizations
-const HeroSection = styled.section<{ isSimplified: boolean }>`
-  min-height: ${props => props.isSimplified ? 'auto' : '100vh'};
-  height: ${props => props.isSimplified ? 'auto' : 'calc(var(--vh, 1vh) * 100)'};
+const HeroContainer = styled.div`
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: ${({ theme }) => theme.spacing.xl};
+  position: relative;
+  overflow: hidden;
+  margin-top: 60px;
+  text-align: center;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    padding: ${({ theme }) => theme.spacing.lg};
+    min-height: calc(100vh - 60px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+`;
+
+const ContentWrapper = styled(motion.div)<StyledMotionProps>`
+  max-width: 1200px;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: 0 clamp(1rem, 5vw, 10rem);
-  max-width: 1600px;
-  margin: 0 auto;
-  user-select: none;
-  position: relative;
+  gap: ${({ theme }) => theme.spacing.xl};
   z-index: 1;
-  background-color: ${({ theme }) => theme.colors.background};
+  align-items: center;
+  text-align: center;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    align-items: center;
+    justify-content: center;
+  }
+`;
+
+const Greeting = styled(motion.h1)`
+  font-size: 2rem;
   color: ${({ theme }) => theme.colors.text};
-  overscroll-behavior: none;
-  
-  ${media.touch} {
-    padding: ${props => props.isSimplified ? '5% 5%' : '0 5%'};
-    text-align: center;
-    justify-content: ${props => props.isSimplified ? 'flex-start' : 'center'};
-    padding-top: ${props => props.isSimplified ? '10vh' : '15vh'};
-  }
-  
-  ${media.mobileLg} {
-    padding: 15% 5% 10%;
-  }
-`;
-
-// Replace BackgroundElements styled component with a cleaner, more subtle version
-const BackgroundGradient = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(
-    circle at 50% 50%,
-    ${({ theme }) => `${theme.colors.background}00`} 0%,
-    ${({ theme }) => `${theme.colors.background}20`} 70%,
-    ${({ theme }) => `${theme.colors.background}50`} 100%
-  );
-  z-index: 0;
-  pointer-events: none;
-`;
-
-const ContentWrapper = styled(motion.div)<AnimatedElementProps & { inView: boolean }>`
-  max-width: 800px;
-  pointer-events: ${props => props.isInteractive ? 'auto' : 'none'};
-  will-change: transform, opacity;
-  position: relative;
-  z-index: 2;
-  opacity: ${props => props.inView ? 1 : 0};
-  transform: translateY(${props => props.inView ? 0 : '20px'});
-  transition: opacity 0.5s ease, transform 0.5s ease;
-  
-  ${media.touch} {
-    max-width: 100%;
-    margin: 0 auto;
-  }
-`;
-
-const Greeting = styled(motion.span)`
-  color: ${({ theme }) => theme.colors.primary};
-  font-family: ${systemFonts.mono};
-  font-size: clamp(14px, 2vw, 16px);
-  font-weight: 400;
-  margin-bottom: 20px;
-  display: block;
-  pointer-events: auto;
-  
-  ${media.mobileLg} {
-    margin-bottom: 10px;
-  }
-`;
-
-interface NameProps {
-  isHovered: boolean;
-  enableAnimations: boolean;
-}
-
-// Optimized name container with typing animation and responsive design
-const NameContainer = styled(motion.h1)<NameProps>`
-  font-size: clamp(40px, 8vw, 80px);
-  font-weight: 600;
-  color: ${({ theme }) => theme.colors.text};
-  line-height: 1.1;
   margin: 0;
-  cursor: pointer;
-  transform-style: preserve-3d;
-  perspective: 1000px;
-  display: flex;
-  flex-wrap: wrap;
-  
-  ${media.tablet} {
-    font-size: clamp(36px, 7vw, 60px);
-  }
-  
-  ${media.mobileLg} {
-    font-size: clamp(30px, 6vw, 40px);
-  }
-  
-  ${media.touch} {
-    justify-content: center;
-  }
-`;
-
-const TypewriterContainer = styled.div`
-  position: relative;
-  display: inline-flex;
-  flex-wrap: wrap;
-  letter-spacing: 0;
-  
-  ${media.touch} {
-    justify-content: center;
-  }
-`;
-
-const TypewriterCharacter = styled(motion.span)<{ isSlash?: boolean }>`
-  display: inline-block;
-  color: ${props => props.isSlash ? props.theme.colors.primary : 'inherit'};
-  position: relative;
-  white-space: pre;
-`;
-
-const TypewriterCursor = styled(motion.div)`
-  position: relative;
-  display: inline-block;
-  width: 0.4em;
-  height: 0.8em;
-  background-color: ${({ theme }) => theme.colors.text}88;
-  margin-top: 0.15em;
-  margin-left: 0;
-  border-radius: 2px;
-`;
-
-const Bio = styled(motion.div)`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin: 20px 0 30px;
-  
-  ${media.touch} {
-    justify-content: center;
-  }
-  
-  ${media.mobileSm} {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-  }
-`;
-
-interface BioItemStyledProps {
-  active: boolean;
-  enablePulse: boolean;
-}
-
-// Enhanced Bio Item with visual feedback for interaction
-const BioItem = styled(motion.button)<BioItemStyledProps>`
-  font-size: clamp(16px, 3vw, 20px);
-  color: ${({ theme, active }) => active ? theme.colors.backgroundAlt : theme.colors.text};
-  padding: 8px 16px;
-  border-radius: 8px;
-  background-color: ${({ theme, active }) => active 
-    ? theme.colors.primary 
-    : theme.colors.primaryLight};
-  position: relative;
-  cursor: pointer;
-  pointer-events: auto;
-  border: none;
-  font-family: inherit;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+  line-height: 1.2;
   transition: all 0.3s ease;
-  
-  ${({ active, enablePulse, theme }) => active && enablePulse && css`
-    animation: ${theme.pulse} 1.5s infinite;
-  `}
-  
+  cursor: default;
+
   &:hover {
-    background-color: ${({ theme, active }) => active 
-      ? theme.colors.primary 
-      : `${theme.colors.primary}30`};
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    transform: translateY(-2px);
+    font-size: 2.2rem;
+    color: ${({ theme }) => theme.colors.primary};
   }
-  
-  &:after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 60%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-    transform: scale(0.5);
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    font-size: 1.75rem;
+    &:hover {
+      font-size: 1.95rem;
+    }
   }
-  
-  &:active:after {
-    opacity: 1;
-    transform: scale(1);
-    transition: transform 0.3s ease, opacity 0s;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    font-size: 1.5rem;
+    &:hover {
+      font-size: 1.7rem;
+    }
   }
-  
-  ${media.touch} {
-    font-size: clamp(14px, 2.5vw, 18px);
-    padding: 6px 14px;
-    width: ${props => props.active ? '100%' : 'auto'};
-    max-width: ${props => props.active ? '100%' : '160px'};
+`;
+
+const Name = styled(motion.h2)<StyledMotionProps>`
+  font-size: 4rem;
+  color: ${({ theme }) => theme.colors.primary};
+  margin: 0;
+  line-height: 1.2;
+  transform: ${({ $isHovered }) => $isHovered ? 'scale(1.05)' : 'scale(1)'};
+  transition: transform 0.3s ease;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    font-size: 3rem;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    font-size: 2.5rem;
+  }
+`;
+
+const Title = styled(motion.h3)`
+  font-size: 2rem;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  margin: 0;
+  line-height: 1.2;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    font-size: 1.75rem;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    font-size: 1.5rem;
+  }
+`;
+
+const Description = styled(motion.p)`
+  font-size: 1.25rem;
+  color: ${({ theme }) => theme.colors.text};
+  max-width: 600px;
+  line-height: 1.6;
+  margin: 0;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    font-size: 1.1rem;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    font-size: 1rem;
   }
 `;
 
@@ -433,12 +335,8 @@ const SkillDetailContainer = styled(motion.div)`
   }
 `;
 
-interface SkillTitleProps {
-  enableAnimation: boolean;
-}
-
-// Enhanced title with icon animation
-const SkillTitle = styled.h3<SkillTitleProps>`
+// Enhanced skill title with icon animation
+const SkillTitle = styled.h3`
   font-size: clamp(18px, 4vw, 24px);
   color: ${({ theme }) => theme.colors.primary};
   margin: 0 0 15px 0;
@@ -449,9 +347,6 @@ const SkillTitle = styled.h3<SkillTitleProps>`
   svg {
     width: 24px;
     height: 24px;
-    animation: ${props => props.enableAnimation && props.theme.floatingAnimation
-      ? css`${props.theme.floatingAnimation} 3s ease-in-out infinite` 
-      : 'none'};
   }
   
   ${media.mobileLg} {
@@ -477,12 +372,8 @@ const SkillDescription = styled.p`
   }
 `;
 
-interface ProjectListProps {
-  enableHoverEffects: boolean;
-}
-
 // Enhanced project list with improved mobile styling
-const ProjectList = styled.ul<ProjectListProps>`
+const ProjectList = styled.ul`
   list-style-type: none;
   padding: 0;
   margin: 15px 0 0 0;
@@ -501,16 +392,6 @@ const ProjectList = styled.ul<ProjectListProps>`
       left: 0;
       transition: transform 0.2s ease;
     }
-    
-    ${props => props.enableHoverEffects && css`
-      &:hover {
-        transform: translateX(3px);
-        
-        &:before {
-          transform: translateX(2px);
-        }
-      }
-    `}
   }
   
   ${media.mobileLg} {
@@ -533,12 +414,15 @@ const CTAButton = styled(motion.a)`
   color: ${({ theme }) => theme.colors.primary};
   font-family: ${systemFonts.mono};
   font-size: clamp(14px, 2vw, 16px);
-  padding: 1.25rem 1.75rem;
+  padding: 1rem 1.5rem;
   text-decoration: none;
   position: relative;
   overflow: hidden;
   pointer-events: auto;
   transition: all 0.3s ease;
+  max-width: 200px;
+  text-align: center;
+  margin: 0 auto;
   
   &:after {
     content: '';
@@ -567,14 +451,14 @@ const CTAButton = styled(motion.a)`
     }
   }
   
-  ${media.touch} {
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     width: 100%;
     max-width: 250px;
     padding: 1rem 1.5rem;
-    text-align: center;
+    margin: 0 auto;
   }
   
-  ${media.mobileSm} {
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     padding: 0.8rem 1.2rem;
     font-size: 13px;
   }
@@ -643,7 +527,7 @@ interface AnimatedBioItemProps extends BioItemProps {
   animationObjects: any;
 }
 
-// Optimized components using memoization
+// Update the AnimatedBioItem component
 const AnimatedBioItem = memo(({ 
   text, 
   onClick, 
@@ -655,16 +539,29 @@ const AnimatedBioItem = memo(({
   const skillId = text === 'UI Designer' ? 'ui' : text === 'API Coding' ? 'api' : 'db';
   
   return (
-    <BioItem
+    <motion.button
       variants={animationVariants.item}
       whileHover={animationObjects.hover}
       whileTap={animationObjects.tap}
       onClick={onClick}
-      active={isActive}
-      enablePulse={performanceSettings.enableHoverEffects}
+      className={isActive ? 'active' : ''}
+      style={{
+        fontSize: 'clamp(16px, 3vw, 20px)',
+        color: isActive ? 'var(--colors-backgroundAlt)' : 'var(--colors-text)',
+        padding: '8px 16px',
+        borderRadius: '8px',
+        backgroundColor: isActive ? 'var(--colors-primary)' : 'var(--colors-primaryLight)',
+        position: 'relative',
+        cursor: 'pointer',
+        border: 'none',
+        fontFamily: 'inherit',
+        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+        overflow: 'hidden',
+        transition: 'all 0.3s ease'
+      }}
     >
       {text}
-    </BioItem>
+    </motion.button>
   );
 });
 AnimatedBioItem.displayName = 'AnimatedBioItem';
@@ -686,9 +583,7 @@ const SkillDetail = memo(({
     exit="exit"
     layout
   >
-    <SkillTitle
-      enableAnimation={performanceSettings.enableComplexAnimations}
-    >
+    <SkillTitle>
       {skill.icon && <SkillIcon type={skill.icon} />}
       {skill.name}
     </SkillTitle>
@@ -696,9 +591,7 @@ const SkillDetail = memo(({
     {skill.projects && skill.projects.length > 0 && (
       <>
         <div style={{ fontSize: '14px', color: 'var(--primary)' }}>Related Projects:</div>
-        <ProjectList
-          enableHoverEffects={performanceSettings.enableHoverEffects}
-        >
+        <ProjectList>
           {skill.projects.map((project, index) => (
             <motion.li 
               key={index}
@@ -715,6 +608,105 @@ const SkillDetail = memo(({
   </SkillDetailContainer>
 ));
 SkillDetail.displayName = 'SkillDetail';
+
+// Add these styled components before the AnimatedBioItem component
+const Bio = styled(motion.div)<StyledMotionProps>`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 20px 0 30px;
+  justify-content: center;
+  
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+  }
+`;
+
+const BioItem = styled(motion.button)<{ active: boolean; enablePulse: boolean }>`
+  font-size: clamp(16px, 3vw, 20px);
+  color: ${({ theme, active }) => active ? theme.colors.backgroundAlt : theme.colors.text};
+  padding: 8px 16px;
+  border-radius: 8px;
+  background-color: ${({ theme, active }) => active 
+    ? theme.colors.primary 
+    : theme.colors.primaryLight};
+  position: relative;
+  cursor: pointer;
+  pointer-events: auto;
+  border: none;
+  font-family: inherit;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  width: auto;
+  min-width: 140px;
+
+  &:hover {
+    background-color: ${({ theme, active }) => active 
+      ? theme.colors.primary 
+      : `${theme.colors.primary}30`};
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    font-size: clamp(14px, 2.5vw, 18px);
+    padding: 6px 14px;
+    width: ${props => props.active ? '100%' : 'auto'};
+    max-width: ${props => props.active ? '100%' : '160px'};
+    margin: 0 auto;
+  }
+`;
+
+const TypewriterContainer = styled.div`
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  justify-content: center;
+  width: 100%;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    span:nth-last-child(-n+5) {
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    // Add line break before "razo/"
+    span:nth-last-child(5) {
+      &::before {
+        content: '';
+        display: block;
+        width: 100%;
+        height: 0;
+      }
+    }
+  }
+`;
+
+const TypewriterCharacter = styled(motion.span)<{ $isSlash?: boolean }>`
+  display: inline-block;
+  color: ${props => props.$isSlash ? props.theme.colors.primary : 'inherit'};
+  position: relative;
+  white-space: pre;
+  
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    font-size: inherit;
+    line-height: 1.2;
+  }
+`;
+
+const TypewriterCursor = styled(motion.div)`
+  position: absolute;
+  right: -4px;
+  top: 0;
+  width: 3px;
+  height: 100%;
+  background-color: currentColor;
+  border-radius: 1px;
+`;
 
 // Main Hero component refactored to use the new hooks
 export const Hero: React.FC = () => {
@@ -746,8 +738,31 @@ export const Hero: React.FC = () => {
   
   // Memoize animation settings based on performance
   const animationVariants = useMemo(
-    () => createAnimationVariants(performanceSettings),
-    [performanceSettings]
+    () => ({
+      container: {
+        hidden: { opacity: 0 },
+        visible: {
+          opacity: 1,
+          transition: {
+            staggerChildren: 0.1,
+            delayChildren: 0.2,
+          },
+        },
+      },
+      item: {
+        hidden: { opacity: 0, y: 20 },
+        visible: {
+          opacity: 1,
+          y: 0,
+          transition: {
+            type: "spring",
+            stiffness: 100,
+            damping: 10,
+          },
+        },
+      },
+    }),
+    []
   );
   
   const animationObjects = useMemo(
@@ -812,40 +827,30 @@ export const Hero: React.FC = () => {
   ], []);
 
   // Split name into characters for typing animation
-  const nameCharacters = useMemo(() => {
-    return "Jaden Scott Razo/".split('');
-  }, []);
-
-  // Simplify typing animation control
+  const nameCharacters = "Jaden Scott Razo/".split('');
   const [typedCount, setTypedCount] = useState(0);
   const [showCursor, setShowCursor] = useState(true);
-  const isSlash = useCallback((index: number) => nameCharacters[index] === '/', [nameCharacters]);
+  const [isTypingComplete, setIsTypingComplete] = useState(false);
 
-  // Start typing animation when component becomes visible
+  // Update typing effect with improved timing
   useEffect(() => {
-    if (!inView) return;
-    
     if (typedCount < nameCharacters.length) {
-      // Variable typing speed for more natural effect
-      const baseDelay = 100; // base delay
-      const variableDelay = Math.random() * 60; // random variation
-      
-      // Make certain characters type a bit slower (like spaces)
-      const currentChar = nameCharacters[typedCount];
-      const characterDelay = currentChar === ' ' ? 100 : 0;
-      
-      const typingDelay = baseDelay + variableDelay + characterDelay;
-      
-      const typingTimer = setTimeout(() => {
+      const timeout = setTimeout(() => {
         setTypedCount(prev => prev + 1);
-      }, typingDelay);
-      
-      return () => clearTimeout(typingTimer);
-    } else {
-      // Immediately hide cursor when typing completes
+      }, 80); // Slightly faster typing speed for better UX
+      return () => clearTimeout(timeout);
+    } else if (!isTypingComplete) {
+      setIsTypingComplete(true);
+      setShowCursor(false); // Hide cursor immediately after typing is complete
+    }
+  }, [typedCount, nameCharacters.length, isTypingComplete]);
+
+  // Remove cursor blink effect since we're using overtype cursor
+  useEffect(() => {
+    if (isTypingComplete) {
       setShowCursor(false);
     }
-  }, [inView, typedCount, nameCharacters]);
+  }, [isTypingComplete]);
 
   // Handlers for name hover - only enable effects on non-touch devices
   const handleNameMouseEnter = useCallback(() => {
@@ -883,77 +888,49 @@ export const Hero: React.FC = () => {
   }, [activeSkill, isTouchDevice, performanceSettings.reduceMotion]);
 
   return (
-    <HeroSection 
-      ref={heroRef}
-      isSimplified={performanceSettings.useSimplifiedLayout}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-    >
-      {performanceSettings.enableParallax && (
-        <>
-          <CreativeShaderBackground 
-            disableParallax={performanceSettings.reduceMotion}
-            intensity={0.9}
-            speed={0.7}
-            colorIntensity={0.6}
-          />
-          <BackgroundGradient />
-        </>
-      )}
-      
+    <HeroContainer>
       <ContentWrapper
-        ref={contentRef}
         variants={animationVariants.container}
         initial="hidden"
         animate="visible"
-        isInteractive={true}
-        inView={inView}
       >
-        <Greeting
+        <Greeting 
           variants={animationVariants.item}
-          whileHover={!isTouchDevice ? animationObjects.hover : undefined}
-          whileTap={!isTouchDevice ? animationObjects.tap : undefined}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
         >
           Hi there, I'm
         </Greeting>
         
-        {/* Typewriter name animation */}
-        <NameContainer 
+        <Name
           variants={animationVariants.item}
-          isHovered={isNameHovered}
-          enableAnimations={performanceSettings.enableComplexAnimations}
+          $isHovered={isNameHovered}
+          $enableAnimations={performanceSettings.enableComplexAnimations}
           onMouseEnter={handleNameMouseEnter}
           onMouseLeave={handleNameMouseLeave}
         >
           <TypewriterContainer>
             {nameCharacters.slice(0, typedCount).map((char, index) => (
-              <TypewriterCharacter 
-                key={`char-${index}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.2 }}
-                isSlash={isSlash(index)}
+              <TypewriterCharacter
+                key={index}
+                $isSlash={char === '/'}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.1 }}
               >
                 {char}
               </TypewriterCharacter>
             ))}
-            
-            {/* Position cursor right after the last character */}
-            {showCursor && typedCount < nameCharacters.length && (
+            {showCursor && !isTypingComplete && (
               <TypewriterCursor
-                initial={{ opacity: 1 }}
-                animate={{ opacity: [1, 0.4, 1] }}
-                transition={{ 
-                  opacity: { 
-                    repeat: Infinity, 
-                    duration: 0.8,
-                    repeatType: "loop"
-                  }
-                }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.1 }}
               />
             )}
           </TypewriterContainer>
-        </NameContainer>
+        </Name>
 
         <Bio 
           ref={bioRef}
@@ -992,7 +969,7 @@ export const Hero: React.FC = () => {
           Check out my work
         </CTAButton>
       </ContentWrapper>
-    </HeroSection>
+    </HeroContainer>
   );
 };
 

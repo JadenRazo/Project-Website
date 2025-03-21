@@ -104,11 +104,18 @@ const Footer: React.FC = () => {
   
   const techStack = [
     'TypeScript',
+    'CSS',
+    'HTML',
     'React',
+    'Python',
     'Go',
-    'PostgreSQL',
+    'SQL',
+    'Java',
+    'Linux | MacOS | Windows',
+    'Github',
     'Docker',
     'Nginx',
+    'TMUX'
   ];
 
   return (
@@ -116,7 +123,7 @@ const Footer: React.FC = () => {
       <FooterContent>
         <FooterSection>
           <FooterTitle>About</FooterTitle>
-          <p>Full-stack developer specializing in Go and TypeScript. Building scalable web applications with modern technologies.</p>
+          <p>Full-stack developer specializing in Python, Go and TypeScript. Building scalable web applications with modern technologies.</p>
           <TechStack>
             {techStack.map((tech, index) => (
               <TechBadge
