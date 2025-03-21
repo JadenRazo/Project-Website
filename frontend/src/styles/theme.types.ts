@@ -25,6 +25,8 @@ export interface Theme {
     surfaceHover: string;
     surfaceActive: string;
     surfaceDisabled: string;
+    card: string;
+    input: string;
     text: string;
     textHover: string;
     textSecondary: string;

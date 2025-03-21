@@ -2,10 +2,18 @@ import React from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 
+// Import the image using require
+const headshot = require('../../assets/images/headshot.jpg');
+
 const AboutContainer = styled.div`
   min-height: calc(100vh - 200px);
   padding: ${({ theme }) => theme.spacing.xxl} ${({ theme }) => theme.spacing.xl};
   background: ${({ theme }) => theme.colors.background};
+  margin-top: 60px;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    padding: ${({ theme }) => theme.spacing.xl} ${({ theme }) => theme.spacing.md};
+  }
 `;
 
 const ContentWrapper = styled.div`
@@ -26,7 +34,7 @@ const ProfileSection = styled(motion.div)`
   @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
     text-align: left;
     position: sticky;
-    top: 100px;
+    top: 80px;
     height: fit-content;
   }
 `;
@@ -48,6 +56,11 @@ const ProfileImage = styled(motion.div)`
   
   @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
     margin: 0 0 ${({ theme }) => theme.spacing.lg} 0;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    width: 150px;
+    height: 150px;
   }
 `;
 
@@ -179,7 +192,7 @@ const About: React.FC = () => {
             whileHover={{ scale: 1.05 }}
             transition={{ type: "spring", stiffness: 300 }}
           >
-            <img src="/path/to/your/profile-image.jpg" alt="Jaden Razo" />
+            <img src={headshot} alt="Jaden Razo" />
           </ProfileImage>
           <Name>Jaden Razo</Name>
           <Title>Full Stack Developer</Title>
@@ -248,10 +261,49 @@ const About: React.FC = () => {
                 <ExperienceCompany>Personal Projects & Freelance</ExperienceCompany>
                 <ExperienceDate>2020 - Present</ExperienceDate>
                 <ExperienceDescription>
-                  • Developed and maintained multiple full-stack web applications using React, TypeScript, and Go
-                  • Implemented microservices architecture for scalable backend solutions
-                  • Created efficient CI/CD pipelines using GitHub Actions and Docker
-                  • Designed and implemented RESTful APIs and WebSocket services
+                  {[
+                    "• Developed and maintained multiple full-stack SaaS applications using React, HTML, CSS, TypeScript, Python, and Go",
+                    "• Implemented microservices architecture for scalable backend solutions",
+                    "• Created efficient CI/CD pipelines using GitHub Actions and Docker",
+                    "• Designed and implemented RESTful APIs and WebSocket services"
+                  ].map((line, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.5 + index * 0.3 }}
+                    >
+                      <motion.span
+                        initial={{ content: "" }}
+                        animate={{ content: line }}
+                        transition={{
+                          duration: 1.5,
+                          delay: 0.5 + index * 0.3,
+                          ease: "easeInOut"
+                        }}
+                        style={{ display: "block", marginBottom: "8px" }}
+                      >
+                        {line}
+                        <motion.span
+                          initial={{ opacity: 1 }}
+                          animate={{ opacity: 0 }}
+                          transition={{
+                            duration: 0.5,
+                            delay: 2 + index * 0.3,
+                            repeat: 0
+                          }}
+                          style={{ 
+                            display: "inline-block", 
+                            width: "2px", 
+                            height: "16px", 
+                            background: "currentColor", 
+                            marginLeft: "2px",
+                            verticalAlign: "middle" 
+                          }}
+                        />
+                      </motion.span>
+                    </motion.div>
+                  ))}
                 </ExperienceDescription>
               </ExperienceItem>
             </SectionContent>
@@ -265,12 +317,19 @@ const About: React.FC = () => {
             <SectionTitle>Education</SectionTitle>
             <SectionContent>
               <ExperienceItem variants={itemVariants}>
-                <ExperienceTitle>Computer Science</ExperienceTitle>
-                <ExperienceCompany>Your University</ExperienceCompany>
-                <ExperienceDate>2018 - 2022</ExperienceDate>
+                <ExperienceTitle>B.S Cloud Computing</ExperienceTitle>
+                <ExperienceCompany>Western Governors University</ExperienceCompany>
+                <ExperienceDate>Present</ExperienceDate>
                 <ExperienceDescription>
-                  Focused on software engineering, algorithms, and distributed systems.
-                  Participated in various hackathons and coding competitions.
+                  Focused on software engineering, cloud computing, and distributed systems. Focused on DevOps and earning my certifications.
+                </ExperienceDescription>
+              </ExperienceItem> 
+              <ExperienceItem variants={itemVariants}>
+                <ExperienceTitle>High School Diploma</ExperienceTitle>
+                <ExperienceCompany>Sky Mountain High School</ExperienceCompany>
+                <ExperienceDate>2017 - 2021</ExperienceDate>
+                <ExperienceDescription>
+                  Graduated with honors while participating in coding camps and volunteering projects. Developed strong foundation in programming fundamentals and problem-solving skills.
                 </ExperienceDescription>
               </ExperienceItem>
             </SectionContent>
