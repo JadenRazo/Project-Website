@@ -26,33 +26,174 @@ This repository contains a full-stack portfolio website with integrated microser
 
 ```
 Project-Website/
-├── frontend/                 # React/TypeScript frontend
+├── frontend/             # React/TypeScript frontend
+│   ├── build/            # Production build
+│   ├── public/           # Static assets
+│   │   ├── index.html    # HTML entry point
+│   │   ├── favicon.ico   # Website favicon
+│   │   └── manifest.json # PWA manifest
 │   ├── src/
-│   │   ├── components/      # Reusable UI components
-│   │   ├── contexts/        # React contexts (theme, auth)
-│   │   ├── hooks/          # Custom React hooks
-│   │   ├── pages/          # Page components
-│   │   ├── styles/         # Global styles and themes
-│   │   └── utils/          # Utility functions
-│   └── public/             # Static assets
+│   │   ├── assets/       # Images and resources
+│   │   ├── components/   # UI components
+│   │   │   ├── animations/  # Animation components
+│   │   │   │   ├── CreativeShaderBackground.tsx
+│   │   │   │   ├── FloatingElement.tsx  # Floating animations
+│   │   │   │   ├── LoadingScreen.tsx  # Loading UI
+│   │   │   │   ├── PixelGridAnimation.tsx  # Grid animations
+│   │   │   │   ├── ScrollIndicator.tsx  # Scroll indicator
+│   │   │   │   └── SpaceAnimation.tsx  # Space animations
+│   │   │   ├── Footer/     # Footer components
+│   │   │   │   └── Footer.tsx
+│   │   │   ├── layout/     # Layout components
+│   │   │   │   └── Layout.tsx  # Main layout wrapper
+│   │   │   ├── NavigationBar/  # Navigation
+│   │   │   │   └── NavigationBar.tsx  # Nav bar
+│   │   │   ├── navigation/  # Navigation utilities
+│   │   │   │   └── ScrollToTop.tsx  # Auto-scroll
+│   │   │   ├── sections/    # Page sections
+│   │   │   │   ├── About.tsx  # About section
+│   │   │   │   ├── Hero.tsx  # Hero section
+│   │   │   │   ├── ParallaxHero.tsx  # Parallax effects
+│   │   │   │   ├── Projects.tsx  # Projects section
+│   │   │   │   ├── Skills.tsx  # Skills section
+│   │   │   │   └── SkillsSection.tsx  # Skills wrapper
+│   │   │   └── ui/          # UI elements
+│   │   │       ├── LanguageFilter.tsx  # Language filter
+│   │   │       ├── OptimizedImage.tsx  # Optimized images
+│   │   │       ├── ProjectCard.tsx  # Project cards
+│   │   │       ├── SkillBar.tsx  # Skill visualization
+│   │   │       ├── Timeline.tsx  # Timeline component
+│   │   │       └── VirtualizedList.tsx  # Virtual lists
+│   │   ├── contexts/        # React contexts
+│   │   │   ├── ThemeContext.tsx  # Theme management
+│   │   │   └── ZIndexContext.tsx  # Z-index management
+│   │   ├── hooks/           # Custom hooks
+│   │   │   ├── useAnimationController.ts  # Animation control
+│   │   │   ├── useAuth.tsx  # Authentication
+│   │   │   ├── useClickOutside.ts  # Click detection
+│   │   │   ├── useDeviceCapabilities.ts  # Device features
+│   │   │   ├── usePerformanceOptimizations.ts  # Performance
+│   │   │   ├── useThemeToggle.ts  # Theme switching
+│   │   │   ├── useTouchInteractions.ts  # Touch gestures
+│   │   │   └── useZIndex.ts  # Z-index utilities
+│   │   ├── pages/           # App pages
+│   │   │   ├── About/       # About page
+│   │   │   │   └── About.tsx
+│   │   │   ├── Contact/     # Contact page
+│   │   │   │   └── Contact.tsx
+│   │   │   ├── devpanel/    # Developer panel
+│   │   │   │   └── DevPanel.tsx
+│   │   │   ├── Home/        # Homepage
+│   │   │   │   └── Home.tsx
+│   │   │   ├── messaging/   # Messaging app
+│   │   │   │   └── Messaging.tsx
+│   │   │   ├── NotFound/    # 404 page
+│   │   │   │   └── NotFound.tsx
+│   │   │   └── urlshortener/ # URL Shortener
+│   │   │       └── UrlShortener.tsx
+│   │   ├── styles/          # Styling
+│   │   │   ├── GlobalStyles.ts  # Global styles
+│   │   │   ├── theme.types.ts  # Theme types
+│   │   │   └── themes.ts  # Theme configs
+│   │   ├── utils/           # Utilities
+│   │   │   ├── debugHelpers.ts  # Debugging tools
+│   │   │   ├── MemoryManager.tsx  # Memory management
+│   │   │   └── performance.ts  # Performance tools
+│   │   ├── App.tsx          # Main App component
+│   │   └── index.tsx        # Entry point
+│   └── package.json         # Dependencies
 │
-├── backend/                 # Go backend services
-│   ├── cmd/                # Service entry points
-│   │   ├── api/           # Main API service
-│   │   ├── devpanel/      # Developer panel service
-│   │   ├── messaging/     # Real-time messaging service
-│   │   └── urlshortener/  # URL shortening service
-│   │
-│   ├── internal/          # Internal packages
-│   │   ├── common/        # Shared utilities
-│   │   ├── domain/        # Business logic
-│   │   ├── messaging/     # Messaging service
-│   │   └── urlshortener/  # URL shortener service
-│   │
-│   └── migrations/        # Database migrations
-│
-├── scripts/               # Utility scripts
-└── deployments/          # Deployment configurations
+├── backend/                  # Go backend
+│   ├── cmd/                  # Entry points
+│   │   ├── api/              # API service
+│   │   │   └── main.go
+│   │   ├── devpanel/         # Developer panel
+│   │   │   └── main.go
+│   │   ├── migration/        # DB migrations
+│   │   │   └── main.go
+│   │   └── worker/           # Background worker
+│   │       └── main.go
+│   ├── config/               # Configuration
+│   │   ├── app.yaml          # Main config
+│   │   ├── development.yaml  # Dev config
+│   │   ├── production.yaml   # Prod config
+│   │   └── config.go         # Config loader
+│   ├── deployments/          # Deployment
+│   │   ├── docker/           # Docker setup
+│   │   │   └── docker-compose.yml
+│   │   ├── nginx/            # Web server
+│   │   │   └── api.conf
+│   │   └── systemd/          # Service defs
+│   │       └── api.service
+│   ├── internal/             # Packages
+│   │   ├── app/              # Bootstrap
+│   │   │   ├── bootstrap.go
+│   │   │   └── server/       # HTTP server
+│   │   │       ├── middleware/
+│   │   │       │   ├── auth.go
+│   │   │       │   └── cors.go
+│   │   │       └── server.go
+│   │   ├── common/           # Shared utils
+│   │   │   ├── auth/         # Authentication
+│   │   │   │   ├── jwt.go
+│   │   │   │   └── password.go
+│   │   │   ├── cache/        # Caching
+│   │   │   │   └── redis.go
+│   │   │   ├── database/     # DB access
+│   │   │   │   └── db.go
+│   │   │   └── utils/        # Utilities
+│   │   │       └── url_validator.go
+│   │   ├── domain/           # Business domain
+│   │   │   ├── entity/       # Core entities
+│   │   │   │   ├── user.go
+│   │   │   │   └── audit.go
+│   │   │   └── errors/       # Domain errors
+│   │   │       └── errors.go
+│   │   ├── messaging/        # Messaging
+│   │   │   ├── delivery/     # HTTP/WS delivery
+│   │   │   │   ├── http/     # HTTP handlers
+│   │   │   │   │   └── handlers.go
+│   │   │   │   └── websocket/ # WS handlers
+│   │   │   │       ├── client.go
+│   │   │   │       └── hub.go
+│   │   │   ├── domain/       # Models
+│   │   │   │   ├── channel.go
+│   │   │   │   └── message.go
+│   │   │   ├── repository/   # Data access
+│   │   │   │   └── postgres/
+│   │   │   │       ├── channel_repository.go
+│   │   │   │       └── message_repository.go
+│   │   │   └── service/      # Business logic
+│   │   │       ├── messaging_service.go
+│   │   │       └── service.go
+│   │   └── urlshortener/     # URL shortener
+│   │       ├── delivery/     # HTTP delivery
+│   │       │   └── http/
+│   │       │       ├── handlers.go
+│   │       │       └── routes.go
+│   │       ├── domain/       # Models
+│   │       │   ├── url.go
+│   │       │   └── stats.go
+│   │       ├── repository/   # Data access
+│   │       │   └── postgres/
+│   │       │       ├── url.go
+│   │       │       └── stats.go
+│   │       └── service/      # Business logic
+│   │           ├── url.go
+│   │           └── stats.go
+│   ├── migrations/           # DB migrations
+│   │   ├── common/           # Shared migrations
+│   │   │   └── 000001_create_users_table.up.sql
+│   │   ├── messaging/        # Messaging migrations
+│   │   │   └── 000001_create_channels_table.up.sql
+│   │   └── urlshortener/     # URL shortener migrations
+│   │       └── 000001_create_urls_table.up.sql
+│   ├── scripts/              # Scripts
+│   │   ├── run.sh            # Run app
+│   │   └── setup.sh          # Setup env
+│   ├── go.mod                # Go dependencies
+│   └── go.sum                # Go checksums
+└── README.md                # Documentation
 ```
 
 ## Local Development Setup
@@ -323,6 +464,3 @@ tail -f logs/api.log
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details. 
