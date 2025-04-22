@@ -11,6 +11,7 @@ import './index.css';
  * Main application entry point with integrated optimization systems
  * Wraps the entire application with necessary providers
  */
+/** gang gang gang */
 const AppWithProviders: React.FC = () => (
   <React.StrictMode>
     <MemoryManagerProvider 

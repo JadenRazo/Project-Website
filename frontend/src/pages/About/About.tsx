@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
-import { motion } from 'framer-motion';
+import { motion, useAnimation } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
 
 // Import the image using require
 const headshot = require('../../assets/images/headshot.jpg');
@@ -10,6 +11,7 @@ const AboutContainer = styled.div`
   padding: ${({ theme }) => theme.spacing.xxl} ${({ theme }) => theme.spacing.xl};
   background: ${({ theme }) => theme.colors.background};
   margin-top: 60px;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     padding: ${({ theme }) => theme.spacing.xl} ${({ theme }) => theme.spacing.md};
@@ -101,6 +103,11 @@ const SectionContent = styled.div`
   color: ${({ theme }) => theme.colors.text};
   font-size: 1.1rem;
   line-height: 1.6;
+  
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    font-size: 0.95rem;
+    word-break: break-word; /* Prevent text overflow on mobile */
+  }
 `;
 
 const SkillsList = styled.ul`
@@ -118,11 +125,19 @@ const SkillItem = styled(motion.li)`
   padding: ${({ theme }) => theme.spacing.sm};
   background: ${({ theme }) => theme.colors.background};
   border-radius: ${({ theme }) => theme.borderRadius.small};
+  font-weight: 500;
+  color: ${({ theme }) => theme.colors.primary}; /* Brightened skill text color */
   
   svg {
     width: 20px;
     height: 20px;
     color: ${({ theme }) => theme.colors.primary};
+  }
+
+  &:hover {
+    background: ${({ theme }) => `${theme.colors.primary}15`};
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
 `;
 
@@ -152,12 +167,51 @@ const ExperienceDate = styled.p`
   margin-bottom: ${({ theme }) => theme.spacing.sm};
 `;
 
-const ExperienceDescription = styled.p`
+const ExperienceDescription = styled.div`
   color: ${({ theme }) => theme.colors.text};
   line-height: 1.6;
+  
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    font-size: 0.95rem;
+  }
+`;
+
+const TypedLine = styled(motion.div)`
+  margin-bottom: 16px;
+  position: relative;
+  display: flex;
+  min-height: 24px;
+`;
+
+const TypewriterText = styled(motion.span)`
+  display: inline-block;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: ${({ theme }) => theme.colors.text};
+  font-size: 1rem;
+  line-height: 1.6;
+  opacity: 1;
+`;
+
+const Cursor = styled(motion.span)`
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background-color: ${({ theme }) => theme.colors.primary};
+  margin-left: 2px;
+  align-self: center;
+  border-radius: 1px;
 `;
 
 const About: React.FC = () => {
+  // Scroll to top on component mount (if not using the ScrollToTop component)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0);
+    }
+  }, []);
+
+  // Animation variants for staggered animations
   const containerVariants = {
     initial: { opacity: 0 },
     animate: {
@@ -180,6 +234,100 @@ const About: React.FC = () => {
     }
   };
 
+  // Improved typing animation with simpler and more reliable approach
+  const [experienceRef, experienceInView] = useInView({
+    triggerOnce: false,
+    threshold: 0.3,
+    rootMargin: "-50px 0px",
+  });
+
+  // Experience lines data
+  const experienceLines = [
+    "• Developed and maintained multiple full-stack SaaS applications using React, HTML, CSS, TypeScript, Python, and Go",
+    "• Implemented microservices architecture for scalable backend solutions",
+    "• Created efficient CI/CD pipelines using GitHub Actions and Docker",
+    "• Designed and implemented RESTful APIs and WebSocket services"
+  ];
+  
+  // State for letter counts in each line
+  const [letterCounts, setLetterCounts] = useState<number[]>([0, 0, 0, 0]);
+  const [activeLineIndex, setActiveLineIndex] = useState(0);
+  const [isTypingComplete, setIsTypingComplete] = useState(false);
+  const animationRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Clear all timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (animationRef.current) {
+        clearTimeout(animationRef.current);
+      }
+    };
+  }, []);
+
+  // Reset and start animation when section comes into view
+  useEffect(() => {
+    // When component comes into view
+    if (experienceInView) {
+      // Reset animation state
+      setLetterCounts([0, 0, 0, 0]);
+      setActiveLineIndex(0);
+      setIsTypingComplete(false);
+      
+      // Start typing animation for first line
+      if (animationRef.current) {
+        clearTimeout(animationRef.current);
+      }
+      
+      // Begin typing first line
+      animationRef.current = setTimeout(() => {
+        typeNextLetter(0);
+      }, 400);
+    } else {
+      // Reset when out of view
+      setLetterCounts([0, 0, 0, 0]);
+      setActiveLineIndex(0);
+      setIsTypingComplete(false);
+      
+      if (animationRef.current) {
+        clearTimeout(animationRef.current);
+        animationRef.current = null;
+      }
+    }
+  }, [experienceInView]);
+  
+  // Type out letters one by one
+  const typeNextLetter = (lineIndex: number) => {
+    if (lineIndex >= experienceLines.length) {
+      setIsTypingComplete(true);
+      return;
+    }
+    
+    setActiveLineIndex(lineIndex);
+    
+    setLetterCounts(prev => {
+      const newCounts = [...prev];
+      
+      if (newCounts[lineIndex] < experienceLines[lineIndex].length) {
+        // Type next letter
+        newCounts[lineIndex]++;
+        
+        // Schedule next letter
+        animationRef.current = setTimeout(
+          () => typeNextLetter(lineIndex),
+          Math.random() * 30 + 20 // Random typing speed for realism
+        );
+      } else {
+        // Current line complete, move to next after a pause
+        animationRef.current = setTimeout(
+          () => typeNextLetter(lineIndex + 1),
+          700 // Pause between lines
+        );
+      }
+      
+      return newCounts;
+    });
+  };
+
   return (
     <AboutContainer>
       <ContentWrapper>
@@ -199,6 +347,7 @@ const About: React.FC = () => {
         </ProfileSection>
 
         <MainContent>
+          {/* About Me Section */}
           <Section
             variants={containerVariants}
             initial="initial"
@@ -214,6 +363,7 @@ const About: React.FC = () => {
             </SectionContent>
           </Section>
 
+          {/* Technical Skills Section */}
           <Section
             variants={containerVariants}
             initial="initial"
@@ -249,10 +399,12 @@ const About: React.FC = () => {
             </SkillsList>
           </Section>
 
+          {/* Experience Section with typing animation */}
           <Section
             variants={containerVariants}
             initial="initial"
             animate="animate"
+            ref={experienceRef}
           >
             <SectionTitle>Experience</SectionTitle>
             <SectionContent>
@@ -261,54 +413,29 @@ const About: React.FC = () => {
                 <ExperienceCompany>Personal Projects & Freelance</ExperienceCompany>
                 <ExperienceDate>2020 - Present</ExperienceDate>
                 <ExperienceDescription>
-                  {[
-                    "• Developed and maintained multiple full-stack SaaS applications using React, HTML, CSS, TypeScript, Python, and Go",
-                    "• Implemented microservices architecture for scalable backend solutions",
-                    "• Created efficient CI/CD pipelines using GitHub Actions and Docker",
-                    "• Designed and implemented RESTful APIs and WebSocket services"
-                  ].map((line, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.5 + index * 0.3 }}
-                    >
-                      <motion.span
-                        initial={{ content: "" }}
-                        animate={{ content: line }}
-                        transition={{
-                          duration: 1.5,
-                          delay: 0.5 + index * 0.3,
-                          ease: "easeInOut"
-                        }}
-                        style={{ display: "block", marginBottom: "8px" }}
-                      >
-                        {line}
-                        <motion.span
-                          initial={{ opacity: 1 }}
-                          animate={{ opacity: 0 }}
+                  {experienceLines.map((line, index) => (
+                    <TypedLine key={index}>
+                      <TypewriterText>
+                        {line.substring(0, letterCounts[index])}
+                      </TypewriterText>
+                      {activeLineIndex === index && letterCounts[index] < line.length && (
+                        <Cursor
+                          animate={{ opacity: [1, 0] }}
                           transition={{
                             duration: 0.5,
-                            delay: 2 + index * 0.3,
-                            repeat: 0
-                          }}
-                          style={{ 
-                            display: "inline-block", 
-                            width: "2px", 
-                            height: "16px", 
-                            background: "currentColor", 
-                            marginLeft: "2px",
-                            verticalAlign: "middle" 
+                            repeat: Infinity,
+                            repeatType: "reverse"
                           }}
                         />
-                      </motion.span>
-                    </motion.div>
+                      )}
+                    </TypedLine>
                   ))}
                 </ExperienceDescription>
               </ExperienceItem>
             </SectionContent>
           </Section>
 
+          {/* Education Section */}
           <Section
             variants={containerVariants}
             initial="initial"
