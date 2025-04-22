@@ -669,21 +669,20 @@ const BioItem = styled(motion.button)<{ active: boolean; enablePulse: boolean }>
 
 const TypewriterContainer = styled.div`
   position: relative;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px;
-  justify-content: center;
+  display: block;
   width: 100%;
+  text-align: center;
+  word-break: normal;
+  white-space: normal;
+  letter-spacing: 0.05em;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    span:nth-last-child(-n+5) {
-      margin-left: auto;
-      margin-right: auto;
+    span.word {
+      font-size: 2.2rem;
     }
     
-    // Add line break before "razo/"
-    span:nth-last-child(5) {
-      &::before {
+    span:nth-child(2) {
+      &::after {
         content: '';
         display: block;
         width: 100%;
@@ -691,18 +690,26 @@ const TypewriterContainer = styled.div`
       }
     }
   }
+  
+  @media (max-width: 375px) {
+    span.word {
+      font-size: 1.8rem;
+    }
+  }
+`;
+
+const WordWrapper = styled.span`
+  display: inline-block;
+  white-space: nowrap;
+  margin-right: 12px;
+  margin-bottom: 5px;
 `;
 
 const TypewriterCharacter = styled(motion.span)<{ $isSlash?: boolean }>`
   display: inline-block;
   color: ${props => props.$isSlash ? props.theme.colors.primary : 'inherit'};
   position: relative;
-  white-space: pre;
-  
-  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    font-size: inherit;
-    line-height: 1.2;
-  }
+  letter-spacing: 0.03em;
 `;
 
 const TypewriterCursor = styled(motion.div)`
@@ -834,21 +841,25 @@ export const Hero: React.FC = () => {
   ], []);
 
   // Split name into characters for typing animation
-  const nameCharacters = "Hi there, I'm Jaden Razo/".split('');
+  const nameText = "Hi there, I'm Jaden Razo/";
+  const nameCharacters = nameText.split('');
   const [typedCount, setTypedCount] = useState(0);
   const [showCursor, setShowCursor] = useState(true);
   const [isTypingComplete, setIsTypingComplete] = useState(false);
 
-  // Update typing effect with improved timing
+  // Update typing effect with improved timing and consistent speed
   useEffect(() => {
     if (typedCount < nameCharacters.length) {
+      const charDelay = Math.random() * 10 + 40; // Approximately 60 WPM (40-50ms per character)
       const timeout = setTimeout(() => {
         setTypedCount(prev => prev + 1);
-      }, 80); // Slightly faster typing speed for better UX
+      }, charDelay); 
       return () => clearTimeout(timeout);
     } else if (!isTypingComplete) {
       setIsTypingComplete(true);
-      setShowCursor(false); // Hide cursor immediately after typing is complete
+      setTimeout(() => {
+        setShowCursor(false); // Hide cursor after typing is complete with slight delay
+      }, 800);
     }
   }, [typedCount, nameCharacters.length, isTypingComplete]);
 
@@ -909,17 +920,30 @@ export const Hero: React.FC = () => {
           onMouseLeave={handleNameMouseLeave}
         >
           <TypewriterContainer>
-            {nameCharacters.slice(0, typedCount).map((char, index) => (
-              <TypewriterCharacter
-                key={index}
-                $isSlash={char === '/'}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.1 }}
-              >
-                {char}
-              </TypewriterCharacter>
-            ))}
+            {/* Process typed text word by word with explicit space handling */}
+            {nameText.substring(0, typedCount).split(' ').map((word, wordIndex) => {
+              // Skip empty words
+              if (word === '') return null;
+              
+              return (
+                <WordWrapper 
+                  key={`word-${wordIndex}`}
+                  className="word"
+                >
+                  {word.split('').map((char, charIndex) => (
+                    <TypewriterCharacter
+                      key={`${wordIndex}-${charIndex}`}
+                      $isSlash={char === '/'}
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.1 }}
+                    >
+                      {char}
+                    </TypewriterCharacter>
+                  ))}
+                </WordWrapper>
+              );
+            })}
             {showCursor && !isTypingComplete && (
               <TypewriterCursor
                 initial={{ opacity: 0 }}

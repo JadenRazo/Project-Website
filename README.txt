@@ -6,314 +6,192 @@ This repository contains my personal website showcasing various software develop
 
 ```
 Project-Website/
-├── cmd
-│   ├── admin
-│   │   └── main.go
-│   ├── api
-│   │   └── main.go
-│   ├── migration
-│   │   └── main.go
-│   ├── server
-│   │   └── main.go
-│   └── worker
-│       └── main.go
-├── config
-│   ├── app.yaml
-│   ├── config.go
-│   ├── development.yaml
-│   ├── env.go
-│   ├── production.yaml
-│   └── testing.yaml
-├── deployments
-│   ├── docker
-│   │   ├── api
-│   │   │   └── Dockerfile
-│   │   ├── docker-compose.dev.yml
-│   │   ├── docker-compose.yml
-│   │   └── worker
-│   │       └── Dockerfile
-│   ├── kubernetes
-│   │   ├── base
-│   │   └── overlays
-│   │       ├── development
-│   │       ├── production
-│   │       └── staging
-│   ├── nginx
-│   │   ├── api.conf
-│   │   └── ssl
-│   └── systemd
-│       ├── api.service
-│       └── worker.service
-├── docs
-│   ├── api
-│   │   ├── endpoints
-│   │   │   ├── messaging.md
-│   │   │   └── urlshortener.md
-│   │   ├── openapi.json
-│   │   └── swagger.yaml
-│   └── architecture.md
-├── go.mod
-├── go.sum
-├── internal
-│   ├── app
-│   │   ├── bootstrap.go
-│   │   ├── config
-│   │   │   └── config.go
-│   │   ├── context
-│   │   │   └── context.go
-│   │   ├── health
-│   │   └── server
-│   │       ├── middleware
-│   │       │   ├── auth.go
-│   │       │   ├── cors.go
-│   │       │   ├── logging.go
-│   │       │   ├── recovery.go
-│   │       │   └── spa.go
-│   │       ├── router.go
-│   │       └── server.go
-│   ├── common
-│   │   ├── auth
-│   │   │   ├── jwt.go
-│   │   │   └── password.go
-│   │   ├── cache
-│   │   │   └── redis.go
-│   │   ├── database
-│   │   │   ├── db.go
-│   │   │   └── transaction.go
-│   │   ├── errors
-│   │   │   └── errors.go
-│   │   ├── logger
-│   │   │   └── logger.go
-│   │   ├── metrics
-│   │   │   ├── grafana.go
-│   │   │   └── prometheus.go
-│   │   ├── ratelimit
-│   │   ├── resilience
-│   │   ├── storage
-│   │   │   └── storage.go
-│   │   ├── tracing
-│   │   │   ├── jaeger.go
-│   │   │   └── opentelemetry.go
-│   │   ├── utils
-│   │   │   ├── token.go
-│   │   │   └── url_validator.go
-│   │   └── validator
-│   │       └── validator.go
-│   ├── core
-│   ├── domain
-│   │   ├── entity
-│   │   │   ├── audit.go
-│   │   │   └── user.go
-│   │   ├── errors
-│   │   │   └── errors.go
-│   │   └── models.go
-│   ├── messaging
-│   │   ├── attachments
-│   │   │   └── service.go
-│   │   ├── delivery
-│   │   │   ├── http
-│   │   │   │   ├── handlers.go
-│   │   │   │   ├── middleware.go
-│   │   │   │   ├── read_receipt_handler.go
-│   │   │   │   └── routes.go
-│   │   │   └── websocket
-│   │   │       ├── client.go
-│   │   │       ├── connection_manager.go
-│   │   │       ├── hub.go
-│   │   │       ├── presence.go
-│   │   │       └── types.go
-│   │   ├── domain
-│   │   │   ├── channel.go
-│   │   │   ├── message.go
-│   │   │   ├── reaction.go
-│   │   │   ├── read_receipts.go
-│   │   │   └── repository.go
-│   │   ├── errors
-│   │   │   └── errors.go
-│   │   ├── events
-│   │   │   ├── dispatcher.go
-│   │   │   ├── event_types.go
-│   │   │   └── handlers.go
-│   │   ├── middleware
-│   │   │   └── auth.go
-│   │   ├── repository
-│   │   │   ├── attachment_repository.go
-│   │   │   ├── cache
-│   │   │   │   ├── channel.go
-│   │   │   │   └── message.go
-│   │   │   ├── errors.go
-│   │   │   ├── gorm_repository.go
-│   │   │   ├── mock
-│   │   │   │   └── repository.go
-│   │   │   ├── postgres
-│   │   │   │   ├── attachment_repository.go
-│   │   │   │   ├── channel_repository.go
-│   │   │   │   ├── message_repository.go
-│   │   │   │   ├── reaction_repository.go
-│   │   │   │   └── read_receipt_repository.go
-│   │   │   └── read_receipt_repository.go
-│   │   ├── service
-│   │   │   ├── attachment_service.go
-│   │   │   ├── channel_service.go
-│   │   │   ├── messaging_service.go
-│   │   │   ├── reaction_service.go
-│   │   │   ├── read_receipt_service.go
-│   │   │   └── service.go
-│   │   ├── storage
-│   │   └── usecase
-│   │       ├── mark_as_read.go
-│   │       ├── search_messages.go
-│   │       ├── send_message.go
-│   │       └── upload_attachment.go
-│   ├── urlshortener
-│   │   ├── delivery
-│   │   │   └── http
-│   │   │       ├── handlers.go
-│   │   │       ├── middleware.go
-│   │   │       └── routes.go
-│   │   ├── domain
-│   │   │   ├── repository.go
-│   │   │   ├── stats.go
-│   │   │   └── url.go
-│   │   ├── repository
-│   │   │   ├── cache
-│   │   │   │   └── url.go
-│   │   │   ├── gorm_repository.go
-│   │   │   ├── mock
-│   │   │   │   └── repository.go
-│   │   │   ├── postgres
-│   │   │   │   ├── stats.go
-│   │   │   │   └── url.go
-│   │   │   └── repository.go
-│   │   ├── service
-│   │   │   ├── service.go
-│   │   │   ├── service_imp.go
-│   │   │   ├── stats.go
-│   │   │   └── url.go
-│   │   ├── usecase
-│   │   │   ├── resolve_url.go
-│   │   │   ├── shorten_url.go
-│   │   │   └── track_click.go
-│   │   └── validator
-│   └── worker
-│       ├── queue
-│       │   ├── kafka.go
-│       │   └── rabbitmq.go
-│       └── tasks
-│           ├── messaging_tasks.go
-│           └── scheduled.go
-├── migrations
-│   ├── common
-│   │   ├── 000001_create_users_table.down.sql
-│   │   └── 000001_create_users_table.up.sql
-│   ├── messaging
-│   │   ├── 000001_create_channels_table.down.sql
-│   │   └── 000001_create_channels_table.up.sql
-│   └── urlshortener
-│       ├── 000001_create_urls_table.down.sql
-│       └── 000001_create_urls_table.up.sql
-├── pkg
-│   ├── httputil
-│   ├── pagination
-│   └── validator
-├── scripts
-│   ├── backup_db.sh
-│   ├── lint.sh
-│   ├── restore_db.sh
-│   ├── seed.sh
-│   └── setup.sh
-└─── web
-│    ├── static
-│    │   ├── css
-│    │   ├── images
-│    │   └── js
-│    └── templates
-│        ├── layouts
-│        ├── pages
-│        └── partials
-├─ frontend/
-│  ├─ build/
-│  │  ├─ static
-│  │  │  ├─ css
-│  │  │  │  ├── main.e6c13ad2.css
-│  │  │  │  └── main.e6c13ad2.css.map
-│  │  │  ├─ js
-│  │  │  │  ├── main.e896c9ee.js
-│  │  │  │  ├── main.e896c9ee.js.LICENSE.txt
-│  │  │  │  └── main.e896c9ee.js.map
-│  │  ├── apple-touch-icon.png
-│  │  ├── asset-manifest.json
-│  │  ├── favicon-16x16.png
-│  │  ├── favicon-32x32.png
-│  │  ├── favicon.ico
-│  │  ├── index.html
-│  │  ├── manifest.json
-│  │  └── robots.txt
-│  ├─ node_modules/
-│  ├─ public/
-│  │  ├── apple-touch-icon.png
-│  │  ├── favicon-16x16.png
-│  │  ├── favicon-32x32.png
-│  │  ├── favicon.ico
-│  │  ├── index.html
-│  │  ├── manifest.json
-│  │  └── robots.txt
-│  ├─ src/
-│  │  ├─ assests/
-│  │  │  ├─ images/
-│  │  ├─ components/
-│  │  │  ├─ animations/
-│  │  │  │  ├─ FloatingElement.tsx
-│  │  │  │  ├─ LoadingScreen.tsx
-│  │  │  │  ├─ NetworkBackground.tsx
-│  │  │  │  ├─ ParticleBackground.tsx
-│  │  │  │  ├─ ScrollIndacator.tsx
-│  │  │  ├─ layout/
-│  │  │  │  ├─ Layout.tsx
-│  │  │  │  ├─ NavigationBar.tsx
-│  │  │  ├─ navigation/
-│  │  │  │  ├─ BurgerMenu.tsx
-│  │  │  ├─ sections/
-│  │  │  │  ├─ Hero.tsx
-│  │  │  │  ├─ ParallaxHero.tsx
-│  │  │  │  ├─ Projects.tsx
-│  │  │  │  ├─ Timeline.tsx
-│  │  │  ├─ ui/
-│  │  │  │  ├─ ProjectCard.tsx
-│  │  │  │  ├─ SkillBar.tsx
-│  │  │  │  ├─ Timeline.tsx
-│  │  ├─ constants/
-│  │  ├─ contexts/
-│  │  │  ├─ Themecontext.tsx
-│  │  ├─ docs/
-│  │  │  ├─ ScrollTransform.md
-│  │  ├─ types/
-│  │  ├─ utils/
-│  │  │  ├─ debugHelpers.ts 
-│  │  │  ├─ MemoryManager.ts
-│  │  │  └── performence.ts
-│  │  ├─ hooks/
-│  │  │  ├─ useClickOutside.ts
-│  │  │  ├─ useAnimationController.ts
-│  │  │  ├─ useDeviceCapabilities.ts
-│  │  │  ├─ usePerformenceOptimizations.ts
-│  │  │  ├─ useTouchInteractions.ts
-│  │  │  └── useZIndex.ts
-│  │  ├─ styles/
-│  │  │  ├─ GlobalStyles.ts
-│  │  │  ├─ theme.types.ts
-│  │  │  └── themes.ts
-│  │  ├─ app.css
-│  │  ├─ app.tsx
-│  │  ├─ custom.d.ts
-│  │  ├─ index.css
-│  │  ├─ index.html
-│  │  ├─ index.tsx
-│  │  ├─ logo.svg
-│  │  ├─ styled.d.ts
-│  ├─ package.json
-├─ index.html
-├─ README.md
+├── frontend/                 # React/TypeScript frontend
+│   ├── build/                # Production build
+│   ├── public/               # Static assets
+│   │   ├── index.html        # HTML entry point
+│   │   ├── favicon.ico       # Website favicon
+│   │   └── manifest.json     # PWA manifest
+│   ├── src/
+│   │   ├── assets/           # Images and static resources
+│   │   ├── components/       # Reusable UI components
+│   │   │   ├── animations/   # Animation components
+│   │   │   │   ├── CreativeShaderBackground.tsx  # Advanced shader-based background
+│   │   │   │   ├── FloatingElement.tsx           # Floating animation component
+│   │   │   │   ├── LoadingScreen.tsx             # Loading state UI
+│   │   │   │   ├── PixelGridAnimation.tsx        # Grid-based animation effect
+│   │   │   │   ├── ScrollIndicator.tsx           # Scroll direction indicator
+│   │   │   │   └── SpaceAnimation.tsx            # Space-themed animation
+│   │   │   ├── Footer/      # Footer component with site links
+│   │   │   │   └── Footer.tsx
+│   │   │   ├── layout/      # Layout components
+│   │   │   │   └── Layout.tsx                   # Main app layout wrapper
+│   │   │   ├── NavigationBar/ # Main navigation
+│   │   │   │   └── NavigationBar.tsx            # Responsive navigation bar
+│   │   │   ├── navigation/  # Navigation utilities
+│   │   │   │   └── ScrollToTop.tsx              # Auto-scroll to top on navigation
+│   │   │   ├── sections/    # Homepage sections
+│   │   │   │   ├── About.tsx                    # About section (916 lines)
+│   │   │   │   ├── Hero.tsx                     # Hero banner section (999 lines)
+│   │   │   │   ├── ParallaxHero.tsx             # Parallax scrolling hero
+│   │   │   │   ├── Projects.tsx                 # Projects showcase section
+│   │   │   │   ├── Skills.tsx                   # Skills display section
+│   │   │   │   └── SkillsSection.tsx            # Skills section wrapper
+│   │   │   └── ui/          # Reusable UI elements
+│   │   │       ├── LanguageFilter.tsx           # Programming language filter
+│   │   │       ├── OptimizedImage.tsx           # Performance-optimized image component
+│   │   │       ├── ProjectCard.tsx              # Project display card
+│   │   │       ├── SkillBar.tsx                 # Skill level visualization
+│   │   │       ├── Timeline.tsx                 # Timeline visualization
+│   │   │       └── VirtualizedList.tsx          # Virtualized scrolling list
+│   │   │
+│   │   ├── contexts/        # React contexts
+│   │   │   ├── ThemeContext.tsx                 # Theme management context
+│   │   │   └── ZIndexContext.tsx                # Z-index layer management
+│   │   │
+│   │   ├── hooks/           # Custom React hooks
+│   │   │   ├── useAnimationController.ts        # Animation control hook
+│   │   │   ├── useAuth.tsx                      # Authentication state hook
+│   │   │   ├── useClickOutside.ts               # Click outside element detection
+│   │   │   ├── useDeviceCapabilities.ts         # Device capability detection
+│   │   │   ├── usePerformanceOptimizations.ts   # Performance settings management
+│   │   │   ├── useThemeToggle.ts                # Theme switching hook
+│   │   │   ├── useTouchInteractions.ts          # Touch gesture handling
+│   │   │   └── useZIndex.ts                     # Z-index management
+│   │   │
+│   │   ├── pages/           # Application pages
+│   │   │   ├── About/       # About page
+│   │   │   │   └── About.tsx                   # Detailed about page
+│   │   │   ├── Contact/     # Contact page
+│   │   │   │   └── Contact.tsx                 # Contact form page
+│   │   │   ├── devpanel/    # Developer panel
+│   │   │   │   └── DevPanel.tsx                # Admin tools interface
+│   │   │   ├── Home/        # Homepage
+│   │   │   │   └── Home.tsx                    # Main landing page
+│   │   │   ├── messaging/   # Messaging app
+│   │   │   │   └── Messaging.tsx               # Real-time messaging interface
+│   │   │   ├── NotFound/    # 404 page
+│   │   │   │   └── NotFound.tsx                # Error page for invalid routes
+│   │   │   └── urlshortener/ # URL Shortener app
+│   │   │       └── UrlShortener.tsx            # URL shortening interface
+│   │   │
+│   │   ├── styles/          # Styling
+│   │   │   ├── GlobalStyles.ts                  # Global CSS styles
+│   │   │   ├── theme.types.ts                   # TypeScript theme definitions
+│   │   │   └── themes.ts                        # Theme configurations
+│   │   │
+│   │   ├── utils/           # Utility functions
+│   │   │   ├── debugHelpers.ts                  # Development debugging utilities
+│   │   │   ├── MemoryManager.tsx                # Memory optimization utilities
+│   │   │   └── performance.ts                   # Performance measurement tools
+│   │   │
+│   │   ├── App.tsx          # Main App component with routing (109 lines)
+│   │   └── index.tsx        # React entry point
+│   │
+│   └── package.json         # Dependencies and scripts
+│
+├── backend/                  # Go backend services
+│   ├── cmd/                  # Service entry points
+│   │   ├── api/              # Main API service
+│   │   │   └── main.go
+│   │   ├── devpanel/         # Developer panel service
+│   │   │   └── main.go
+│   │   ├── migration/        # Database migration tool
+│   │   │   └── main.go
+│   │   └── worker/           # Background worker
+│   │       └── main.go
+│   │
+│   ├── config/               # Configuration
+│   │   ├── app.yaml          # Main app config
+│   │   ├── development.yaml  # Dev environment config
+│   │   ├── production.yaml   # Production config
+│   │   └── config.go         # Config loader
+│   │
+│   ├── deployments/          # Deployment configurations
+│   │   ├── docker/           # Docker setup
+│   │   │   └── docker-compose.yml
+│   │   ├── nginx/            # Web server config
+│   │   │   └── api.conf
+│   │   └── systemd/          # Service definitions
+│   │       └── api.service
+│   │
+│   ├── internal/             # Internal packages
+│   │   ├── app/              # Application bootstrap
+│   │   │   ├── bootstrap.go
+│   │   │   └── server/       # HTTP server
+│   │   │       ├── middleware/
+│   │   │       │   ├── auth.go
+│   │   │       │   └── cors.go
+│   │   │       └── server.go
+│   │   │
+│   │   ├── common/           # Shared utilities
+│   │   │   ├── auth/         # Authentication
+│   │   │   │   ├── jwt.go
+│   │   │   │   └── password.go
+│   │   │   ├── cache/        # Caching
+│   │   │   │   └── redis.go
+│   │   │   ├── database/     # Database access
+│   │   │   │   └── db.go
+│   │   │   └── utils/        # Utility functions
+│   │   │       └── url_validator.go
+│   │   │
+│   │   ├── domain/           # Business domain
+│   │   │   ├── entity/       # Core entities
+│   │   │   │   ├── user.go
+│   │   │   │   └── audit.go
+│   │   │   └── errors/       # Domain errors
+│   │   │       └── errors.go
+│   │   │
+│   │   ├── messaging/        # Messaging service
+│   │   │   ├── delivery/     # HTTP/WebSocket delivery
+│   │   │   │   ├── http/     # HTTP handlers
+│   │   │   │   │   └── handlers.go
+│   │   │   │   └── websocket/# WebSocket handlers
+│   │   │   │       ├── client.go
+│   │   │   │       └── hub.go
+│   │   │   ├── domain/       # Domain models
+│   │   │   │   ├── channel.go
+│   │   │   │   └── message.go
+│   │   │   ├── repository/   # Data access
+│   │   │   │   └── postgres/
+│   │   │   │       ├── channel_repository.go
+│   │   │   │       └── message_repository.go
+│   │   │   └── service/      # Business logic
+│   │   │       ├── messaging_service.go
+│   │   │       └── service.go
+│   │   │
+│   │   └── urlshortener/     # URL shortener service
+│   │       ├── delivery/     # HTTP delivery
+│   │       │   └── http/
+│   │       │       ├── handlers.go
+│   │       │       └── routes.go
+│   │       ├── domain/       # Domain models
+│   │       │   ├── url.go
+│   │       │   └── stats.go
+│   │       ├── repository/   # Data access
+│   │       │   └── postgres/
+│   │       │       ├── url.go
+│   │       │       └── stats.go
+│   │       └── service/      # Business logic
+│   │           ├── url.go
+│   │           └── stats.go
+│   │
+│   ├── migrations/           # Database migrations
+│   │   ├── common/           # Shared migrations
+│   │   │   └── 000001_create_users_table.up.sql
+│   │   ├── messaging/        # Messaging migrations
+│   │   │   └── 000001_create_channels_table.up.sql
+│   │   └── urlshortener/     # URL shortener migrations
+│   │       └── 000001_create_urls_table.up.sql
+│   │
+│   ├── scripts/              # Utility scripts
+│   │   ├── run.sh            # Run the application
+│   │   └── setup.sh          # Setup environment
+│   │
+│   ├── go.mod                # Go dependencies
+│   └── go.sum                # Go dependencies checksums
+│
+└── README.md                # Project documentation
 ```
 
 ## Architecture
@@ -327,12 +205,11 @@ The project is split into two main components:
 - Features robust database management and migrations
 - Includes middlewares for authentication and rate limiting
 
-### Frontend (React/TypeScript)
-- Developed with React and TypeScript
-- Showcases interactive UI elements and animations
-- Implements responsive design with dark/light theme support
-- Features component-based architecture for reusability
-- Uses custom hooks for enhanced functionality
+### Frontend Features
+- **Interactive UI**: Parallax effects, particle backgrounds, and smooth animations
+- **Responsive Design**: Mobile-first approach ensuring compatibility across devices
+- **Theme System**: Context-based theming with dark/light mode support
+- **Custom Components**: Reusable UI elements like project cards, skill bars, and timelines
 
 ## Featured Projects
 
@@ -363,58 +240,71 @@ Additional planned projects to be integrated into the portfolio.
 
 ## Getting Started
 
-### Backend Setup
-1. Navigate to backend: `cd Project-Website/backend`
-2. Install dependencies: `go mod download`
-3. Configure environment: Copy `.env.example` to `.env` and adjust values
-4. Start server: `go run main.go`
+### Setup and Installation
 
-### Frontend Setup
-1. Navigate to frontend: `cd Project-Website/frontend`
-2. Install dependencies: `npm install`
-3. Start development server: `npm start`
+1. Clone the repository
+   ```
+   git clone https://github.com/JadenRazo/Project-Website.git
+   cd Project-Website
+   ```
+
+2. Run the setup script to install dependencies and prepare the environment
+   ```
+   ./backend/scripts/setup.sh
+   ```
+   
+   This script:
+   - Installs backend dependencies (Go modules)
+   - Installs frontend dependencies (npm)
+   - Creates initial configuration files
+   - Sets up the database with migrations
+
+3. Run the application with the run script
+   ```
+   ./backend/scripts/run.sh
+   ```
+   
+   This script:
+   - Starts both the backend and frontend in tmux sessions
+   - Provides a development environment with live reloading
+   
+   Available options:
+   - First use chmod -x run.sh in /Project-Website/backend/scripts
+   - Use bash or sh run.sh with any of the following below:
+   - `-e, --env ENV` - Run in specific environment (development, staging, production)
+   - `-w, --watch` - Run backend with file watching (hot reload)
+   - `-d, --debug` - Run in debug mode
+   - `-i, --install` - Install/update dependencies
+   - `-s, --setup` - Setup configuration files
+   - `-h, --help` - Print help message
+
+4. Access the application
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:8080
+
+### Development Workflow
+
+The application uses tmux to manage the backend and frontend processes. To view logs:
+
+```
+# View backend logs
+tmux attach-session -t backend
+
+# View frontend logs
+tmux attach-session -t frontend
+```
+
+To detach from a tmux session without stopping it, press `Ctrl+b` then `d`.
+
+To stop all services:
+```
+tmux kill-session -t backend
+tmux kill-session -t frontend
+```
+
+Or simply run the script again to restart everything.
 
 ## API Endpoints
 
 ### URL Shortener
-- `POST /api/urls/shorten`: Create shortened URL
-- `GET /api/urls`: List user's URLs
-- `GET /:shortCode`: Redirect to original URL
-- `GET /api/urls/:shortCode/analytics`: Get URL analytics
-
-### Authentication
-- `POST /api/auth/register`: Create account
-- `POST /api/auth/login`: Authenticate user
-
-## Technologies Used
-
-### Backend
-- Go (Golang)
-- Gin Web Framework
-- GORM (ORM)
-- SQLite (Database)
-- JWT (Authentication)
-
-### Frontend
-- React
-- TypeScript
-- Styled Components
-- React Router
-- Context API
-
-## Development Approach
-
-This project follows modern development practices:
-- Type-safe programming with TypeScript and Go
-- Component-based frontend architecture
-- Repository pattern for database operations
-- Clean separation between UI and business logic
-- Comprehensive error handling
-
-## Running in Production
-For production deployment, additional considerations include:
-- Database configuration for production environment
-- Frontend build optimization
-- Server configuration and deployment
-
----
+- `

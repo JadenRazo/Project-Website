@@ -10,7 +10,7 @@ import { SkillsSection } from './components/sections/SkillsSection';
 import NavigationBar from './components/NavigationBar/NavigationBar';
 import Contact from './pages/Contact/Contact';
 import Footer from './components/Footer/Footer';
-import ScrollToTop from './components/ScrollToTop';
+import ScrollToTop from './components/navigation/ScrollToTop';
 import styled from 'styled-components';
 import { usePerformanceOptimizations } from './hooks/usePerformanceOptimizations';
 import { Layout } from './components/layout/Layout';
