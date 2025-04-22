@@ -7,31 +7,28 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 	
 	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
 	
+	"github.com/JadenRazo/Project-Website/backend/internal/core"
 	"github.com/JadenRazo/Project-Website/backend/internal/core/config"
 	"github.com/JadenRazo/Project-Website/backend/internal/core/db"
+	"github.com/JadenRazo/Project-Website/backend/internal/gateway"
 	"github.com/JadenRazo/Project-Website/backend/internal/domain"
-	"github.com/JadenRazo/Project-Website/backend/internal/urlshortener/handlers"
-	urlService "github.com/JadenRazo/Project-Website/backend/internal/urlshortener/service"
-	urlRepo "github.com/JadenRazo/Project-Website/backend/internal/urlshortener/repository"
-	msgHandlers "github.com/JadenRazo/Project-Website/backend/internal/messaging/handlers"
-	msgService "github.com/JadenRazo/Project-Website/backend/internal/messaging/service"
-	msgRepo "github.com/JadenRazo/Project-Website/backend/internal/messaging/repository"
+	"github.com/JadenRazo/Project-Website/backend/internal/urlshortener"
+	"github.com/JadenRazo/Project-Website/backend/internal/messaging"
+	"github.com/JadenRazo/Project-Website/backend/internal/devpanel"
 )
 
 func main() {
 	// Load configuration
 	cfg := config.GetConfig()
 	
-	// Set Gin mode based on environment
-	if cfg.Environment == "production" {
-		gin.SetMode(gin.ReleaseMode)
-	}
+	// Initialize service manager
+	serviceManager := core.NewServiceManager()
 	
 	// Initialize database connection
 	database, err := db.GetDB()
@@ -51,19 +48,48 @@ func main() {
 		log.Fatalf("Failed to run migrations: %v", err)
 	}
 	
-	// Initialize repositories
-	urlRepository := urlRepo.NewGormRepository(database)
-	msgRepository := msgRepo.NewGormRepository(database)
-	
 	// Initialize services
-	urlShortenerService := urlService.NewURLShortenerService(urlRepository, cfg.URLShortener)
-	messagingService := msgService.NewMessagingService(msgRepository, cfg.Messaging)
+	urlShortenerService := urlshortener.NewService(database, cfg.URLShortener)
+	messagingService := messaging.NewService(database, cfg.Messaging)
 	
-	// Create Gin router
-	router := gin.Default()
+	// Initialize devpanel service
+	devpanelService := devpanel.NewService(serviceManager, devpanel.Config{
+		AdminToken:     cfg.AdminToken,
+		MetricsInterval: 30 * time.Second,
+		MaxLogLines:    1000,
+		LogRetention:   7 * 24 * time.Hour,
+	})
+	
+	// Initialize log manager
+	logManager := devpanel.NewLogManager(
+		filepath.Join("logs", "services"),
+		cfg.MaxLogLines,
+		cfg.LogRetention,
+	)
+	logManager.StartCleanup()
+	
+	// Initialize metrics collector
+	metricsCollector := devpanel.NewMetricsCollector(devpanel.Config{
+		MetricsInterval: 30 * time.Second,
+	})
+	metricsCollector.StartCollecting(serviceManager)
+	
+	// Register services with service manager
+	if err := serviceManager.RegisterService(urlShortenerService); err != nil {
+		log.Fatalf("Failed to register URL shortener service: %v", err)
+	}
+	if err := serviceManager.RegisterService(messagingService); err != nil {
+		log.Fatalf("Failed to register messaging service: %v", err)
+	}
+	if err := serviceManager.RegisterService(devpanelService); err != nil {
+		log.Fatalf("Failed to register devpanel service: %v", err)
+	}
+	
+	// Initialize API gateway
+	apiGateway := gateway.NewGateway(serviceManager)
 	
 	// Configure CORS
-	router.Use(cors.New(cors.Config{
+	apiGateway.AddMiddleware(cors.New(cors.Config{
 		AllowOrigins:     []string{cfg.AllowedOrigins},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization"},
@@ -71,26 +97,26 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}))
 	
-	// Set up API routes
-	apiV1 := router.Group("/api/v1")
+	// Register service routes
+	apiGateway.RegisterService("urls", urlShortenerService.RegisterRoutes)
+	apiGateway.RegisterService("messaging", messagingService.RegisterRoutes)
+	apiGateway.RegisterService("devpanel", devpanelService.RegisterRoutes)
 	
-	// Set up URL shortener routes
-	urlGroup := apiV1.Group("/urls")
-	urlHandlers := handlers.NewURLShortenerHandler(urlShortenerService)
-	urlHandlers.RegisterRoutes(urlGroup)
-	
-	// Set up messaging routes
-	msgGroup := apiV1.Group("/messaging")
-	messageHandlers := msgHandlers.NewMessagingHandler(messagingService)
-	messageHandlers.RegisterRoutes(msgGroup)
+	// Register system endpoints
+	apiGateway.RegisterHealthCheck()
+	apiGateway.RegisterMetrics()
+	apiGateway.RegisterDevPanel()
 	
 	// Set up shortcode redirect route at root level
-	router.GET("/:shortCode", urlHandlers.RedirectHandler)
+	apiGateway.GetRouter().GET("/:shortCode", urlShortenerService.RedirectHandler)
+	
+	// Start health checks
+	serviceManager.StartHealthChecks()
 	
 	// Start server
 	srv := &http.Server{
 		Addr:    ":" + cfg.Port,
-		Handler: router,
+		Handler: apiGateway.GetRouter(),
 	}
 	
 	// Graceful shutdown handling
@@ -108,6 +134,13 @@ func main() {
 	
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+	
+	// Stop all services
+	if err := serviceManager.StopAllServices(); err != nil {
+		log.Printf("Error stopping services: %v", err)
+	}
+	
+	// Shutdown HTTP server
 	if err := srv.Shutdown(ctx); err != nil {
 		log.Fatalf("Server forced to shutdown: %v", err)
 	}

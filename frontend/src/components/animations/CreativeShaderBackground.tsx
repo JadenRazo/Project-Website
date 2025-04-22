@@ -17,6 +17,10 @@ const AnimationContainer = styled.div<{ visible: boolean }>`
   opacity: ${({ visible }) => (visible ? 1 : 0)};
   will-change: transform;
   transform: translateZ(0);
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 `;
 
 interface CreativeShaderBackgroundProps {

@@ -8,6 +8,7 @@ const FooterContainer = styled.footer`
   border-top: 1px solid ${({ theme }) => theme.colors.border};
   padding: ${({ theme }) => `${theme.spacing.xl} 0`};
   margin-top: auto;
+  color: ${({ theme }) => theme.colors.text};
 `;
 
 const FooterContent = styled.div`
@@ -28,6 +29,11 @@ const FooterSection = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing.md};
+  
+  p {
+    color: ${({ theme }) => theme.colors.text};
+    opacity: 0.8;
+  }
 `;
 
 const FooterTitle = styled.h3`
@@ -69,7 +75,8 @@ const FooterExternalLink = styled.a`
 const Copyright = styled.div`
   text-align: center;
   padding: ${({ theme }) => theme.spacing.md};
-  color: ${({ theme }) => theme.colors.textSecondary};
+  color: ${({ theme }) => theme.colors.text};
+  opacity: 0.7;
   font-size: 0.9rem;
   border-top: 1px solid ${({ theme }) => theme.colors.border};
   margin-top: ${({ theme }) => theme.spacing.xl};
@@ -91,7 +98,7 @@ const TechStack = styled.div`
 `;
 
 const TechBadge = styled(motion.span)`
-  background: ${({ theme }) => theme.colors.primaryLight};
+  background: ${({ theme }) => theme.colors.primaryLight || `${theme.colors.primary}20`};
   color: ${({ theme }) => theme.colors.primary};
   padding: ${({ theme }) => `${theme.spacing.xxs} ${theme.spacing.xs}`};
   border-radius: ${({ theme }) => theme.borderRadius.small};
@@ -118,6 +125,11 @@ const Footer: React.FC = () => {
     'TMUX'
   ];
 
+  // Handler to force scroll to top
+  const handleLinkClick = () => {
+    window.scrollTo(0, 0);
+  };
+
   return (
     <FooterContainer>
       <FooterContent>
@@ -140,10 +152,10 @@ const Footer: React.FC = () => {
 
         <FooterSection>
           <FooterTitle>Projects</FooterTitle>
-          <FooterLink to="/devpanel">Developer Panel</FooterLink>
-          <FooterLink to="/urlshortener">URL Shortener</FooterLink>
-          <FooterLink to="/messaging">Real-time Messaging</FooterLink>
-          <FooterLink to="/portfolio">View All Projects</FooterLink>
+          <FooterLink to="/devpanel" onClick={handleLinkClick}>Developer Panel</FooterLink>
+          <FooterLink to="/urlshortener" onClick={handleLinkClick}>URL Shortener</FooterLink>
+          <FooterLink to="/messaging" onClick={handleLinkClick}>Real-time Messaging</FooterLink>
+          <FooterLink to="/home" onClick={handleLinkClick}>View All Projects</FooterLink>
         </FooterSection>
 
         <FooterSection>

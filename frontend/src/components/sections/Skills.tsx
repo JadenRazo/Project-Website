@@ -19,26 +19,33 @@ const SkillsContainer = styled.section`
   position: relative;
   min-height: 100vh;
   width: 100%;
-  padding: 6rem 2rem;
-  overflow: hidden;
-  background: ${({ theme }) => `${theme.colors.backgroundAlt}80`};
+  padding: 4rem 1.5rem;
+  overflow-x: hidden;
+  background: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.text};
   isolation: isolate; // Create stacking context for z-index
+  box-sizing: border-box;
+  max-width: 100%;
+  display: flex;
+  justify-content: center;
   
   @media (max-width: 768px) {
-    padding: 5rem 1.5rem;
+    padding: 3rem 1.5rem;
   }
 `;
 
 // Content wrapper with improved animation transitions
 const ContentWrapper = styled(motion.div)<{ $visible: boolean }>`
   position: relative;
-  max-width: 1200px;
+  max-width: 1000px;
   margin: 0 auto;
   z-index: 2;
   opacity: ${props => props.$visible ? 1 : 0};
   transform: translateY(${props => props.$visible ? 0 : '30px'});
   transition: opacity 0.6s ease, transform 0.6s ease;
   will-change: opacity, transform;
+  width: 100%;
+  box-sizing: border-box;
 `;
 
 // Section heading with animated underline
@@ -47,7 +54,7 @@ const SectionHeading = styled(motion.h2)`
   margin-bottom: 1rem;
   position: relative;
   display: inline-block;
-  color: ${({ theme }) => theme.colors.text};
+  color: ${({ theme }) => theme.colors.primary};
   
   &::after {
     content: '';
@@ -67,35 +74,40 @@ const SectionHeading = styled(motion.h2)`
 
 const SectionDescription = styled(motion.p)`
   font-size: 1.1rem;
-  margin-bottom: 3rem;
+  margin-bottom: 2.5rem;
   max-width: 600px;
-  line-height: 1.6;
-  color: ${({ theme }) => theme.colors.textSecondary || theme.colors.text};
+  line-height: 1.5;
+  color: ${({ theme }) => theme.colors.text};
   opacity: 0.9;
 `;
 
 // Modern grid for skill categories
 const SkillsGrid = styled(motion.div)`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 3rem;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+  box-sizing: border-box;
   
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
-    gap: 2rem;
+    gap: 1.5rem;
   }
 `;
 
 // Glass card design for category containers
 const CategoryContainer = styled(motion.div)`
-  background: ${({ theme }) => `${theme.colors.background}80`};
+  background: ${({ theme }) => theme.colors.surface};
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border-radius: 16px;
-  padding: 2rem;
+  padding: 1.5rem;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   border: 1px solid ${({ theme }) => `${theme.colors.primary}30`};
   will-change: transform;
+  color: ${({ theme }) => theme.colors.text};
+  width: 100%;
+  box-sizing: border-box;
   
   /* Refined hover effect */
   transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), 
@@ -103,17 +115,17 @@ const CategoryContainer = styled(motion.div)`
               background-color 0.3s ease;
               
   &:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-    background: ${({ theme }) => `${theme.colors.background}95`};
+    transform: translateY(-6px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+    background: ${({ theme }) => `${theme.colors.surface}95`};
   }
 `;
 
 const CategoryTitle = styled(motion.h3)`
-  font-size: 1.5rem;
-  margin-bottom: 1.5rem;
+  font-size: 1.35rem;
+  margin-bottom: 1.25rem;
   color: ${({ theme }) => theme.colors.primary};
-  padding-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
   border-bottom: 1px solid ${({ theme }) => `${theme.colors.primary}30`};
   display: flex;
   align-items: center;
@@ -369,12 +381,24 @@ export const Skills: React.FC = () => {
       
       {/* Creative background with conditional rendering for performance */}
       {isSectionVisible && (
-        <CreativeShaderBackground 
-          disableParallax={performanceSettings.reduceMotion}
-          intensity={0.7}
-          speed={0.5}
-          colorIntensity={0.6}
-        />
+        <div style={{ 
+          position: 'absolute', 
+          top: 0, 
+          left: 0, 
+          right: 0, 
+          bottom: 0, 
+          overflow: 'hidden',
+          width: '100%',
+          maxWidth: '100%',
+          boxSizing: 'border-box'
+        }}>
+          <CreativeShaderBackground 
+            disableParallax={performanceSettings.reduceMotion}
+            intensity={0.7}
+            speed={0.5}
+            colorIntensity={0.6}
+          />
+        </div>
       )}
       
       <ContentWrapper 
@@ -394,8 +418,7 @@ export const Skills: React.FC = () => {
           animate={descriptionControls}
         >
           I specialize in building responsive, high-performance applications 
-          with modern web technologies. My experience spans both frontend and 
-          backend development with a focus on clean, maintainable code.
+          with modern web technologies across both frontend and backend development.
         </SectionDescription>
         
         <SkillsGrid

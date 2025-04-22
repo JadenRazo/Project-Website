@@ -48,6 +48,8 @@ const SkillsSectionContainer = styled.section`
   padding: 6rem 2rem;
   min-height: 100vh;
   overflow-x: hidden;
+  background: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.text};
   
   @media (min-width: 768px) {
     padding: 8rem 4rem;
@@ -71,6 +73,7 @@ const SectionTitle = styled(motion.h2)`
   margin-bottom: 1.5rem;
   position: relative;
   display: inline-block;
+  color: ${({ theme }) => theme.colors.primary};
   
   &::after {
     content: '';
@@ -86,7 +89,7 @@ const SectionTitle = styled(motion.h2)`
 const SectionDescription = styled(motion.p)`
   font-size: 1.1rem;
   line-height: 1.6;
-  color: ${({ theme }) => theme.colors.textSecondary || theme.colors.text};
+  color: ${({ theme }) => theme.colors.text};
   max-width: 800px;
   opacity: 0.9;
 `;
@@ -102,7 +105,7 @@ const SkillsGrid = styled(motion.div)`
 `;
 
 const SkillCard = styled(motion.div)`
-  background: ${({ theme }) => theme.colors.backgroundAlt};
+  background: ${({ theme }) => theme.colors.backgroundAlt || theme.colors.surface};
   border-radius: 12px;
   padding: 2rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
@@ -142,6 +145,7 @@ const SkillName = styled.h3`
   font-size: 1.25rem;
   font-weight: 600;
   margin: 0;
+  color: ${({ theme }) => theme.colors.text};
 `;
 
 const SkillLevel = styled.div`

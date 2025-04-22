@@ -14,18 +14,26 @@ interface Milestone {
 const AboutContainer = styled.section`
   position: relative;
   width: 100%;
-  padding: 6rem 2rem;
+  padding: 4rem 1.5rem;
   min-height: 100vh;
   overflow-x: hidden;
+  background: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.text};
+  box-sizing: border-box;
+  max-width: 100%;
+  display: flex;
+  justify-content: center;
   
   @media (min-width: 768px) {
-    padding: 8rem 4rem;
+    padding: 5rem 2rem;
   }
 `;
 
 const ContentWrapper = styled.div`
-  max-width: 1400px;
+  max-width: 1000px;
   margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
 `;
 
 // Section title with underline animation
@@ -35,6 +43,7 @@ const SectionHeading = styled(motion.h2)`
   margin-bottom: 3rem;
   position: relative;
   display: inline-block;
+  color: ${({ theme }) => theme.colors.primary};
   
   &::after {
     content: '';
@@ -52,11 +61,14 @@ const SectionHeading = styled(motion.h2)`
 const AboutGrid = styled.div`
   display: grid;
   grid-template-columns: 1fr;
-  gap: 4rem;
+  gap: 3rem;
   margin-top: 2rem;
+  width: 100%;
+  box-sizing: border-box;
   
   @media (min-width: 992px) {
     grid-template-columns: 1fr 1fr;
+    gap: 3rem;
   }
 `;
 
@@ -65,6 +77,8 @@ const BioSection = styled(motion.div)`
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  width: 100%;
+  box-sizing: border-box;
 `;
 
 const BioText = styled(motion.p)`
@@ -72,12 +86,19 @@ const BioText = styled(motion.p)`
   line-height: 1.7;
   margin-bottom: 1.5rem;
   max-width: 650px;
+  color: ${({ theme }) => theme.colors.text};
 `;
 
 // Timeline section with visual line
 const TimelineSection = styled(motion.div)`
   position: relative;
-  padding-left: 2rem;
+  padding-left: 1.5rem;
+  width: 100%;
+  box-sizing: border-box;
+  
+  @media (max-width: 768px) {
+    padding-left: 1.25rem;
+  }
   
   &::before {
     content: '';
@@ -94,24 +115,30 @@ const TimelineSection = styled(motion.div)`
 
 const MilestoneItem = styled(motion.div)`
   position: relative;
-  margin-bottom: 3rem;
+  margin-bottom: 2.5rem;
   
   &::before {
     content: '';
     position: absolute;
-    left: -2rem;
+    left: -1.5rem;
     top: 8px;
-    width: 14px;
-    height: 14px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
     background: ${({ theme }) => theme.colors.accent};
     transform-origin: center;
+  }
+  
+  @media (max-width: 768px) {
+    &::before {
+      left: -1.25rem;
+    }
   }
 `;
 
 const MilestoneYear = styled.span`
   font-weight: 600;
-  color: ${({ theme }) => theme.colors.accent};
+  color: ${({ theme }) => theme.colors.primary};
   display: block;
   margin-bottom: 0.5rem;
 `;
@@ -120,13 +147,14 @@ const MilestoneTitle = styled.h3`
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 0.75rem;
+  color: ${({ theme }) => theme.colors.text};
 `;
 
 const MilestoneDescription = styled.p`
   font-size: 1rem;
   line-height: 1.6;
   color: ${({ theme }) => theme.colors.text};
-  opacity: 0.7;
+  opacity: 0.8;
 `;
 
 // Animation variants with simpler transitions
@@ -293,7 +321,7 @@ export const About: React.FC = () => {
             
             <BioText variants={animationVariants.item}>
               My approach combines technical knowledge with creative problem-solving,
-              resulting in performant and visually appealing solutions. I'm constantly
+              resulting in performative and visually appealing solutions. I'm constantly
               exploring new technologies and techniques to enhance my craft.
             </BioText>
           </BioSection>

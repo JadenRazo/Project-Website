@@ -30,44 +30,42 @@ interface ProjectsProps {
 
 // Responsive container with dynamic spacing based on viewport
 const ProjectsSection = styled.section<{ isReducedMotion?: boolean }>`
-  padding: clamp(2rem, 5vw, 6rem) clamp(1rem, 5vw, 8rem);
-  max-width: 1600px;
+  padding: clamp(2rem, 4vw, 4rem) clamp(0.5rem, 2vw, 1.5rem);
+  max-width: var(--page-max-width, 100vw);
+  width: 100%;
   margin: 0 auto;
-  overflow: hidden;
-  containment: content;
+  overflow-x: hidden;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
+  background: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.text};
   
   @media (max-width: 768px) {
-    padding: clamp(3rem, 8vw, 4rem) clamp(1rem, 5vw, 2rem);
-    width: 100%;
+    padding: clamp(1.5rem, 3vw, 2.5rem) clamp(0.5rem, 2vw, 1rem);
   }
   
   @media (max-width: 480px) {
-    padding: 3rem 1rem;
+    padding: 1.5rem 0.75rem;
   }
 `;
 
 // Content wrapper with intersection-based animations
 const ContentWrapper = styled(motion.div)<{ inView: boolean }>`
-  max-width: 1200px;
+  max-width: var(--content-max-width, 900px);
   width: 100%;
   margin: 0 auto;
   opacity: ${props => props.inView ? 1 : 0};
-  transform: translateY(${props => props.inView ? 0 : '30px'});
+  transform: translateY(${props => props.inView ? 0 : '20px'});
   transition: opacity 0.6s ease, transform 0.6s ease;
   will-change: opacity, transform;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-
-  @media (max-width: 768px) {
-    width: 100%;
-    padding: 0 1rem;
-  }
+  box-sizing: border-box;
 `;
 
 // Responsive heading with dynamic sizing
@@ -78,6 +76,7 @@ const Heading = styled(motion.h2)`
   display: inline-block;
   text-rendering: optimizeLegibility;
   text-align: center;
+  color: ${({ theme }) => theme.colors.primary};
   
   &::after {
     content: '';
@@ -101,6 +100,7 @@ const Subtitle = styled(motion.p)`
   max-width: 600px;
   opacity: 0.8;
   text-align: center;
+  color: ${({ theme }) => theme.colors.text};
   
   @media (max-width: 768px) {
     font-size: 1rem;
@@ -109,20 +109,20 @@ const Subtitle = styled(motion.p)`
   }
 `;
 
-// Virtualized grid layout for performance
-const ProjectGrid = styled(motion.div)`
+// Project grid with responsive layout
+const ProjectsGrid = styled(motion.div)`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: clamp(1.5rem, 3vw, 3rem);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: clamp(1.5rem, 3vw, 2.5rem);
   margin-top: 2rem;
-  contain: layout;
   width: 100%;
   justify-items: center;
+  box-sizing: border-box;
   
   @media (max-width: 768px) {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 1.5rem;
-    padding: 0 1rem;
+    padding: 0;
   }
   
   @media (max-width: 480px) {
@@ -136,7 +136,7 @@ const EmptyState = styled(motion.div)`
   text-align: center;
   padding: 3rem 1rem;
   margin-top: 2rem;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: ${({ theme }) => `${theme.colors.surface}80`};
   border-radius: 8px;
   backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(5px);
@@ -155,19 +155,22 @@ const EmptyState = styled(motion.div)`
     opacity: 0.8;
     max-width: 500px;
     margin: 0 auto;
+    color: ${({ theme }) => theme.colors.text};
   }
 `;
 
 // Project card wrapper for consistent sizing and animation
 const ProjectCardWrapper = styled(motion.div)`
   width: 100%;
-  max-width: 400px;
+  max-width: 280px;
   display: flex;
   justify-content: center;
-  contain: layout style;
+  transform-style: flat; // Prevent 3D transforms from affecting layout
+  box-sizing: border-box;
   
   @media (max-width: 480px) {
     max-width: 100%;
+    padding: 0 0.5rem;
   }
 `;
 
@@ -327,7 +330,7 @@ export const Projects: React.FC<ProjectsProps> = ({
             transition={{ duration: 0.3 }}
           >
             {filteredProjects.length > 0 ? (
-              <ProjectGrid
+              <ProjectsGrid
                 variants={containerVariants}
                 initial="hidden"
                 animate={controls}
@@ -346,7 +349,7 @@ export const Projects: React.FC<ProjectsProps> = ({
                     />
                   </ProjectCardWrapper>
                 ))}
-              </ProjectGrid>
+              </ProjectsGrid>
             ) : (
               <EmptyState
                 initial={{ opacity: 0, y: 20 }}
