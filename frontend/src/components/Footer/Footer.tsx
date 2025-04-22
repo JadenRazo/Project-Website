@@ -16,12 +16,14 @@ const FooterContent = styled.div`
   margin: 0 auto;
   padding: 0 ${({ theme }) => theme.spacing.md};
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: ${({ theme }) => theme.spacing.xl};
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     grid-template-columns: 1fr;
     text-align: center;
+    gap: ${({ theme }) => theme.spacing.lg};
+    padding: 0 ${({ theme }) => theme.spacing.lg};
   }
 `;
 
@@ -29,10 +31,17 @@ const FooterSection = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing.md};
+  align-items: flex-start;
   
   p {
     color: ${({ theme }) => theme.colors.text};
     opacity: 0.8;
+    margin: 0;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    align-items: center;
+    gap: ${({ theme }) => theme.spacing.sm};
   }
 `;
 
@@ -58,9 +67,10 @@ const FooterExternalLink = styled.a`
   text-decoration: none;
   transition: color ${({ theme }) => theme.transitions.fast};
   font-size: 0.9rem;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: ${({ theme }) => theme.spacing.xs};
+  width: fit-content;
 
   &:hover {
     color: ${({ theme }) => theme.colors.primary};
@@ -69,6 +79,10 @@ const FooterExternalLink = styled.a`
   svg {
     width: 16px;
     height: 16px;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    justify-content: center;
   }
 `;
 
@@ -85,9 +99,11 @@ const Copyright = styled.div`
 const SocialLinks = styled.div`
   display: flex;
   gap: ${({ theme }) => theme.spacing.md};
+  flex-wrap: wrap;
   
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     justify-content: center;
+    width: 100%;
   }
 `;
 
@@ -95,6 +111,10 @@ const TechStack = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: ${({ theme }) => theme.spacing.xs};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    justify-content: center;
+  }
 `;
 
 const TechBadge = styled(motion.span)`

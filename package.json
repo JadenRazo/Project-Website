@@ -1,18 +1,31 @@
 {
-  "name": "project-website",
+  "name": "jadenrazo.dev",
   "version": "1.0.0",
   "scripts": {
     "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\"",
     "start:frontend": "cd frontend && npm run dev",
     "start:backend": "cd backend && go run cmd/api/main.go",
-    "build": "concurrently \"npm run build:frontend\" \"npm run build:backend\"",
-    "build:frontend": "cd frontend && npm run build",
-    "build:backend": "cd backend && go build -o bin/api cmd/api/main.go",
     "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
     "dev:frontend": "cd frontend && npm run dev",
-    "dev:backend": "cd backend && go run cmd/api/main.go"
+    "dev:backend": "cd backend && go run cmd/api/main.go",
+    "build": "cd frontend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "watch": "cd frontend && npm i typescript@4.9.5 && npx nodemon --watch src --ext ts,tsx,js,jsx,json,css --exec \"npm run build\"",
+    "watch-and-serve": "cd frontend && npm run watch-and-serve"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "npm-watch": "^0.11.0"  
+  },
+  "watch": {
+    "build": {
+      "patterns": ["frontend/src", "frontend/components", "frontend/pages"],
+      "extensions": "ts,tsx",
+      "ignore": ["node_modules", ".next", "dist", "build"],
+      "quiet": false,
+      "legacyWatch": true,
+      "delay": 1000
+    }
   }
-} 
+}
+
