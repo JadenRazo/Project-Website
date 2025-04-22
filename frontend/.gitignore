@@ -11,6 +11,9 @@
 # production
 /build
 
+# AI
+/src/.cursor
+
 # misc
 .DS_Store
 .env.local

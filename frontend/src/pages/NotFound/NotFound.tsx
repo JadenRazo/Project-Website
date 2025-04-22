@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import SpaceAnimation from '../../components/animations/SpaceAnimation';
 
 const NotFoundContainer = styled.div`
   min-height: 100vh;
@@ -78,6 +79,7 @@ const NotFound: React.FC = () => {
 
   return (
     <NotFoundContainer>
+      <SpaceAnimation />
       {[...Array(numberOfStars)].map((_, i) => (
         <Star
           key={i}

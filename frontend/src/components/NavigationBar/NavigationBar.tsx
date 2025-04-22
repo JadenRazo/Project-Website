@@ -281,12 +281,19 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ themeMode, toggleTheme })
     return () => clearInterval(interval);
   }, []);
 
+  // Force scroll to top when clicking any navigation link
+  const handleLinkClick = () => {
+    window.scrollTo(0, 0);
+    setIsMenuOpen(false); // Close mobile menu if open
+  };
+
+  // Check if a path is active
   const isActive = (path: string) => location.pathname === path;
 
   return (
     <NavContainer>
       <NavContent>
-        <Logo to="/">
+        <Logo to="/" onClick={handleLinkClick}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
           </svg>
@@ -350,12 +357,16 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ themeMode, toggleTheme })
             </AnimatePresence>
           </div>
 
-          <NavLink to="/about" $isActive={isActive('/about')}>
+          <NavLink to="/about" $isActive={isActive('/about')} onClick={handleLinkClick}>
             About
           </NavLink>
 
-          <NavLink to="/contact" $isActive={isActive('/contact')}>
+          <NavLink to="/contact" $isActive={isActive('/contact')} onClick={handleLinkClick}>
             Contact
+          </NavLink>
+
+          <NavLink to="/portfolio" $isActive={isActive('/portfolio')} onClick={handleLinkClick}>
+            Portfolio
           </NavLink>
         </NavLinks>
       </NavContent>

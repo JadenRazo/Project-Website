@@ -1,76 +1,93 @@
 import React, { useEffect, useRef, useState } from 'react';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import { motion, useMotionValue, useTransform, useAnimation } from 'framer-motion';
 import usePerformanceOptimizations from '../../hooks/usePerformanceOptimizations';
 
-// Performance-optimized card with conditional effects
-const Card = styled(motion.div)<{ isPowerfulDevice?: boolean }>`
-  width: 300px;
-  height: 400px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  padding: 20px;
+// Primary card container with hover effects
+const Card = styled(motion.div)<{ isHovered: boolean; isReducedMotion?: boolean }>`
   position: relative;
+  max-width: 280px;
+  width: 100%;
+  border-radius: 16px;
   overflow: hidden;
-  backdrop-filter: blur(10px);
+  background: ${({ theme }) => theme.colors.surface};
+  box-shadow: ${({ theme }) => theme.shadows.medium};
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  margin: 0 auto;
+  box-sizing: border-box;
   cursor: pointer;
-  user-select: none;
-  transform-style: preserve-3d; /* For 3D effect */
-  transform: translateZ(0); /* Hardware acceleration */
-  will-change: transform; /* Hint for browser optimization */
+  transform-style: flat; // Prevent 3D transforms from affecting layout
   
-  @media (max-width: 768px) {
-    width: 280px;
-    height: 380px;
+  ${props => !props.isReducedMotion && props.isHovered && css`
+    transform: scale(1.02);
+    box-shadow: ${({ theme }) => theme.shadows.large};
+  `}
+  
+  &:active {
+    transform: scale(0.98);
   }
   
   @media (max-width: 480px) {
-    width: 100%;
-    max-width: 320px;
-    height: 360px;
+    max-width: 100%;
   }
 `;
 
+// Content container with depth effect
+const ProjectContent = styled.div<{ isHovered: boolean; isReducedMotion?: boolean }>`
+  position: relative;
+  z-index: 1;
+  padding: 1.5rem;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  
+  ${props => !props.isReducedMotion && css`
+    transform: ${props.isHovered ? 'translateZ(20px)' : 'translateZ(0)'};
+    transition: transform 0.3s ease;
+  `}
+`;
+
+// Image container with proper constraints
+const ImageContainer = styled.div`
+  width: 100%;
+  height: 180px;
+  overflow: hidden;
+  position: relative;
+  box-sizing: border-box;
+  
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+`;
+
+// Tech badge with contained sizing
+const TechBadge = styled.span`
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+  background: ${({ theme }) => theme.colors.surface || 'rgba(255,255,255,0.1)'};
+  color: ${({ theme }) => theme.colors.text || 'white'};
+  white-space: nowrap;
+  box-sizing: border-box;
+`;
+
+// Image component with proper styling
 const ProjectImage = styled.img`
   width: 100%;
-  height: 200px;
+  height: 180px;
   object-fit: cover;
-  border-radius: 10px;
-  transform: translateZ(20px); /* Subtle depth effect */
-  
-  @media (max-width: 480px) {
-    height: 180px;
-  }
+  transition: transform 0.5s ease;
 `;
 
-const ProjectContent = styled.div`
-  margin-top: 20px;
-  color: white;
-  transform: translateZ(30px); /* More pronounced depth effect for text */
-  
-  h3 {
-    font-size: 1.25rem;
-    margin-bottom: 10px;
-    font-weight: 600;
-    
-    @media (max-width: 480px) {
-      font-size: 1.1rem;
-    }
-  }
-  
-  p {
-    font-size: 0.9rem;
-    line-height: 1.6;
-    opacity: 0.8;
-    
-    @media (max-width: 480px) {
-      font-size: 0.85rem;
-      line-height: 1.5;
-    }
-  }
-`;
-
-// Optimized gradient overlay that appears on hover
+// Gradient overlay for hover effects
 const GradientOverlay = styled(motion.div)`
   position: absolute;
   top: 0;
@@ -83,7 +100,7 @@ const GradientOverlay = styled(motion.div)`
   z-index: 1;
 `;
 
-// Actual link element for better accessibility 
+// Link wrapper for the entire card
 const ProjectLink = styled.a`
   position: absolute;
   inset: 0;
@@ -117,14 +134,15 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
   
   // Get performance settings to conditionally enable effects
   const { performanceSettings } = usePerformanceOptimizations();
-  const isPowerfulDevice = !useSimplifiedEffects && performanceSettings?.performanceTier === 'high';
+  const isReducedMotion = useSimplifiedEffects || performanceSettings?.reduceMotion;
   
-  // For tracking if image is loaded
+  // For tracking if image is loaded and hover state
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   
   // Define transform ranges based on device capability
-  const rotateRange = isPowerfulDevice ? 10 : 5;
+  const rotateRange = isReducedMotion ? 2 : 5;
   const rotateX = useTransform(y, [-100, 100], [rotateRange, -rotateRange]);
   const rotateY = useTransform(x, [-100, 100], [-rotateRange, rotateRange]);
 
@@ -153,7 +171,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
 
   // Handle mouse movement for 3D effect
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (!isPowerfulDevice) return; // Skip effect on less powerful devices
+    if (isReducedMotion) return; // Skip effect on reduced motion
     
     const rect = event.currentTarget.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
@@ -161,6 +179,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
     
     x.set(event.clientX - centerX);
     y.set(event.clientY - centerY);
+    setIsHovered(true);
   };
 
   // Reset card position on mouse leave
@@ -174,11 +193,12 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
     // Reset motion values
     x.set(0);
     y.set(0);
+    setIsHovered(false);
   };
 
   // Handle touch events for mobile
   const handleTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
-    if (!isPowerfulDevice) return; // Skip effect on less powerful devices
+    if (isReducedMotion) return; // Skip effect on reduced motion
     
     const rect = event.currentTarget.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
@@ -186,6 +206,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
     
     x.set(event.touches[0].clientX - centerX);
     y.set(event.touches[0].clientY - centerY);
+    setIsHovered(true);
   };
 
   // Handle image load
@@ -196,15 +217,16 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
   return (
     <Card
       ref={cardRef}
-      whileHover={isPowerfulDevice ? { scale: 1.05 } : undefined}
-      style={{ rotateX, rotateY, perspective: 1000 }}
+      whileHover={!isReducedMotion ? { scale: 1.03 } : undefined}
+      style={{ rotateX, rotateY, perspective: 800 }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleMouseLeave}
       animate={controls}
       initial={{ scale: 0.98, opacity: 0.8 }}
-      isPowerfulDevice={isPowerfulDevice}
+      isHovered={isHovered}
+      isReducedMotion={isReducedMotion}
     >
       <GradientOverlay 
         initial={{ opacity: 0 }}
@@ -217,7 +239,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
         onLoad={handleImageLoad}
         style={{ opacity: imageLoaded ? 1 : 0, transition: 'opacity 0.3s ease' }}
       />
-      <ProjectContent>
+      <ProjectContent isHovered={isHovered} isReducedMotion={isReducedMotion}>
         <h3>{title}</h3>
         <p>{description}</p>
       </ProjectContent>

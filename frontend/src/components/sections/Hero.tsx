@@ -196,6 +196,7 @@ const HeroContainer = styled.div`
   overflow: hidden;
   margin-top: 60px;
   text-align: center;
+  background: ${({ theme }) => theme.colors.background};
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     padding: ${({ theme }) => theme.spacing.lg};
@@ -269,7 +270,7 @@ const Name = styled(motion.h2)<StyledMotionProps>`
 
 const Title = styled(motion.h3)`
   font-size: 2rem;
-  color: ${({ theme }) => theme.colors.textSecondary};
+  color: ${({ theme }) => theme.colors.text};
   margin: 0;
   line-height: 1.2;
 
@@ -301,7 +302,7 @@ const Description = styled(motion.p)`
 // Enhanced skill detail container with more visual feedback
 const SkillDetailContainer = styled(motion.div)`
   width: 100%;
-  background: ${({ theme }) => theme.colors.backgroundAlt};
+  background: ${({ theme }) => theme.colors.surface};
   border-radius: 12px;
   padding: 20px;
   margin-top: 10px;
@@ -408,10 +409,10 @@ const ProjectList = styled.ul`
 // Enhanced CTA button with animated gradient border on hover
 const CTAButton = styled(motion.a)`
   display: inline-block;
-  background-color: transparent;
+  background-color: ${({ theme }) => theme.colors.primary};
   border: 1px solid ${({ theme }) => theme.colors.primary};
   border-radius: 8px;
-  color: ${({ theme }) => theme.colors.primary};
+  color: #fff;
   font-family: ${systemFonts.mono};
   font-size: clamp(14px, 2vw, 16px);
   padding: 1rem 1.5rem;
@@ -423,6 +424,7 @@ const CTAButton = styled(motion.a)`
   max-width: 200px;
   text-align: center;
   margin: 0 auto;
+  font-weight: 500;
   
   &:after {
     content: '';
@@ -444,7 +446,8 @@ const CTAButton = styled(motion.a)`
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    background-color: ${({ theme }) => `${theme.colors.primary}10`};
+    background-color: ${({ theme }) => theme.colors.backgroundAlt};
+    color: ${({ theme }) => theme.colors.primary};
     
     &:after {
       left: 200%;
@@ -547,17 +550,18 @@ const AnimatedBioItem = memo(({
       className={isActive ? 'active' : ''}
       style={{
         fontSize: 'clamp(16px, 3vw, 20px)',
-        color: isActive ? 'var(--colors-backgroundAlt)' : 'var(--colors-text)',
+        color: isActive ? '#fff' : 'var(--colors-text)',
         padding: '8px 16px',
         borderRadius: '8px',
-        backgroundColor: isActive ? 'var(--colors-primary)' : 'var(--colors-primaryLight)',
+        backgroundColor: isActive ? 'var(--colors-primary)' : 'rgba(255, 255, 255, 0.15)',
+        border: '1px solid var(--colors-primary)',
         position: 'relative',
         cursor: 'pointer',
-        border: 'none',
         fontFamily: 'inherit',
         boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
         overflow: 'hidden',
-        transition: 'all 0.3s ease'
+        transition: 'all 0.3s ease',
+        fontWeight: 500
       }}
     >
       {text}
@@ -590,14 +594,17 @@ const SkillDetail = memo(({
     <SkillDescription>{skill.description}</SkillDescription>
     {skill.projects && skill.projects.length > 0 && (
       <>
-        <div style={{ fontSize: '14px', color: 'var(--primary)' }}>Related Projects:</div>
+        <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--colors-primary)' }}>Related Projects:</div>
         <ProjectList>
           {skill.projects.map((project, index) => (
             <motion.li 
               key={index}
               initial={{ opacity: 0, x: -5 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 * index }}
+              transition={{
+                delay: index * 0.1,
+                duration: 0.3
+              }}
             >
               {project}
             </motion.li>
@@ -827,7 +834,7 @@ export const Hero: React.FC = () => {
   ], []);
 
   // Split name into characters for typing animation
-  const nameCharacters = "Jaden Scott Razo/".split('');
+  const nameCharacters = "Hi there, I'm Jaden Razo/".split('');
   const [typedCount, setTypedCount] = useState(0);
   const [showCursor, setShowCursor] = useState(true);
   const [isTypingComplete, setIsTypingComplete] = useState(false);
@@ -894,15 +901,6 @@ export const Hero: React.FC = () => {
         initial="hidden"
         animate="visible"
       >
-        <Greeting 
-          variants={animationVariants.item}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-        >
-          Hi there, I'm
-        </Greeting>
-        
         <Name
           variants={animationVariants.item}
           $isHovered={isNameHovered}
