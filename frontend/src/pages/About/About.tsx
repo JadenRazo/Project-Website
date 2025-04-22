@@ -170,27 +170,45 @@ const ExperienceDate = styled.p`
 const ExperienceDescription = styled.div`
   color: ${({ theme }) => theme.colors.text};
   line-height: 1.6;
+  max-width: 100%;
+  overflow-wrap: break-word;
   
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     font-size: 0.95rem;
+    line-height: 1.5;
+    padding-right: 10px; /* Add some padding to prevent text from touching the edge */
   }
 `;
 
 const TypedLine = styled(motion.div)`
   margin-bottom: 16px;
   position: relative;
-  display: flex;
+  display: block;
   min-height: 24px;
+  max-width: 100%;
+  overflow-wrap: normal;
+  word-break: normal;
+  white-space: pre-wrap;
 `;
 
-const TypewriterText = styled(motion.span)`
-  display: inline-block;
-  white-space: pre-wrap;
-  word-break: break-word;
+const TypewriterText = styled(motion.div)`
+  display: inline;
   color: ${({ theme }) => theme.colors.text};
   font-size: 1rem;
   line-height: 1.6;
   opacity: 1;
+`;
+
+const WordWrapper = styled.span`
+  display: inline-block;
+  white-space: nowrap;
+  margin-right: 5px;
+`;
+
+const TypewriterCharacter = styled(motion.span)`
+  display: inline-block;
+  position: relative;
+  color: ${({ theme }) => theme.colors.text};
 `;
 
 const Cursor = styled(motion.span)`
@@ -202,6 +220,174 @@ const Cursor = styled(motion.span)`
   align-self: center;
   border-radius: 1px;
 `;
+
+// Define animation variants for experience section
+const experienceSectionVariants = {
+  initial: { opacity: 0 },
+  animate: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2
+    }
+  }
+};
+
+const experienceItemVariants = {
+  initial: { y: 20, opacity: 0 },
+  animate: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      type: "spring",
+      stiffness: 100
+    }
+  }
+};
+
+// Experience section component
+const ExperienceSection = () => {
+  // Experience lines data
+  const experienceLines = [
+    "• Developed and maintained multiple full-stack SaaS applications using React, HTML, CSS, TypeScript, Python, and Go",
+    "• Implemented microservices architecture for scalable backend solutions",
+    "• Created efficient CI/CD pipelines using GitHub Actions and Docker",
+    "• Designed and implemented RESTful APIs and WebSocket services"
+  ];
+  
+  // State for typing animation
+  const [activeLineIndex, setActiveLineIndex] = useState(0);
+  const [typedCharacters, setTypedCharacters] = useState<string[]>(["", "", "", ""]);
+  const [isTypingComplete, setIsTypingComplete] = useState(false);
+  const [showCursor, setShowCursor] = useState(true);
+  const animationRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Reference for the section element
+  const [sectionRef, inView] = useInView({
+    triggerOnce: false,
+    threshold: 0.2,
+    rootMargin: "-50px 0px",
+  });
+  
+  // Clear all timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (animationRef.current) {
+        clearTimeout(animationRef.current);
+      }
+    };
+  }, []);
+  
+  // Start or reset animation when section comes into view
+  useEffect(() => {
+    if (inView) {
+      // Reset animation state
+      setActiveLineIndex(0);
+      setTypedCharacters(["", "", "", ""]);
+      setIsTypingComplete(false);
+      setShowCursor(true);
+      
+      // Clear any existing timeouts
+      if (animationRef.current) {
+        clearTimeout(animationRef.current);
+      }
+      
+      // Start typing after a small delay
+      animationRef.current = setTimeout(() => {
+        typeCharacter(0, 0);
+      }, 500);
+    }
+  }, [inView]);
+  
+  // Type each character one by one
+  const typeCharacter = (lineIndex: number, charIndex: number) => {
+    if (lineIndex >= experienceLines.length) {
+      setIsTypingComplete(true);
+      setTimeout(() => setShowCursor(false), 800);
+      return;
+    }
+    
+    setActiveLineIndex(lineIndex);
+    
+    // Get the current line
+    const currentLine = experienceLines[lineIndex];
+    
+    if (charIndex < currentLine.length) {
+      // Add next character
+      setTypedCharacters(prev => {
+        const updated = [...prev];
+        updated[lineIndex] = currentLine.substring(0, charIndex + 1);
+        return updated;
+      });
+      
+      // Schedule next character with a typing speed of 60 WPM
+      const typingDelay = Math.random() * 10 + 40; // 40-50ms per character for ~60 WPM
+      animationRef.current = setTimeout(() => {
+        typeCharacter(lineIndex, charIndex + 1);
+      }, typingDelay);
+    } else {
+      // Line is complete, move to next line after a pause
+      animationRef.current = setTimeout(() => {
+        typeCharacter(lineIndex + 1, 0);
+      }, 700);
+    }
+  };
+  
+  return (
+    <Section
+      variants={experienceSectionVariants}
+      initial="initial"
+      animate="animate"
+      ref={sectionRef}
+    >
+      <SectionTitle>Experience</SectionTitle>
+      <SectionContent>
+        <ExperienceItem variants={experienceItemVariants}>
+          <ExperienceTitle>Full Stack Developer</ExperienceTitle>
+          <ExperienceCompany>Personal Projects & Freelance</ExperienceCompany>
+          <ExperienceDate>2020 - Present</ExperienceDate>
+          <ExperienceDescription>
+            {experienceLines.map((line, lineIndex) => (
+              <TypedLine key={`line-${lineIndex}`}>
+                <TypewriterText>
+                  {/* Process each word as a non-breaking unit */}
+                  {typedCharacters[lineIndex].split(' ').map((word, wordIndex) => {
+                    // Skip empty words
+                    if (word === '') return null;
+                    
+                    return (
+                      <WordWrapper key={`${lineIndex}-word-${wordIndex}`}>
+                        {word.split('').map((char, charIndex) => (
+                          <TypewriterCharacter
+                            key={`${lineIndex}-${wordIndex}-${charIndex}`}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.1 }}
+                          >
+                            {char}
+                          </TypewriterCharacter>
+                        ))}
+                      </WordWrapper>
+                    );
+                  })}
+                  {activeLineIndex === lineIndex && showCursor && (
+                    <Cursor
+                      animate={{ opacity: [1, 0] }}
+                      transition={{
+                        duration: 0.5,
+                        repeat: Infinity,
+                        repeatType: "reverse"
+                      }}
+                    />
+                  )}
+                </TypewriterText>
+              </TypedLine>
+            ))}
+          </ExperienceDescription>
+        </ExperienceItem>
+      </SectionContent>
+    </Section>
+  );
+};
 
 const About: React.FC = () => {
   // Scroll to top on component mount (if not using the ScrollToTop component)
@@ -232,100 +418,6 @@ const About: React.FC = () => {
         stiffness: 100
       }
     }
-  };
-
-  // Improved typing animation with simpler and more reliable approach
-  const [experienceRef, experienceInView] = useInView({
-    triggerOnce: false,
-    threshold: 0.3,
-    rootMargin: "-50px 0px",
-  });
-
-  // Experience lines data
-  const experienceLines = [
-    "• Developed and maintained multiple full-stack SaaS applications using React, HTML, CSS, TypeScript, Python, and Go",
-    "• Implemented microservices architecture for scalable backend solutions",
-    "• Created efficient CI/CD pipelines using GitHub Actions and Docker",
-    "• Designed and implemented RESTful APIs and WebSocket services"
-  ];
-  
-  // State for letter counts in each line
-  const [letterCounts, setLetterCounts] = useState<number[]>([0, 0, 0, 0]);
-  const [activeLineIndex, setActiveLineIndex] = useState(0);
-  const [isTypingComplete, setIsTypingComplete] = useState(false);
-  const animationRef = useRef<NodeJS.Timeout | null>(null);
-  
-  // Clear all timeouts on unmount
-  useEffect(() => {
-    return () => {
-      if (animationRef.current) {
-        clearTimeout(animationRef.current);
-      }
-    };
-  }, []);
-
-  // Reset and start animation when section comes into view
-  useEffect(() => {
-    // When component comes into view
-    if (experienceInView) {
-      // Reset animation state
-      setLetterCounts([0, 0, 0, 0]);
-      setActiveLineIndex(0);
-      setIsTypingComplete(false);
-      
-      // Start typing animation for first line
-      if (animationRef.current) {
-        clearTimeout(animationRef.current);
-      }
-      
-      // Begin typing first line
-      animationRef.current = setTimeout(() => {
-        typeNextLetter(0);
-      }, 400);
-    } else {
-      // Reset when out of view
-      setLetterCounts([0, 0, 0, 0]);
-      setActiveLineIndex(0);
-      setIsTypingComplete(false);
-      
-      if (animationRef.current) {
-        clearTimeout(animationRef.current);
-        animationRef.current = null;
-      }
-    }
-  }, [experienceInView]);
-  
-  // Type out letters one by one
-  const typeNextLetter = (lineIndex: number) => {
-    if (lineIndex >= experienceLines.length) {
-      setIsTypingComplete(true);
-      return;
-    }
-    
-    setActiveLineIndex(lineIndex);
-    
-    setLetterCounts(prev => {
-      const newCounts = [...prev];
-      
-      if (newCounts[lineIndex] < experienceLines[lineIndex].length) {
-        // Type next letter
-        newCounts[lineIndex]++;
-        
-        // Schedule next letter
-        animationRef.current = setTimeout(
-          () => typeNextLetter(lineIndex),
-          Math.random() * 30 + 20 // Random typing speed for realism
-        );
-      } else {
-        // Current line complete, move to next after a pause
-        animationRef.current = setTimeout(
-          () => typeNextLetter(lineIndex + 1),
-          700 // Pause between lines
-        );
-      }
-      
-      return newCounts;
-    });
   };
 
   return (
@@ -400,40 +492,7 @@ const About: React.FC = () => {
           </Section>
 
           {/* Experience Section with typing animation */}
-          <Section
-            variants={containerVariants}
-            initial="initial"
-            animate="animate"
-            ref={experienceRef}
-          >
-            <SectionTitle>Experience</SectionTitle>
-            <SectionContent>
-              <ExperienceItem variants={itemVariants}>
-                <ExperienceTitle>Full Stack Developer</ExperienceTitle>
-                <ExperienceCompany>Personal Projects & Freelance</ExperienceCompany>
-                <ExperienceDate>2020 - Present</ExperienceDate>
-                <ExperienceDescription>
-                  {experienceLines.map((line, index) => (
-                    <TypedLine key={index}>
-                      <TypewriterText>
-                        {line.substring(0, letterCounts[index])}
-                      </TypewriterText>
-                      {activeLineIndex === index && letterCounts[index] < line.length && (
-                        <Cursor
-                          animate={{ opacity: [1, 0] }}
-                          transition={{
-                            duration: 0.5,
-                            repeat: Infinity,
-                            repeatType: "reverse"
-                          }}
-                        />
-                      )}
-                    </TypedLine>
-                  ))}
-                </ExperienceDescription>
-              </ExperienceItem>
-            </SectionContent>
-          </Section>
+          <ExperienceSection />
 
           {/* Education Section */}
           <Section
@@ -448,7 +507,7 @@ const About: React.FC = () => {
                 <ExperienceCompany>Western Governors University</ExperienceCompany>
                 <ExperienceDate>Present</ExperienceDate>
                 <ExperienceDescription>
-                  Focused on software engineering, cloud computing, and distributed systems. Focused on DevOps and earning my certifications.
+                  Focused on cloud computing, cybersecurity and distributed systems. Studying for A+, Security+, Network+.
                 </ExperienceDescription>
               </ExperienceItem> 
               <ExperienceItem variants={itemVariants}>
