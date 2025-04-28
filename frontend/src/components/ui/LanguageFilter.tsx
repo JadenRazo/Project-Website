@@ -10,9 +10,9 @@ interface LanguageFilterProps {
   onSelectLanguage: (language: string) => void;
 }
 
-interface FilterButtonProps {
-  isActive: boolean;
-  isPowerfulDevice: boolean;
+interface LanguageButtonProps {
+  $isActive: boolean;
+  $isPowerfulDevice: boolean;
 }
 
 // Optimize styled components with efficient CSS transitions
@@ -44,68 +44,46 @@ const FilterContainer = styled(motion.div)`
 `;
 
 // Filter button with hardware-accelerated CSS transitions for better performance
-const FilterButton = styled.button<FilterButtonProps>`
-  padding: 10px 20px;
+const LanguageButton = styled.button<LanguageButtonProps>`
+  background-color: ${({ $isActive, theme }) =>
+    $isActive ? theme.colors.primary : `${theme.colors.primary}15`};
+  color: ${({ $isActive, theme }) =>
+    $isActive ? theme.colors.backgroundAlt : theme.colors.primary};
   border: none;
-  border-radius: 8px;
-  background-color: ${({ isActive, theme }) => 
-    isActive ? theme.colors.primary : `${theme.colors.primary}15`};
-  color: ${({ isActive, theme }) => 
-    isActive ? theme.colors.backgroundAlt : theme.colors.primary};
+  padding: ${({ theme }) => `${theme.spacing.xs} ${theme.spacing.md}`};
+  border-radius: ${({ theme }) => theme.borderRadius.pill};
+  font-weight: ${({ $isActive }) => $isActive ? '600' : '400'};
+  font-size: 0.9rem;
   cursor: pointer;
-  font-size: clamp(0.875rem, 1vw, 1rem);
-  font-family: inherit;
-  font-weight: ${({ isActive }) => isActive ? '600' : '400'};
+  transition: all ${({ theme }) => theme.transitions.normal};
   position: relative;
   overflow: hidden;
-  transform: translateZ(0); /* Hardware acceleration */
-  
-  /* Use efficient CSS transitions instead of animation libraries for simple effects */
-  transition: 
-    background-color 0.15s ease-out,
-    color 0.15s ease-out,
-    transform 0.15s ease-out,
-    box-shadow 0.15s ease-out;
-    
+
   &:hover {
-    background-color: ${({ isActive, theme }) => 
-      isActive ? theme.colors.primary : `${theme.colors.primary}25`};
-    transform: ${({ isPowerfulDevice }) => 
-      isPowerfulDevice ? 'translateY(-2px)' : 'none'};
-    box-shadow: ${({ isPowerfulDevice }) => 
-      isPowerfulDevice ? '0 4px 8px rgba(0, 0, 0, 0.1)' : 'none'};
+    background-color: ${({ $isActive, theme }) =>
+      $isActive ? theme.colors.primary : `${theme.colors.primary}25`};
+    transform: ${({ $isPowerfulDevice }) =>
+      $isPowerfulDevice ? 'translateY(-2px)' : 'none'};
+    box-shadow: ${({ $isPowerfulDevice }) =>
+      $isPowerfulDevice ? '0 4px 8px rgba(0, 0, 0, 0.1)' : 'none'};
   }
-  
-  &:active {
-    transform: scale(0.97);
-    transition: transform 0.1s ease-out;
-  }
-  
-  /* Active button highlight effect */
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    width: ${({ isActive }) => isActive ? '40%' : '0'};
-    height: 2px;
-    background-color: ${({ theme }) => theme.colors.background};
-    transform: translateX(-50%);
-    transition: width 0.15s ease-out;
-    opacity: ${({ isActive }) => isActive ? 1 : 0};
-  }
-  
-  @media (max-width: 768px) {
-    padding: 8px 16px;
-    font-size: 0.875rem;
-  }
-  
-  @media (max-width: 480px) {
-    padding: 6px 14px;
-    font-size: 0.8125rem;
-    flex-shrink: 0;
-    scroll-snap-align: start;
-  }
+`;
+
+const LanguageName = styled.span<{ $isActive: boolean }>`
+  position: relative;
+  z-index: 2;
+`;
+
+const ButtonBg = styled.div<{ $isActive: boolean }>`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: ${({ $isActive }) => $isActive ? '40%' : '0'};
+  background: ${({ theme }) => theme.colors.backgroundAlt};
+  transition: all ${({ theme }) => theme.transitions.normal};
+  opacity: ${({ $isActive }) => $isActive ? 1 : 0};
+  z-index: 1;
 `;
 
 // Optimized ripple effect component that uses efficient DOM operations
@@ -162,15 +140,18 @@ const LanguageFilter: React.FC<LanguageFilterProps> = ({
     >
       {languageOptions.map(language => (
         <motion.div key={language} variants={buttonVariant}>
-          <FilterButton
-            isActive={selectedLanguage === language}
-            isPowerfulDevice={isPowerfulDevice}
+          <LanguageButton
+            $isActive={selectedLanguage === language}
+            $isPowerfulDevice={isPowerfulDevice}
             onClick={() => onSelectLanguage(language)}
             role="button"
             aria-pressed={selectedLanguage === language}
           >
-            {language}
-          </FilterButton>
+            <ButtonBg $isActive={selectedLanguage === language} />
+            <LanguageName $isActive={selectedLanguage === language}>
+              {language}
+            </LanguageName>
+          </LanguageButton>
         </motion.div>
       ))}
     </FilterContainer>

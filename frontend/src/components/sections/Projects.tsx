@@ -29,7 +29,7 @@ interface ProjectsProps {
 }
 
 // Responsive container with dynamic spacing based on viewport
-const ProjectsSection = styled.section<{ isReducedMotion?: boolean }>`
+const ProjectsSection = styled.section<{ $isReducedMotion?: boolean }>`
   padding: clamp(2rem, 4vw, 4rem) clamp(0.5rem, 2vw, 1.5rem);
   max-width: var(--page-max-width, 100vw);
   width: 100%;
@@ -53,12 +53,12 @@ const ProjectsSection = styled.section<{ isReducedMotion?: boolean }>`
 `;
 
 // Content wrapper with intersection-based animations
-const ContentWrapper = styled(motion.div)<{ inView: boolean }>`
+const ContentWrapper = styled(motion.div)<{ $inView: boolean }>`
   max-width: var(--content-max-width, 900px);
   width: 100%;
   margin: 0 auto;
-  opacity: ${props => props.inView ? 1 : 0};
-  transform: translateY(${props => props.inView ? 0 : '20px'});
+  opacity: ${props => props.$inView ? 1 : 0};
+  transform: translateY(${props => props.$inView ? 0 : '20px'});
   transition: opacity 0.6s ease, transform 0.6s ease;
   will-change: opacity, transform;
   display: flex;
@@ -290,14 +290,14 @@ export const Projects: React.FC<ProjectsProps> = ({
   return (
     <ProjectsSection 
       ref={containerRef}
-      isReducedMotion={shouldUseSimplifiedAnimation} 
+      $isReducedMotion={shouldUseSimplifiedAnimation} 
       id="projects"
       role="region"
       aria-label="Projects Section"
     >
       <ContentWrapper 
         ref={contentRef}
-        inView={inView}
+        $inView={inView}
       >
         <Heading
           initial={isInitialRender ? false : { opacity: 0, x: -20 }}

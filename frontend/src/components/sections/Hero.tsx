@@ -13,10 +13,9 @@ interface AnimatedElementProps extends HTMLMotionProps<"div"> {
   isInteractive?: boolean;
 }
 
-interface BioItemProps extends AnimatedElementProps {
-  text: string;
-  onClick: () => void;
-  isActive: boolean;
+interface BioItemProps {
+  $active: boolean;
+  $enablePulse: boolean;
 }
 
 interface Skill {
@@ -525,6 +524,9 @@ SkillIcon.displayName = 'SkillIcon';
 
 // Interface for the AnimatedBioItem component props
 interface AnimatedBioItemProps extends BioItemProps {
+  text: string;
+  onClick: () => void;
+  $isActive: boolean;
   performanceSettings: any;
   animationVariants: any;
   animationObjects: any;
@@ -534,7 +536,7 @@ interface AnimatedBioItemProps extends BioItemProps {
 const AnimatedBioItem = memo(({ 
   text, 
   onClick, 
-  isActive, 
+  $isActive, 
   performanceSettings,
   animationVariants,
   animationObjects
@@ -547,13 +549,13 @@ const AnimatedBioItem = memo(({
       whileHover={animationObjects.hover}
       whileTap={animationObjects.tap}
       onClick={onClick}
-      className={isActive ? 'active' : ''}
+      className={$isActive ? 'active' : ''}
       style={{
         fontSize: 'clamp(16px, 3vw, 20px)',
-        color: isActive ? '#fff' : 'var(--colors-text)',
+        color: $isActive ? '#fff' : 'var(--colors-text)',
         padding: '8px 16px',
         borderRadius: '8px',
-        backgroundColor: isActive ? 'var(--colors-primary)' : 'rgba(255, 255, 255, 0.15)',
+        backgroundColor: $isActive ? 'var(--colors-primary)' : 'rgba(255, 255, 255, 0.15)',
         border: '1px solid var(--colors-primary)',
         position: 'relative',
         cursor: 'pointer',
@@ -631,12 +633,12 @@ const Bio = styled(motion.div)<StyledMotionProps>`
   }
 `;
 
-const BioItem = styled(motion.button)<{ active: boolean; enablePulse: boolean }>`
+const BioItem = styled(motion.button)<BioItemProps>`
   font-size: clamp(16px, 3vw, 20px);
-  color: ${({ theme, active }) => active ? theme.colors.backgroundAlt : theme.colors.text};
+  color: ${({ theme, $active }) => $active ? theme.colors.backgroundAlt : theme.colors.text};
   padding: 8px 16px;
   border-radius: 8px;
-  background-color: ${({ theme, active }) => active 
+  background-color: ${({ theme, $active }) => $active 
     ? theme.colors.primary 
     : theme.colors.primaryLight};
   position: relative;
@@ -651,7 +653,7 @@ const BioItem = styled(motion.button)<{ active: boolean; enablePulse: boolean }>
   min-width: 140px;
 
   &:hover {
-    background-color: ${({ theme, active }) => active 
+    background-color: ${({ theme, $active }) => $active 
       ? theme.colors.primary 
       : `${theme.colors.primary}30`};
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -661,8 +663,8 @@ const BioItem = styled(motion.button)<{ active: boolean; enablePulse: boolean }>
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     font-size: clamp(14px, 2.5vw, 18px);
     padding: 6px 14px;
-    width: ${props => props.active ? '100%' : 'auto'};
-    max-width: ${props => props.active ? '100%' : '160px'};
+    width: ${props => props.$active ? '100%' : 'auto'};
+    max-width: ${props => props.$active ? '100%' : '160px'};
     margin: 0 auto;
   }
 `;
@@ -958,17 +960,26 @@ export const Hero: React.FC = () => {
           ref={bioRef}
           variants={animationVariants.container}
         >
-          {bioItems.map((item) => (
-            <AnimatedBioItem 
-              key={`bio-item-${item}`} 
-              text={item} 
-              onClick={() => handleSkillClick(item)} 
-              isActive={activeSkill === (item === 'UI Designer' ? 'ui' : item === 'API Coding' ? 'api' : 'db')}
-              performanceSettings={performanceSettings}
-              animationVariants={animationVariants}
-              animationObjects={animationObjects}
-            />
-          ))}
+          {bioItems.map((item) => {
+            const skillId = item === 'UI Designer' ? 'ui' : item === 'API Coding' ? 'api' : 'db';
+            return (
+              <BioItem
+                key={item}
+                onClick={() => handleSkillClick(item)}
+                $active={activeSkill === skillId}
+                $enablePulse={!performanceSettings?.reduceMotion}
+                animate={{
+                  scale: activeSkill === skillId ? 1.05 : 1,
+                  backgroundColor: activeSkill === skillId ? theme.colors.primary : theme.colors.primaryLight,
+                  color: activeSkill === skillId ? '#fff' : 'var(--colors-text)',
+                  boxShadow: activeSkill === skillId ? '0 4px 16px rgba(0,0,0,0.15)' : '0 2px 8px rgba(0,0,0,0.1)',
+                }}
+                transition={{ duration: 0.2 }}
+              >
+                {item}
+              </BioItem>
+            );
+          })}
         </Bio>
 
         {/* Animated skill details */}

@@ -11,23 +11,38 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/JadenRazo/Project-Website/backend/internal/auth"
-	"github.com/JadenRazo/Project-Website/backend/internal/messaging/repository"
-	"github.com/JadenRazo/Project-Website/backend/internal/messaging/websocket"
-	authMiddleware "github.com/JadenRazo/Project-Website/backend/middleware/auth"
+	"github.com/JadenRazo/Project-Website/backend/internal/core/db"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
+
+// Define missing types
+// ReadReceipt represents a record of when a user reads a message
+type ReadReceipt struct {
+	MessageID uint      `json:"message_id"`
+	UserID    uint      `json:"user_id"`
+	ReadAt    time.Time `json:"read_at"`
+}
+
+// ReadReceiptRepository defines the interface for read receipt operations
+type ReadReceiptRepository interface {
+	CreateReadReceipt(ctx context.Context, receipt *ReadReceipt) error
+	CreateBulkReadReceipts(ctx context.Context, receipts []ReadReceipt) error
+	ReadReceiptExists(ctx context.Context, messageID, userID uint) (bool, error)
+	GetMessageReadReceipts(ctx context.Context, messageID uint) ([]ReadReceipt, error)
+	GetUnreadCount(ctx context.Context, channelID, userID uint) (int64, error)
+	DeleteReadReceipts(ctx context.Context, messageID uint) error
+	Create(ctx context.Context, receipt *ReadReceipt) error
+}
 
 // Mock dependencies to enable compilation without all dependencies
 type mockReadReceiptRepository struct{}
 
-func (m *mockReadReceiptRepository) CreateReadReceipt(ctx context.Context, receipt *repository.ReadReceipt) error {
+func (m *mockReadReceiptRepository) CreateReadReceipt(ctx context.Context, receipt *ReadReceipt) error {
 	return nil
 }
 
-func (m *mockReadReceiptRepository) CreateBulkReadReceipts(ctx context.Context, receipts []repository.ReadReceipt) error {
+func (m *mockReadReceiptRepository) CreateBulkReadReceipts(ctx context.Context, receipts []ReadReceipt) error {
 	return nil
 }
 
@@ -35,15 +50,19 @@ func (m *mockReadReceiptRepository) ReadReceiptExists(ctx context.Context, messa
 	return false, nil
 }
 
-func (m *mockReadReceiptRepository) GetMessageReadReceipts(ctx context.Context, messageID uint) ([]repository.ReadReceipt, error) {
-	return []repository.ReadReceipt{}, nil
+func (m *mockReadReceiptRepository) GetMessageReadReceipts(ctx context.Context, messageID uint) ([]ReadReceipt, error) {
+	return []ReadReceipt{}, nil
 }
 
-func (m *mockReadReceiptRepository) GetUnreadCount(ctx context.Context, channelID, userID uint) (int, error) {
+func (m *mockReadReceiptRepository) GetUnreadCount(ctx context.Context, channelID, userID uint) (int64, error) {
 	return 0, nil
 }
 
 func (m *mockReadReceiptRepository) DeleteReadReceipts(ctx context.Context, messageID uint) error {
+	return nil
+}
+
+func (m *mockReadReceiptRepository) Create(ctx context.Context, receipt *ReadReceipt) error {
 	return nil
 }
 
@@ -72,18 +91,43 @@ type Message struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+// Define WebSocket Hub
+type Hub struct{}
+
+// Auth package mock
+var auth = struct {
+	GetUserID func(ctx context.Context) (uint, bool)
+}{
+	GetUserID: func(ctx context.Context) (uint, bool) {
+		// Mock implementation that always returns user ID 1
+		return 1, true
+	},
+}
+
+// Auth middleware mock
+var authMiddleware = struct {
+	AuthMiddleware func() gin.HandlerFunc
+}{
+	AuthMiddleware: func() gin.HandlerFunc {
+		return func(c *gin.Context) {
+			// Mock implementation that always authenticates
+			c.Next()
+		}
+	},
+}
+
 // ReadReceiptService handles read receipt operations
 type ReadReceiptService struct {
-	receiptRepo repository.ReadReceiptRepository
+	receiptRepo ReadReceiptRepository
 	messageRepo *mockMessageRepository
-	hub         *websocket.Hub
+	hub         *Hub
 }
 
 // NewReadReceiptService creates a new read receipt service
 func NewReadReceiptService(
-	receiptRepo repository.ReadReceiptRepository,
+	receiptRepo ReadReceiptRepository,
 	messageRepo *mockMessageRepository,
-	hub *websocket.Hub,
+	hub *Hub,
 ) *ReadReceiptService {
 	return &ReadReceiptService{
 		receiptRepo: receiptRepo,
@@ -113,7 +157,7 @@ func (s *ReadReceiptService) MarkAsRead(ctx context.Context, messageID, userID u
 
 	if !exists {
 		// Create the read receipt
-		receipt := &repository.ReadReceipt{
+		receipt := &ReadReceipt{
 			MessageID: messageID,
 			UserID:    userID,
 			ReadAt:    time.Now(),
@@ -126,7 +170,6 @@ func (s *ReadReceiptService) MarkAsRead(ctx context.Context, messageID, userID u
 		// Notify through WebSocket if hub exists
 		if s.hub != nil {
 			// In a real implementation, we would notify the sender that their message was read
-			// s.hub.SendReadReceipt(messageID, message.ChannelID, userID, message.SenderID)
 			log.Printf("User %d read message %d in channel %d", userID, messageID, message.ChannelID)
 		}
 	}
@@ -148,14 +191,14 @@ func (s *ReadReceiptService) MarkChannelAsRead(ctx context.Context, channelID, u
 	}
 
 	// Create batch read receipts
-	var receipts []repository.ReadReceipt
+	var receipts []ReadReceipt
 	for _, message := range messages {
 		// Skip messages sent by the user
 		if message.SenderID == userID {
 			continue
 		}
 
-		receipts = append(receipts, repository.ReadReceipt{
+		receipts = append(receipts, ReadReceipt{
 			MessageID: message.ID,
 			UserID:    userID,
 			ReadAt:    time.Now(),
@@ -185,7 +228,7 @@ func (s *ReadReceiptService) GetUnreadMessageCount(ctx context.Context, channelI
 	if err != nil {
 		return 0, fmt.Errorf("failed to get unread count: %w", err)
 	}
-	return count, nil
+	return int(count), nil
 }
 
 func main() {
@@ -202,13 +245,18 @@ func main() {
 	corsConfig.MaxAge = 12 * time.Hour
 	router.Use(cors.New(corsConfig))
 
+	// Initialize database - use the db package
+	_, err := db.GetDB()
+	if err != nil {
+		log.Fatalf("Failed to initialize database: %v", err)
+	}
+
 	// Initialize mock dependencies
-	db := &gorm.DB{} // Mock DB
 	readReceiptRepo := &mockReadReceiptRepository{}
 	messageRepo := &mockMessageRepository{}
 
-	// Initialize WebSocket hub (simplified)
-	hub := &websocket.Hub{}
+	// Initialize WebSocket hub
+	hub := &Hub{}
 
 	// Initialize read receipt service
 	readReceiptService := NewReadReceiptService(readReceiptRepo, messageRepo, hub)

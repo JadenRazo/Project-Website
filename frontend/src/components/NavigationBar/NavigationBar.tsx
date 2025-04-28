@@ -233,19 +233,19 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ themeMode, toggleTheme })
     {
       name: 'DevPanel',
       status: false,
-      url: 'http://localhost:8080/devpanel/health',
+      url: '/devpanel/health',
       description: 'Development environment management system'
     },
     {
       name: 'URL Shortener',
       status: false,
-      url: 'http://localhost:8081/health',
+      url: '/api/health',
       description: 'Custom URL shortening service'
     },
     {
       name: 'Messaging',
       status: false,
-      url: 'http://localhost:8082/health',
+      url: '/messaging/health',
       description: 'Real-time messaging platform'
     }
   ]);
@@ -255,31 +255,53 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ themeMode, toggleTheme })
     setIsMenuOpen(false);
   }, [location]);
 
-  // Check backend services status
-  useEffect(() => {
-    const checkServices = async () => {
-      try {
-        const updatedServices = await Promise.all(
-          servicesStatus.map(async (service) => {
-            try {
-              const response = await fetch(service.url);
-              return { ...service, status: response.ok };
-            } catch {
-              return { ...service, status: false };
-            }
+  // Function to check backend service status
+  const checkServices = React.useCallback(async () => {
+    try {
+      // Use the current domain instead of localhost
+      const baseUrl = window.location.origin;
+      
+      // Make a copy of the services array to update
+      const updatedServices = [...servicesStatus];
+      
+      // Check each service endpoint
+      const statusChecks = await Promise.allSettled(
+        updatedServices.map(service => 
+          fetch(`${baseUrl}${service.url}`, { 
+            method: 'GET',
+            // Add cache busting to prevent cached responses
+            headers: { 'Cache-Control': 'no-cache' }
           })
-        );
-
-        setServicesStatus(updatedServices);
-      } catch (error) {
-        console.error('Failed to check services status:', error);
-      }
-    };
-
+          .then(response => response.ok)
+          .catch(() => false)
+        )
+      );
+      
+      // Update status for each service
+      statusChecks.forEach((result, index) => {
+        if (index < updatedServices.length) {
+          updatedServices[index].status = 
+            result.status === 'fulfilled' && result.value;
+        }
+      });
+      
+      setServicesStatus(updatedServices);
+    } catch (error) {
+      console.error("Error checking services:", error);
+    }
+  }, [servicesStatus]);
+  
+  // Check services on mount and every 30 seconds
+  useEffect(() => {
+    // Initial check
     checkServices();
+    
+    // Set up interval for periodic checks
     const interval = setInterval(checkServices, 30000);
+    
+    // Cleanup interval on unmount
     return () => clearInterval(interval);
-  }, []);
+  }, [checkServices]);
 
   // Force scroll to top when clicking any navigation link
   const handleLinkClick = () => {

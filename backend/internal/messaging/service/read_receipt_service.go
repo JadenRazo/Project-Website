@@ -65,12 +65,19 @@ func (s *ReadReceiptService) MarkAsRead(
 	return nil
 }
 
-// MarkChannelAsRead marks all messages in a channel as read
+// MarkChannelAsRead marks all messages in a channel as read up to the given timestamp
 func (s *ReadReceiptService) MarkChannelAsRead(
 	ctx context.Context,
 	channelID uint,
 	userID uint,
+	timestamp time.Time,
 ) error {
+	// If timestamp is zero, use current time
+	if timestamp.IsZero() {
+		timestamp = time.Now()
+	}
+
+	// Mark channel as read up to the timestamp
 	if err := s.readReceiptRepo.MarkChannelAsRead(ctx, channelID, userID); err != nil {
 		return err
 	}
@@ -95,4 +102,76 @@ func (s *ReadReceiptService) GetUserReadReceipts(
 	userID uint,
 ) ([]domain.MessagingReadReceipt, error) {
 	return s.readReceiptRepo.GetUserReadReceipts(ctx, userID)
+}
+
+// GetUnreadMessageCount gets the count of unread messages in a channel
+func (s *ReadReceiptService) GetUnreadMessageCount(
+	ctx context.Context,
+	channelID uint,
+	userID uint,
+) (int, error) {
+	// Get all messages in the channel
+	messages, err := s.messageRepo.GetChannelMessages(ctx, channelID)
+	if err != nil {
+		return 0, err
+	}
+
+	// Get read receipts for the user
+	receipts, err := s.readReceiptRepo.GetUserReadReceipts(ctx, userID)
+	if err != nil {
+		return 0, err
+	}
+
+	// Create a map of read message IDs
+	readMessageIDs := make(map[uint]bool)
+	for _, receipt := range receipts {
+		readMessageIDs[receipt.MessageID] = true
+	}
+
+	// Count unread messages
+	unreadCount := 0
+	for _, message := range messages {
+		// Skip messages sent by the user
+		if message.SenderID == userID {
+			continue
+		}
+
+		// Check if the message has a read receipt
+		if !readMessageIDs[message.ID] {
+			unreadCount++
+		}
+	}
+
+	return unreadCount, nil
+}
+
+// GetTotalUnreadMessageCount gets the total count of unread messages across all channels
+func (s *ReadReceiptService) GetTotalUnreadMessageCount(
+	ctx context.Context,
+	userID uint,
+) (int, error) {
+	// Get all channels the user is a member of
+	// This would require a channel repository, which we don't have in this function
+	// For now, we'll return a placeholder implementation
+
+	// Get read receipts for the user
+	receipts, err := s.readReceiptRepo.GetUserReadReceipts(ctx, userID)
+	if err != nil {
+		return 0, err
+	}
+
+	// Create a map of read message IDs
+	readMessageIDs := make(map[uint]bool)
+	for _, receipt := range receipts {
+		readMessageIDs[receipt.MessageID] = true
+	}
+
+	// Get all messages across all channels
+	// This is a very inefficient implementation and should be replaced with a proper query
+	// For now, we'll return a placeholder implementation
+	totalUnread := 0
+
+	// TODO: Implement proper counting of unread messages across all channels
+
+	return totalUnread, nil
 }
