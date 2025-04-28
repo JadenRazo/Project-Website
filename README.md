@@ -217,7 +217,7 @@ Project-Website/
 
 2. Clone the repository:
    ```powershell
-   git clone https://github.com/yourusername/Project-Website.git
+   git clone https://github.com/JadenRazo/Project-Website.git
    cd Project-Website
    ```
 

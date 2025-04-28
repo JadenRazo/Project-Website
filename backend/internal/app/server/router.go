@@ -47,7 +47,11 @@ func SetupRouter(
 	// Public routes - no auth required
 	r.Group(func(r chi.Router) {
 		// Apply rate limiting to public routes
-		r.Use(ratelimit.RateLimitMiddleware(rateLimiter))
+		// Using middleware adapter to make it compatible with chi
+		publicRateLimit := func(next http.Handler) http.Handler {
+			return rateLimiter.Limit("public", next)
+		}
+		r.Use(publicRateLimit)
 
 		// Auth routes
 		r.Route("/api/auth", func(r chi.Router) {
@@ -63,7 +67,12 @@ func SetupRouter(
 	// Protected routes - require authentication
 	r.Group(func(r chi.Router) {
 		r.Use(auth.AuthMiddleware)
-		r.Use(ratelimit.RateLimitMiddleware(rateLimiter))
+
+		// Apply rate limiting to API routes with a different limit
+		apiRateLimit := func(next http.Handler) http.Handler {
+			return rateLimiter.Limit("api", next)
+		}
+		r.Use(apiRateLimit)
 
 		// User routes
 		r.Route("/api/user", func(r chi.Router) {

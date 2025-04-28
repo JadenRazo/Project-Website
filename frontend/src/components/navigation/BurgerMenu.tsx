@@ -26,7 +26,7 @@ interface BurgerMenuProps {
 
 interface MenuItemProps extends MenuItem {
   onClick: () => void;
-  isActive?: boolean;
+  $isActive?: boolean;
   children: React.ReactNode;
 }
 
@@ -298,7 +298,7 @@ const MenuContainer = styled(motion.div)`
   }
 `;
 
-const MenuLink = styled(motion.a)<{ isActive?: boolean; isService?: boolean }>`
+const MenuLink = styled(motion.a)<{ $isActive?: boolean; $isService?: boolean }>`
   display: flex;
   align-items: center;
   padding: 1rem;
@@ -306,12 +306,12 @@ const MenuLink = styled(motion.a)<{ isActive?: boolean; isService?: boolean }>`
   text-decoration: none;
   font-size: 1rem;
   font-weight: 500;
-  background: ${({ theme, isActive, isService }) => 
-    isActive ? theme.colors.primary : 
-    isService ? `linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.primaryHover})` : 
+  background: ${({ theme, $isActive, $isService }) => 
+    $isActive ? theme.colors.primary : 
+    $isService ? `linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.primaryHover})` : 
     theme.colors.primaryLight};
-  color: ${({ theme, isActive, isService }) => 
-    isActive || isService ? '#ffffff' : theme.colors.primary};
+  color: ${({ theme, $isActive, $isService }) => 
+    $isActive || $isService ? '#ffffff' : theme.colors.primary};
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
 
@@ -325,20 +325,20 @@ const MenuLink = styled(motion.a)<{ isActive?: boolean; isService?: boolean }>`
     &::after {
       content: '';
       position: absolute;
-      width: ${({ isActive }) => isActive ? '100%' : '0'};
+      width: ${({ $isActive }) => $isActive ? '100%' : '0'};
       height: 2px;
       bottom: -2px;
       left: 0;
-      background: ${({ theme, isActive }) => 
-        isActive ? '#ffffff' : theme.colors.primary};
+      background: ${({ theme, $isActive }) => 
+        $isActive ? '#ffffff' : theme.colors.primary};
       transition: width 0.3s ease;
     }
   }
 
   &:hover {
-    background: ${({ theme, isActive, isService }) => 
-      isActive ? theme.colors.primary : 
-      isService ? `linear-gradient(135deg, ${theme.colors.primaryHover}, ${theme.colors.primary})` : 
+    background: ${({ theme, $isActive, $isService }) => 
+      $isActive ? theme.colors.primary : 
+      $isService ? `linear-gradient(135deg, ${theme.colors.primaryHover}, ${theme.colors.primary})` : 
       theme.colors.primaryHover};
     transform: translateY(-2px);
 
@@ -548,7 +548,7 @@ const MenuItemComponent: React.FC<MenuItemProps> = ({
   children, 
   onClick, 
   isExternal,
-  isActive,
+  $isActive,
   isService,
   description
 }) => {
@@ -578,8 +578,8 @@ const MenuItemComponent: React.FC<MenuItemProps> = ({
       whileTap={{ scale: 0.98 }}
       target={isExternal ? "_blank" : undefined}
       rel={isExternal ? "noopener noreferrer" : undefined}
-      isActive={isActive}
-      isService={isService}
+      $isActive={$isActive}
+      $isService={isService}
     >
       {icon}
       <div>
@@ -792,7 +792,7 @@ export const BurgerMenu: React.FC<BurgerMenuProps> = ({
                     key={item.href}
                     {...item}
                     onClick={() => handleItemClick(item.href, item.isExternal, item.isService)}
-                    isActive={!item.isExternal && !item.isService && item.href.replace('#', '') === activeSection}
+                    $isActive={!item.isExternal && !item.isService && item.href.replace('#', '') === activeSection}
                   >
                     {item.label}
                   </MenuItem>

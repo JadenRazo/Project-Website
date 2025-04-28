@@ -4,7 +4,7 @@ import { motion, useMotionValue, useTransform, useAnimation } from 'framer-motio
 import usePerformanceOptimizations from '../../hooks/usePerformanceOptimizations';
 
 // Primary card container with hover effects
-const Card = styled(motion.div)<{ isHovered: boolean; isReducedMotion?: boolean }>`
+const Card = styled(motion.div)<{ $isHovered: boolean; $isReducedMotion?: boolean }>`
   position: relative;
   max-width: 280px;
   width: 100%;
@@ -18,7 +18,7 @@ const Card = styled(motion.div)<{ isHovered: boolean; isReducedMotion?: boolean 
   cursor: pointer;
   transform-style: flat; // Prevent 3D transforms from affecting layout
   
-  ${props => !props.isReducedMotion && props.isHovered && css`
+  ${props => !props.$isReducedMotion && props.$isHovered && css`
     transform: scale(1.02);
     box-shadow: ${({ theme }) => theme.shadows.large};
   `}
@@ -33,7 +33,7 @@ const Card = styled(motion.div)<{ isHovered: boolean; isReducedMotion?: boolean 
 `;
 
 // Content container with depth effect
-const ProjectContent = styled.div<{ isHovered: boolean; isReducedMotion?: boolean }>`
+const ProjectContent = styled.div<{ $isHovered: boolean; $isReducedMotion?: boolean }>`
   position: relative;
   z-index: 1;
   padding: 1.5rem;
@@ -43,8 +43,8 @@ const ProjectContent = styled.div<{ isHovered: boolean; isReducedMotion?: boolea
   display: flex;
   flex-direction: column;
   
-  ${props => !props.isReducedMotion && css`
-    transform: ${props.isHovered ? 'translateZ(20px)' : 'translateZ(0)'};
+  ${props => !props.$isReducedMotion && css`
+    transform: ${props.$isHovered ? 'translateZ(20px)' : 'translateZ(0)'};
     transition: transform 0.3s ease;
   `}
 `;
@@ -217,16 +217,15 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
   return (
     <Card
       ref={cardRef}
+      $isHovered={isHovered}
+      $isReducedMotion={isReducedMotion}
       whileHover={!isReducedMotion ? { scale: 1.03 } : undefined}
-      style={{ rotateX, rotateY, perspective: 800 }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleMouseLeave}
       animate={controls}
       initial={{ scale: 0.98, opacity: 0.8 }}
-      isHovered={isHovered}
-      isReducedMotion={isReducedMotion}
     >
       <GradientOverlay 
         initial={{ opacity: 0 }}
@@ -239,7 +238,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
         onLoad={handleImageLoad}
         style={{ opacity: imageLoaded ? 1 : 0, transition: 'opacity 0.3s ease' }}
       />
-      <ProjectContent isHovered={isHovered} isReducedMotion={isReducedMotion}>
+      <ProjectContent $isHovered={isHovered} $isReducedMotion={isReducedMotion}>
         <h3>{title}</h3>
         <p>{description}</p>
       </ProjectContent>
