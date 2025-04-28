@@ -1,0 +1,79 @@
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin/
+build/
+
+# Database files
+*.db
+*.sql
+*.sqlite
+
+# Dependency directories
+node_modules/
+vendor/
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# Log files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+
+# Editor directories and files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Build output
+frontend/build/
+frontend/dist/
+dist/
+/bin/
+*.o
+*.a
+
+# Go workspace file
+go.work
+
+# Local cache of downloaded packages
+frontend/.npm
+frontend/.pnp
+frontend/.pnp.js
+
+# Production build files
+build/
+dist/
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# Local development
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# temp files
+*.tmp
+.cache/
+
+# Project specific
+frontend/src/.cursor-rules

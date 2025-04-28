@@ -6,6 +6,18 @@ import (
 	"gorm.io/gorm"
 )
 
+// Common messaging errors
+const (
+	ErrChannelNotFound = "channel not found"
+	ErrMessageNotFound = "message not found"
+	ErrMemberNotFound  = "member not found"
+	ErrNotFound        = "resource not found"
+	ErrForbidden       = "forbidden access"
+	ErrBadRequest      = "bad request"
+	ErrDuplicateEntity = "entity already exists"
+	ErrDuplicateMember = "member already exists in channel"
+)
+
 // MessagingMessage represents a message in the messaging system
 type MessagingMessage struct {
 	gorm.Model
