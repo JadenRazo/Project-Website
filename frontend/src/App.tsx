@@ -1,11 +1,11 @@
 // /Project-Website/frontend/src/App.tsx
 import React, { useEffect, useRef } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation, useNavigationType } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigationType, Navigate } from 'react-router-dom';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { Hero } from './components/sections/Hero';
 import { About } from './components/sections/About';
 import { GlobalStyles } from './styles/GlobalStyles';
-import { Projects } from './components/sections/Projects';
+import { Projects as ProjectsSection } from './components/sections/Projects';
 import { SkillsSection } from './components/sections/SkillsSection';
 import NavigationBar from './components/NavigationBar/NavigationBar';
 import Contact from './pages/Contact/Contact';
@@ -20,6 +20,7 @@ import UrlShortener from './pages/urlshortener/UrlShortener';
 import NotFound from './pages/NotFound/NotFound';
 import Home from './pages/Home/Home';
 import AboutPage from './pages/About/About';
+import ProjectsPage from './pages/Projects';
 
 const AppContainer = styled.div`
   max-width: 100vw;
@@ -41,7 +42,11 @@ const HomePage = () => (
   <>
     <Hero />
     <SkillsSection />
-    <Projects />
+    <ProjectsSection 
+      title="Featured Projects"
+      subtitle="A selection of my most recent and impactful work."
+      languages={['All', 'React', 'TypeScript', 'Node.js', 'WebSocket']}
+    />
     <About />
   </>
 );
@@ -67,7 +72,8 @@ function AppContent() {
             <Route path="/" element={<HomePage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/projects" element={<Projects />} />
+            <Route path="/projects" element={<ProjectsPage />} />
+            <Route path="/portfolio" element={<ProjectsPage />} />
             <Route path="/skills" element={<SkillsSection />} />
             <Route path="/home" element={<Home />} />
 

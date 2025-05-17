@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { motion, HTMLMotionProps, Variants, useAnimation } from 'framer-motion';
+import { motion, HTMLMotionProps } from 'framer-motion';
 import styled from 'styled-components';
 
 const SpaceContainer = styled.div`
@@ -88,121 +88,99 @@ interface FlightPath {
 const SpaceAnimation: React.FC = () => {
   const [showExplosion, setShowExplosion] = useState(false);
   const [debris, setDebris] = useState<DebrisPiece[]>([]);
-  const rocketControls = useAnimation();
+  const [flightPath, setFlightPath] = useState<FlightPath | null>(null);
+  const [isExploding, setIsExploding] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   const explosionPoint = useRef({ x: 0, y: 0 });
 
   const generateFlightPath = useCallback((): FlightPath => {
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
     const rocketSize = 40;
     const margin = 100;
-
-    const baseY = Math.random() * (windowHeight - margin * 2) + margin;
-    
-    const entry = {
-      x: -rocketSize,
-      y: baseY,
-    };
-
-    const exitY = baseY + (Math.random() * 40 - 20);
-    const exitX = windowWidth - rocketSize;
-
-    const angle = 30;
+    const baseY = Math.random() * (window.innerHeight - margin * 2) + margin;
 
     return {
-      startX: entry.x,
-      startY: entry.y,
-      endX: exitX,
-      endY: exitY,
-      angle: angle
+      startX: -rocketSize,
+      startY: baseY,
+      endX: window.innerWidth - rocketSize,
+      endY: baseY + (Math.random() * 40 - 20),
+      angle: 30
     };
   }, []);
 
-  const startRocketAnimation = useCallback(async () => {
-    const path = generateFlightPath();
-
-    try {
-      await rocketControls.start({
-        x: path.startX,
-        y: path.startY,
-        rotate: path.angle,
-        scale: 0.8,
-        opacity: 0,
-        transition: { duration: 0 }
-      });
-
-      await rocketControls.start({
-        opacity: 1,
-        transition: {
-          duration: 0.3
-        }
-      });
-
-      await rocketControls.start({
-        x: path.endX,
-        y: path.endY,
-        rotate: path.angle,
-        scale: 1,
-        transition: {
-          duration: 5,
-          ease: "linear"
-        }
-      });
-
-      explosionPoint.current = { x: path.endX, y: path.endY };
-      setShowExplosion(true);
-
-      await rocketControls.start({
-        opacity: 0,
-        scale: [1, 1.5],
-        transition: { 
-          duration: 0.15,
-          ease: "easeOut"
-        }
-      });
-
-      setTimeout(() => {
-        setShowExplosion(false);
-        startRocketAnimation();
-      }, 4000);
-    } catch (error) {
-      console.error("Animation error:", error);
-    }
-  }, [rocketControls, generateFlightPath]);
-
-  const createDebrisPiece = useCallback((index: number): DebrisPiece => ({
+  const createDebrisPiece = (index: number): DebrisPiece => ({
     id: index,
     color: index % 5 === 0 ? '#FFA5A5' : '#FF6B6B',
-    x: -(Math.random() * 400 + 100),
-    y: (Math.random() - 0.5) * 400,
+    x: -(Math.random() * 800 + 200),
+    y: (Math.random() - 0.5) * 800,
     rotate: Math.random() * 1440 - 720,
-    scale: Math.random() * 0.7 + 0.3,
+    scale: Math.random() * 1.2 + 0.6,
     delay: Math.random() * 0.1,
     velocity: Math.random() * 1.5 + 0.5,
-  }), []);
+  });
 
   useEffect(() => {
     if (showExplosion) {
       const newDebris = Array.from({ length: 100 }, (_, i) => createDebrisPiece(i));
       setDebris(newDebris);
     }
-  }, [showExplosion, createDebrisPiece]);
+  }, [showExplosion]);
+
+  const startNewAnimation = useCallback(() => {
+    const newPath = generateFlightPath();
+    setFlightPath(newPath);
+    explosionPoint.current = { x: newPath.endX, y: newPath.endY };
+    setIsVisible(true);
+  }, [generateFlightPath]);
 
   useEffect(() => {
-    startRocketAnimation();
-  }, [startRocketAnimation]);
+    startNewAnimation();
+  }, [startNewAnimation]);
+
+  const handleAnimationComplete = () => {
+    if (!isExploding) {
+      setIsExploding(true);
+      setShowExplosion(true);
+      setIsVisible(false);
+      setTimeout(() => {
+        setShowExplosion(false);
+        setIsExploding(false);
+        setTimeout(() => {
+          const newPath = generateFlightPath();
+          setFlightPath(newPath);
+          explosionPoint.current = { x: newPath.endX, y: newPath.endY };
+          setIsVisible(true);
+        }, 3000);
+      }, 3000);
+    }
+  };
+
+  if (!flightPath) return null;
 
   return (
     <SpaceContainer>
+      {isVisible && (
       <Rocket
-        animate={rocketControls}
+          key={flightPath.startX + flightPath.startY}
         initial={{ 
-          x: -100,
-          y: window.innerHeight / 2,
+            x: flightPath.startX,
+            y: flightPath.startY,
           opacity: 0,
-          rotate: 50,
+            rotate: flightPath.angle,
           scale: 0.8
         }}
+          animate={{
+            x: flightPath.endX,
+            y: flightPath.endY,
+            opacity: [0, 1, 1, 1, 0],
+            rotate: flightPath.angle,
+            scale: [0.8, 1, 1, 1.2]
+          }}
+          transition={{
+            duration: 5,
+            ease: "linear",
+            times: [0, 0.1, 0.9, 0.99, 1]
+          }}
+          onAnimationComplete={handleAnimationComplete}
       >
         <Thruster
           animate={{
@@ -213,6 +191,7 @@ const SpaceAnimation: React.FC = () => {
             duration: 0.2,
             repeat: Infinity,
             repeatType: "reverse",
+              ease: "easeInOut"
           }}
         >
           <ThrusterCore
@@ -224,10 +203,12 @@ const SpaceAnimation: React.FC = () => {
               duration: 0.15,
               repeat: Infinity,
               repeatType: "reverse",
+                ease: "easeInOut"
             }}
           />
         </Thruster>
       </Rocket>
+      )}
       
       {showExplosion && debris.map((piece) => (
         <Debris
@@ -247,7 +228,7 @@ const SpaceAnimation: React.FC = () => {
             rotate: piece.rotate,
           }}
           transition={{
-            duration: 1.8 / piece.velocity,
+            duration: 2 / piece.velocity,
             ease: "easeOut",
             delay: piece.delay,
           }}
