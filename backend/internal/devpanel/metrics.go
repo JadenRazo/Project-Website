@@ -1,8 +1,12 @@
 package devpanel
 
 import (
+    "os"
     "sync"
     "time"
+    
+    "github.com/JadenRazo/Project-Website/backend/internal/core"
+    "github.com/shirou/gopsutil/v3/process"
 )
 
 // MetricsCollector handles collection and storage of service metrics
@@ -152,7 +156,7 @@ func (mc *MetricsCollector) collectServiceMetrics(service core.Service) map[stri
     // Get process stats
     if process, err := process.NewProcess(int32(os.Getpid())); err == nil {
         if memPercent, err := process.MemoryPercent(); err == nil {
-            metrics["memory_usage"] = memPercent
+            metrics["memory_usage"] = float64(memPercent)
         }
         if cpuPercent, err := process.CPUPercent(); err == nil {
             metrics["cpu_usage"] = cpuPercent
@@ -160,10 +164,9 @@ func (mc *MetricsCollector) collectServiceMetrics(service core.Service) map[stri
     }
     
     // Get service-specific metrics
-    if status, err := service.Status(); err == nil {
-        metrics["uptime_seconds"] = status.Uptime.Seconds()
-        metrics["error_count"] = float64(len(status.Errors))
-    }
+    status := service.Status()
+    metrics["uptime_seconds"] = status.Uptime.Seconds()
+    metrics["error_count"] = float64(len(status.Errors))
     
     return metrics
 } 

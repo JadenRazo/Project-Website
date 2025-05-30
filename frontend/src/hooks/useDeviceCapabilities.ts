@@ -181,7 +181,7 @@ export const useDeviceCapabilities = (): DeviceCapabilities => {
     
     // Check for WebP support
     if (!webPChecked) {
-      const webP = new Image();
+      const webP = document.createElement('img');
       webP.onload = () => {
         setCapabilities(prev => ({ ...prev, supportsWebP: true }));
         setWebPChecked(true);

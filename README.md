@@ -11,6 +11,9 @@ This repository contains a full-stack portfolio website with integrated microser
 - Node.js 18.x or higher
 - npm 9.x or higher
 - Git
+- tmux (for development session management)
+- PostgreSQL 14+ (for database)
+- tokei (optional, for code statistics)
 - Make (optional, for using Makefile commands)
 
 ### Production Server Requirements
@@ -198,6 +201,28 @@ Project-Website/
 
 ## Local Development Setup
 
+### Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/JadenRazo/Project-Website.git
+cd Project-Website
+
+# Start development environment with all services
+./start-dev.sh --fresh
+
+# Alternative: Start without clearing caches
+./start-dev.sh
+```
+
+The `start-dev.sh` script will:
+- Check all required dependencies
+- Set up PostgreSQL database connections
+- Run database migrations
+- Start all backend microservices
+- Start the frontend development server
+- Create organized tmux sessions for easy monitoring
+
 ### Windows Setup
 
 1. Install Prerequisites:
@@ -211,34 +236,25 @@ Project-Website/
    # Install Node.js
    choco install nodejs
 
-   # Install Git
+   # Install Git and tmux
    choco install git
+   choco install tmux
+
+   # Install PostgreSQL
+   choco install postgresql
+
+   # Optional: Install tokei for code statistics
+   cargo install tokei
    ```
 
-2. Clone the repository:
+2. Clone and start:
    ```powershell
    git clone https://github.com/JadenRazo/Project-Website.git
    cd Project-Website
+   ./start-dev.sh --fresh
    ```
 
-3. Install dependencies:
-   ```powershell
-   # Install frontend dependencies
-   cd frontend
-   npm install
-
-   # Install backend dependencies
-   cd ../backend
-   go mod download
-   ```
-
-4. Start development servers:
-   ```powershell
-   # From project root
-   npm run dev
-   ```
-
-### Ubuntu Setup
+### Ubuntu/Linux Setup
 
 1. Install Prerequisites:
    ```bash
@@ -255,28 +271,28 @@ Project-Website/
    curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
    sudo apt install -y nodejs
 
-   # Install Git
-   sudo apt install -y git
+   # Install Git, tmux, and PostgreSQL
+   sudo apt install -y git tmux postgresql postgresql-contrib
+
+   # Optional: Install tokei for code statistics
+   cargo install tokei
    ```
 
-2. Clone and setup:
+2. Setup PostgreSQL:
    ```bash
-   git clone https://github.com/yourusername/Project-Website.git
+   # Start PostgreSQL
+   sudo systemctl start postgresql
+   sudo systemctl enable postgresql
+
+   # Create database user
+   sudo -u postgres createuser --interactive
+   ```
+
+3. Clone and start:
+   ```bash
+   git clone https://github.com/JadenRazo/Project-Website.git
    cd Project-Website
-
-   # Install frontend dependencies
-   cd frontend
-   npm install
-
-   # Install backend dependencies
-   cd ../backend
-   go mod download
-   ```
-
-3. Start development servers:
-   ```bash
-   # From project root
-   npm run dev
+   ./start-dev.sh --fresh
    ```
 
 ## Service Ports
@@ -286,19 +302,44 @@ Project-Website/
 - DevPanel: http://localhost:8081
 - Messaging Service: http://localhost:8082
 - URL Shortener: http://localhost:8083
+- Worker Service: http://localhost:8084 (Background tasks)
+
+## Key Features
+
+- **Status Monitoring**: Real-time service health monitoring at http://localhost:3000/status
+- **Code Statistics**: Automatic code line counting with tokei (updates hourly)
+- **URL Shortener**: Create and track short URLs
+- **Messaging System**: Real-time messaging with WebSocket support
+- **Developer Panel**: Admin interface for system management
 
 ## Available Scripts
 
 ### Development
 ```bash
-# Start all services in development mode
-npm run dev
+# RECOMMENDED: Start all services with fresh cache clearing
+./start-dev.sh --fresh
 
-# Start only frontend
-npm run dev:frontend
+# Start all services (normal mode)
+./start-dev.sh
 
-# Start only backend
-npm run dev:backend
+# Start with additional options
+./start-dev.sh --kill-existing  # Kill processes on required ports
+./start-dev.sh --skip-deps       # Skip dependency installation
+./start-dev.sh --verbose         # Enable verbose output
+./start-dev.sh --help           # Show help message
+
+# Start with fresh cache clearing (recommended for cache issues)
+./start-dev.sh --fresh
+
+# Stop all services
+./stop-dev.sh
+
+# Legacy commands (still available)
+npm run dev                              # Start all services
+npm run dev:frontend                     # Start only frontend
+npm run dev:backend                      # Start only backend
+cd frontend && npm run dev:fresh         # Start frontend with cleared caches
+cd frontend && npm run clear-cache       # Clear all frontend development caches
 ```
 
 ### Production
@@ -454,6 +495,18 @@ tail -f logs/api.log
    # Remove node_modules and reinstall
    rm -rf node_modules
    npm install
+   ```
+
+4. Browser Cache Issues in Development
+   ```bash
+   # Use fresh start command
+   cd frontend && npm run dev:fresh
+   
+   # Or manually clear caches
+   cd frontend && npm run clear-cache
+   
+   # In browser console (dev mode only)
+   window.__clearAllCaches()
    ```
 
 ## Contributing

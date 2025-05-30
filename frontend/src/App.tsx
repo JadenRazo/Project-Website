@@ -1,26 +1,31 @@
 // /Project-Website/frontend/src/App.tsx
-import React, { useEffect, useRef } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation, useNavigationType, Navigate } from 'react-router-dom';
+import React, { Suspense, lazy, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
-import { Hero } from './components/sections/Hero';
-import { About } from './components/sections/About';
 import { GlobalStyles } from './styles/GlobalStyles';
-import { Projects as ProjectsSection } from './components/sections/Projects';
-import { SkillsSection } from './components/sections/SkillsSection';
 import NavigationBar from './components/NavigationBar/NavigationBar';
-import Contact from './pages/Contact/Contact';
 import Footer from './components/Footer/Footer';
 import ScrollToTop from './components/navigation/ScrollToTop';
 import styled from 'styled-components';
-import { usePerformanceOptimizations } from './hooks/usePerformanceOptimizations';
 import { Layout } from './components/layout/Layout';
-import DevPanel from './pages/devpanel/DevPanel';
-import Messaging from './pages/messaging/Messaging';
-import UrlShortener from './pages/urlshortener/UrlShortener';
-import NotFound from './pages/NotFound/NotFound';
-import Home from './pages/Home/Home';
-import AboutPage from './pages/About/About';
-import ProjectsPage from './pages/Projects';
+import SmartSkeleton from './components/skeletons/SmartSkeleton';
+import { usePreloader } from './hooks/usePreloader';
+import { devCacheManager } from './utils/devCacheManager';
+
+// Lazy load pages and sections for better performance
+const Hero = lazy(() => import('./components/sections/Hero').then(module => ({ default: module.Hero })));
+const About = lazy(() => import('./components/sections/About').then(module => ({ default: module.About })));
+const ProjectsSection = lazy(() => import('./components/sections/Projects').then(module => ({ default: module.Projects })));
+const SkillsSection = lazy(() => import('./components/sections/SkillsSection').then(module => ({ default: module.SkillsSection })));
+const Contact = lazy(() => import('./pages/Contact/Contact'));
+const DevPanel = lazy(() => import('./pages/devpanel/DevPanel'));
+const Messaging = lazy(() => import('./pages/messaging/Messaging'));
+const UrlShortener = lazy(() => import('./pages/urlshortener/UrlShortener'));
+const NotFound = lazy(() => import('./pages/NotFound/NotFound'));
+const Home = lazy(() => import('./pages/Home/Home'));
+const AboutPage = lazy(() => import('./pages/About/About'));
+const ProjectsPage = lazy(() => import('./pages/Projects'));
+const Status = lazy(() => import('./pages/Status/Status'));
 
 const AppContainer = styled.div`
   max-width: 100vw;
@@ -40,22 +45,50 @@ const AppContainer = styled.div`
 // Home page component with properly ordered sections
 const HomePage = () => (
   <>
-    <Hero />
-    <SkillsSection />
-    <ProjectsSection 
-      title="Featured Projects"
-      subtitle="A selection of my most recent and impactful work."
-      languages={['All', 'React', 'TypeScript', 'Node.js', 'WebSocket']}
-    />
-    <About />
+    <Suspense fallback={<SmartSkeleton type="hero" />}>
+      <Hero />
+    </Suspense>
+    <Suspense fallback={<SmartSkeleton type="skills" />}>
+      <SkillsSection />
+    </Suspense>
+    <Suspense fallback={<SmartSkeleton type="projects" />}>
+      <ProjectsSection 
+        title="Featured Projects"
+        subtitle="A selection of my most recent and impactful work."
+        languages={['All', 'React', 'TypeScript', 'Node.js', 'WebSocket']}
+      />
+    </Suspense>
+    <Suspense fallback={<SmartSkeleton type="about" />}>
+      <About />
+    </Suspense>
   </>
 );
 
 // Main application content with routing
 function AppContent() {
-  // Get theme context and performance settings
+  // Get theme context
   const { theme, themeMode, toggleTheme } = useTheme();
-  const { performanceSettings } = usePerformanceOptimizations();
+  
+  // Initialize preloader for optimized loading
+  usePreloader({
+    enableSmartPreloading: true,
+    enableRoutePreloading: true,
+    enableHoverPreloading: true,
+    preloadDelay: 150
+  });
+  
+  // Initialize dev cache manager in development
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      devCacheManager.setupDevTools();
+      // Only clear caches on first load, not on every hot reload
+      const hasInitialized = sessionStorage.getItem('dev-cache-initialized');
+      if (!hasInitialized) {
+        devCacheManager.clearAllCaches();
+        sessionStorage.setItem('dev-cache-initialized', 'true');
+      }
+    }
+  }, []);
   
   return (
     <Layout>
@@ -67,24 +100,27 @@ function AppContent() {
         />
         
         <div className="content">
-          <Routes>
-            {/* Main routes */}
-            <Route path="/" element={<HomePage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/projects" element={<ProjectsPage />} />
-            <Route path="/portfolio" element={<ProjectsPage />} />
-            <Route path="/skills" element={<SkillsSection />} />
-            <Route path="/home" element={<Home />} />
+          <Suspense fallback={<SmartSkeleton />}>
+            <Routes>
+              {/* Main routes */}
+              <Route path="/" element={<HomePage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/projects" element={<ProjectsPage />} />
+              <Route path="/portfolio" element={<ProjectsPage />} />
+              <Route path="/skills" element={<SkillsSection />} />
+              <Route path="/home" element={<Home />} />
 
-            {/* Application routes */}
-            <Route path="/devpanel" element={<DevPanel />} />
-            <Route path="/urlshortener" element={<UrlShortener />} />
-            <Route path="/messaging" element={<Messaging />} />
-            
-            {/* 404 route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+              {/* Application routes */}
+              <Route path="/devpanel" element={<DevPanel />} />
+              <Route path="/urlshortener" element={<UrlShortener />} />
+              <Route path="/messaging" element={<Messaging />} />
+              <Route path="/status" element={<Status />} />
+              
+              {/* 404 route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
         </div>
         
         <Footer />

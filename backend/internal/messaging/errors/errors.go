@@ -5,6 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 // ErrorType defines the type of error
@@ -317,3 +320,196 @@ var (
 	// ErrDatabaseOperation is returned when a database operation fails
 	ErrDatabaseOperation = errors.New("database operation failed")
 )
+
+// ErrorCode represents a specific error code
+type ErrorCode string
+
+const (
+	// Message errors
+	ErrMessageNotFound     ErrorCode = "message_not_found"
+	ErrMessageInvalid      ErrorCode = "message_invalid"
+	ErrMessageUnauthorized ErrorCode = "message_unauthorized"
+	ErrMessageDeleted      ErrorCode = "message_deleted"
+	ErrMessageNotEditable  ErrorCode = "message_not_editable"
+	ErrMessageNotDeletable ErrorCode = "message_not_deletable"
+
+	// Channel errors
+	ErrChannelNotFound     ErrorCode = "channel_not_found"
+	ErrChannelInvalid      ErrorCode = "channel_invalid"
+	ErrChannelUnauthorized ErrorCode = "channel_unauthorized"
+	ErrChannelFull         ErrorCode = "channel_full"
+	ErrChannelArchived     ErrorCode = "channel_archived"
+
+	// User errors
+	ErrUserNotFound     ErrorCode = "user_not_found"
+	ErrUserInvalid      ErrorCode = "user_invalid"
+	ErrUserUnauthorized ErrorCode = "user_unauthorized"
+	ErrUserBlocked      ErrorCode = "user_blocked"
+	ErrUserMuted        ErrorCode = "user_muted"
+
+	// Attachment errors
+	ErrAttachmentNotFound ErrorCode = "attachment_not_found"
+	ErrAttachmentInvalid  ErrorCode = "attachment_invalid"
+	ErrAttachmentTooLarge ErrorCode = "attachment_too_large"
+	ErrAttachmentType     ErrorCode = "attachment_type_invalid"
+
+	// Moderation errors
+	ErrModerationRuleNotFound ErrorCode = "moderation_rule_not_found"
+	ErrModerationRuleInvalid  ErrorCode = "moderation_rule_invalid"
+	ErrModerationActionDenied ErrorCode = "moderation_action_denied"
+	ErrModerationLevelInvalid ErrorCode = "moderation_level_invalid"
+
+	// Word filter errors
+	ErrWordFilterNotFound ErrorCode = "word_filter_not_found"
+	ErrWordFilterInvalid  ErrorCode = "word_filter_invalid"
+	ErrWordFilterExists   ErrorCode = "word_filter_exists"
+
+	// System errors
+	ErrInternalServer     ErrorCode = "internal_server_error"
+	ErrDatabase           ErrorCode = "database_error"
+	ErrStorage            ErrorCode = "storage_error"
+	ErrValidation         ErrorCode = "validation_error"
+	ErrRateLimit          ErrorCode = "rate_limit_exceeded"
+	ErrServiceUnavailable ErrorCode = "service_unavailable"
+)
+
+// MessagingError represents a custom error in the messaging system
+type MessagingError struct {
+	Code      ErrorCode `json:"code"`
+	Message   string    `json:"message"`
+	Details   string    `json:"details,omitempty"`
+	EntityID  uuid.UUID `json:"entity_id,omitempty"`
+	Timestamp int64     `json:"timestamp"`
+}
+
+// NewMessagingError creates a new MessagingError
+func NewMessagingError(code ErrorCode, message string, details string, entityID uuid.UUID) *MessagingError {
+	return &MessagingError{
+		Code:      code,
+		Message:   message,
+		Details:   details,
+		EntityID:  entityID,
+		Timestamp: time.Now().Unix(),
+	}
+}
+
+// Error implements the error interface
+func (e *MessagingError) Error() string {
+	if e.Details != "" {
+		return fmt.Sprintf("%s: %s (Details: %s)", e.Code, e.Message, e.Details)
+	}
+	return fmt.Sprintf("%s: %s", e.Code, e.Message)
+}
+
+// HTTPStatus returns the appropriate HTTP status code for the error
+func (e *MessagingError) HTTPStatus() int {
+	switch e.Code {
+	case ErrMessageNotFound, ErrChannelNotFound, ErrUserNotFound, ErrAttachmentNotFound,
+		ErrModerationRuleNotFound, ErrWordFilterNotFound:
+		return http.StatusNotFound
+	case ErrMessageInvalid, ErrChannelInvalid, ErrUserInvalid, ErrAttachmentInvalid,
+		ErrModerationRuleInvalid, ErrWordFilterInvalid, ErrValidation:
+		return http.StatusBadRequest
+	case ErrMessageUnauthorized, ErrChannelUnauthorized, ErrUserUnauthorized,
+		ErrModerationActionDenied:
+		return http.StatusForbidden
+	case ErrMessageDeleted, ErrChannelArchived:
+		return http.StatusGone
+	case ErrAttachmentTooLarge:
+		return http.StatusRequestEntityTooLarge
+	case ErrRateLimit:
+		return http.StatusTooManyRequests
+	case ErrServiceUnavailable:
+		return http.StatusServiceUnavailable
+	default:
+		return http.StatusInternalServerError
+	}
+}
+
+// IsNotFound checks if the error is a not found error
+func (e *MessagingError) IsNotFound() bool {
+	return e.HTTPStatus() == http.StatusNotFound
+}
+
+// IsInvalid checks if the error is an invalid request error
+func (e *MessagingError) IsInvalid() bool {
+	return e.HTTPStatus() == http.StatusBadRequest
+}
+
+// IsUnauthorized checks if the error is an unauthorized error
+func (e *MessagingError) IsUnauthorized() bool {
+	return e.HTTPStatus() == http.StatusForbidden
+}
+
+// Common error constructors
+func NewMessageNotFoundError(messageID uuid.UUID) *MessagingError {
+	return NewMessagingError(
+		ErrMessageNotFound,
+		"Message not found",
+		"",
+		messageID,
+	)
+}
+
+func NewChannelNotFoundError(channelID uuid.UUID) *MessagingError {
+	return NewMessagingError(
+		ErrChannelNotFound,
+		"Channel not found",
+		"",
+		channelID,
+	)
+}
+
+func NewUserNotFoundError(userID uuid.UUID) *MessagingError {
+	return NewMessagingError(
+		ErrUserNotFound,
+		"User not found",
+		"",
+		userID,
+	)
+}
+
+func NewAttachmentNotFoundError(attachmentID uuid.UUID) *MessagingError {
+	return NewMessagingError(
+		ErrAttachmentNotFound,
+		"Attachment not found",
+		"",
+		attachmentID,
+	)
+}
+
+func NewModerationRuleNotFoundError(ruleID uuid.UUID) *MessagingError {
+	return NewMessagingError(
+		ErrModerationRuleNotFound,
+		"Moderation rule not found",
+		"",
+		ruleID,
+	)
+}
+
+func NewWordFilterNotFoundError(filterID uuid.UUID) *MessagingError {
+	return NewMessagingError(
+		ErrWordFilterNotFound,
+		"Word filter not found",
+		"",
+		filterID,
+	)
+}
+
+func NewValidationError(details string) *MessagingError {
+	return NewMessagingError(
+		ErrValidation,
+		"Validation failed",
+		details,
+		uuid.Nil,
+	)
+}
+
+func NewInternalServerError(details string) *MessagingError {
+	return NewMessagingError(
+		ErrInternalServer,
+		"Internal server error",
+		details,
+		uuid.Nil,
+	)
+}

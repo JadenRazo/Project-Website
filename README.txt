@@ -277,6 +277,11 @@ Additional planned projects to be integrated into the portfolio.
    - `-i, --install` - Install/update dependencies
    - `-s, --setup` - Setup configuration files
    - `-h, --help` - Print help message
+   
+   For a fresh start with cleared caches (recommended if experiencing browser cache issues):
+   ```
+   cd frontend && npm run dev:fresh
+   ```
 
 4. Access the application
    - Frontend: http://localhost:3000

@@ -2,6 +2,7 @@ package devpanel
 
 import (
     "fmt"
+    "os"
     "runtime"
     "time"
     
@@ -135,8 +136,9 @@ func (s *Service) getServices(c *gin.Context) {
 // getServiceStats returns detailed statistics for a specific service
 func (s *Service) getServiceStats(c *gin.Context) {
     name := c.Param("name")
-    service, err := s.serviceManager.GetServiceStatus(name)
-    if err != nil {
+    services := s.serviceManager.GetAllServices()
+    service, exists := services[name]
+    if !exists {
         c.JSON(404, gin.H{"error": "service not found"})
         return
     }
@@ -202,7 +204,7 @@ func (s *Service) collectServiceStats(name string, service core.Service) (Servic
     if status.Running {
         if process, err := process.NewProcess(int32(os.Getpid())); err == nil {
             if memPercent, err := process.MemoryPercent(); err == nil {
-                stats.MemoryUsage = memPercent
+                stats.MemoryUsage = float64(memPercent)
             }
             if cpuPercent, err := process.CPUPercent(); err == nil {
                 stats.CPUUsage = cpuPercent
@@ -215,49 +217,49 @@ func (s *Service) collectServiceStats(name string, service core.Service) (Servic
 
 // getServiceLogs returns logs for a specific service
 func (s *Service) getServiceLogs(c *gin.Context) {
-    service := c.Param("service")
+    _ = c.Param("service") // service
     // Implementation for retrieving service logs
 }
 
 // streamServiceLogs streams logs for a specific service
 func (s *Service) streamServiceLogs(c *gin.Context) {
-    service := c.Param("service")
+    _ = c.Param("service") // service
     // Implementation for streaming service logs
 }
 
 // getServiceConfig returns configuration for a specific service
 func (s *Service) getServiceConfig(c *gin.Context) {
-    service := c.Param("service")
+    _ = c.Param("service") // service
     // Implementation for retrieving service configuration
 }
 
 // updateServiceConfig updates configuration for a specific service
 func (s *Service) updateServiceConfig(c *gin.Context) {
-    service := c.Param("service")
+    _ = c.Param("service") // service
     // Implementation for updating service configuration
 }
 
 // getServiceMetrics returns performance metrics for a specific service
 func (s *Service) getServiceMetrics(c *gin.Context) {
-    service := c.Param("service")
+    _ = c.Param("service") // service
     // Implementation for retrieving service metrics
 }
 
 // getServiceMetricsHistory returns historical performance metrics
 func (s *Service) getServiceMetricsHistory(c *gin.Context) {
-    service := c.Param("service")
+    _ = c.Param("service") // service
     // Implementation for retrieving historical metrics
 }
 
 // getServiceHealth returns health status for a specific service
 func (s *Service) getServiceHealth(c *gin.Context) {
-    service := c.Param("service")
+    _ = c.Param("service") // service
     // Implementation for retrieving service health status
 }
 
 // runHealthCheck triggers a health check for a specific service
 func (s *Service) runHealthCheck(c *gin.Context) {
-    service := c.Param("service")
+    _ = c.Param("service") // service
     // Implementation for running service health check
 }
 

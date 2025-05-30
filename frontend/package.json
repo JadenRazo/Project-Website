@@ -17,10 +17,12 @@
     "@types/react-router-dom": "^5.3.3",
     "@types/recharts": "^1.8.29",
     "axios": "^1.6.2",
+    "chart.js": "^4.4.0",
     "express": "^4.21.2",
     "framer-motion": "^10.16.5",
     "gsap": "^3.12.2",
     "react": "^18.2.0",
+    "react-chartjs-2": "^5.2.0",
     "react-collapsible": "^2.10.0",
     "react-dom": "^18.2.0",
     "react-icons": "^5.5.0",
@@ -35,9 +37,9 @@
     "web-vitals": "^3.5.0"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
+    "start": "craco start",
+    "build": "craco build",
+    "test": "craco test",
     "eject": "react-scripts eject",
     "serve": "serve -s build",
     "build:prod": "GENERATE_SOURCEMAP=false NODE_ENV=production NODE_OPTIONS='--max-old-space-size=3092' react-scripts build",
@@ -51,7 +53,12 @@
     "lint": "eslint --ext .ts,.tsx src/",
     "lint:fix": "eslint --ext .ts,.tsx src/ --fix",
     "format": "prettier --write 'src/**/*.{ts,tsx,css,scss}'",
-    "reinstall": "rm -rf node_modules && npm install"
+    "clear-cache": "node clear-cache.js",
+    "dev:fresh": "npm run clear-cache && npm start",
+    "reinstall": "rm -rf node_modules && npm install",
+    "update-stats": "cd .. && ./scripts/update_code_stats.sh",
+    "prestart": "npm run update-stats",
+    "prebuild": "npm run update-stats"
   },
   "eslintConfig": {
     "extends": [
@@ -72,6 +79,7 @@
     ]
   },
   "devDependencies": {
+    "@craco/craco": "^7.1.0",
     "@types/lodash": "^4.17.16",
     "@types/node": "^22.13.5",
     "@types/styled-components": "^5.1.34",

@@ -16,8 +16,9 @@ func DefaultConfig() Config {
 
 // Manager manages application metrics
 type Manager struct {
-	config    Config
-	providers []Provider
+	config         Config
+	providers      []Provider
+	latencyTracker *LatencyTracker
 }
 
 // NewManager creates a new metrics manager
@@ -27,8 +28,9 @@ func NewManager(config Config) (*Manager, error) {
 	}
 
 	manager := &Manager{
-		config:    config,
-		providers: make([]Provider, 0),
+		config:         config,
+		providers:      make([]Provider, 0),
+		latencyTracker: NewLatencyTracker(10080), // Store 1 week of 1-minute intervals
 	}
 
 	// Initialize Grafana provider if enabled
@@ -111,6 +113,46 @@ func (m *Manager) SetMessageCount(count int) {
 	for _, provider := range m.providers {
 		provider.SetMessageCount(count)
 	}
+}
+
+// RecordLatency records a latency metric
+func (m *Manager) RecordLatency(latency float64, endpoint string) {
+	if !m.config.Enabled || m.latencyTracker == nil {
+		return
+	}
+	m.latencyTracker.AddMetric(latency, endpoint)
+}
+
+// GetLatencyMetrics returns latency metrics for the specified period
+func (m *Manager) GetLatencyMetrics(period TimePeriod) []LatencyMetric {
+	if !m.config.Enabled || m.latencyTracker == nil {
+		return []LatencyMetric{}
+	}
+	return m.latencyTracker.GetAggregatedMetrics(period)
+}
+
+// GetLatencyStats returns latency statistics for the specified period
+func (m *Manager) GetLatencyStats(period TimePeriod) LatencyStats {
+	if !m.config.Enabled || m.latencyTracker == nil {
+		return LatencyStats{Period: string(period)}
+	}
+	return m.latencyTracker.GetLatencyStats(period)
+}
+
+// HasSufficientLatencyData checks if there's enough data for the specified period
+func (m *Manager) HasSufficientLatencyData(period TimePeriod) bool {
+	if !m.config.Enabled || m.latencyTracker == nil {
+		return false
+	}
+	return m.latencyTracker.HasSufficientData(period)
+}
+
+// GetLatestLatency returns the most recent latency measurement
+func (m *Manager) GetLatestLatency() *LatencyMetric {
+	if !m.config.Enabled || m.latencyTracker == nil {
+		return nil
+	}
+	return m.latencyTracker.GetLatestMetric()
 }
 
 // Shutdown stops any running servers

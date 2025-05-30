@@ -49,11 +49,15 @@ const ProfileImage = styled(motion.div)`
   background: ${({ theme }) => theme.colors.primary};
   overflow: hidden;
   margin-bottom: ${({ theme }) => theme.spacing.lg};
+  position: relative;
   
   img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
   }
   
   @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
@@ -432,7 +436,11 @@ const About: React.FC = () => {
             whileHover={{ scale: 1.05 }}
             transition={{ type: "spring", stiffness: 300 }}
           >
-            <img src={headshot} alt="Jaden Razo" />
+            <img 
+              src={headshot} 
+              alt="Jaden Razo - Full Stack Developer"
+              loading="eager"
+            />
           </ProfileImage>
           <Name>Jaden Razo</Name>
           <Title>Full Stack Developer</Title>

@@ -11,8 +11,10 @@ interface NavigationBarProps {
 
 interface ServiceStatus {
   name: string;
-  status: boolean;
-  url: string;
+  status: 'operational' | 'degraded' | 'down';
+  latency_ms?: number;
+  uptime_percentage?: number;
+  error?: string;
   description: string;
 }
 
@@ -101,19 +103,18 @@ const ServiceStatusButton = styled(motion.button)`
   display: flex;
   align-items: center;
   gap: ${({ theme }) => theme.spacing.xs};
-  background: ${({ theme }) => theme.colors.background};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.borderRadius.small};
+  background: transparent;
+  border: none;
   padding: ${({ theme }) => `${theme.spacing.xs} ${theme.spacing.sm}`};
   color: ${({ theme }) => theme.colors.text};
   font-size: 0.875rem;
   cursor: pointer;
   transition: all ${({ theme }) => theme.transitions.fast};
   position: relative;
+  border-radius: ${({ theme }) => theme.borderRadius.small};
 
   &:hover {
     background: ${({ theme }) => theme.colors.primaryLight};
-    border-color: ${({ theme }) => theme.colors.primary};
   }
 
   svg {
@@ -176,12 +177,18 @@ const ServiceDescription = styled.div`
   margin-top: 2px;
 `;
 
-const StatusIndicator = styled(motion.div)<{ $status: 'online' | 'offline' }>`
+const StatusIndicator = styled(motion.div)<{ $status: 'operational' | 'degraded' | 'down' }>`
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: ${({ theme, $status }) => 
-    $status === 'online' ? theme.colors.success : theme.colors.error};
+  background: ${({ theme, $status }) => {
+    switch ($status) {
+      case 'operational': return '#10b981'; // Green
+      case 'degraded': return '#f59e0b';    // Yellow
+      case 'down': return '#ef4444';        // Red
+      default: return theme.colors.textSecondary;
+    }
+  }};
   position: relative;
 
   &::after {
@@ -189,10 +196,16 @@ const StatusIndicator = styled(motion.div)<{ $status: 'online' | 'offline' }>`
     position: absolute;
     inset: -4px;
     border-radius: 50%;
-    background: ${({ theme, $status }) => 
-      $status === 'online' ? theme.colors.success : theme.colors.error};
+    background: ${({ theme, $status }) => {
+      switch ($status) {
+        case 'operational': return '#10b981'; // Green
+        case 'degraded': return '#f59e0b';    // Yellow
+        case 'down': return '#ef4444';        // Red
+        default: return theme.colors.textSecondary;
+      }
+    }};
     opacity: 0.2;
-    animation: pulse 2s infinite;
+    animation: ${({ $status }) => $status === 'operational' ? 'pulse 2s infinite' : 'none'};
   }
 
   @keyframes pulse {
@@ -231,22 +244,19 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ themeMode, toggleTheme })
   const [isServicesOpen, setIsServicesOpen] = useState(false);
   const [servicesStatus, setServicesStatus] = useState<ServiceStatus[]>([
     {
-      name: 'DevPanel',
-      status: false,
-      url: '/devpanel/health',
-      description: 'Development environment management system'
+      name: 'API',
+      status: 'operational',
+      description: 'Main API service'
     },
     {
-      name: 'URL Shortener',
-      status: false,
-      url: '/api/health',
-      description: 'Custom URL shortening service'
+      name: 'Database',
+      status: 'operational',
+      description: 'PostgreSQL database'
     },
     {
-      name: 'Messaging',
-      status: false,
-      url: '/messaging/health',
-      description: 'Real-time messaging platform'
+      name: 'Code Stats',
+      status: 'operational',
+      description: 'Code statistics service'
     }
   ]);
 
@@ -258,38 +268,57 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ themeMode, toggleTheme })
   // Function to check backend service status
   const checkServices = React.useCallback(async () => {
     try {
-      // Use the current domain instead of localhost
-      const baseUrl = window.location.origin;
-      
-      // Make a copy of the services array to update
-      const updatedServices = [...servicesStatus];
-      
-      // Check each service endpoint
-      const statusChecks = await Promise.allSettled(
-        updatedServices.map(service => 
-          fetch(`${baseUrl}${service.url}`, { 
-            method: 'GET',
-            // Add cache busting to prevent cached responses
-            headers: { 'Cache-Control': 'no-cache' }
-          })
-          .then(response => response.ok)
-          .catch(() => false)
-        )
-      );
-      
-      // Update status for each service
-      statusChecks.forEach((result, index) => {
-        if (index < updatedServices.length) {
-          updatedServices[index].status = 
-            result.status === 'fulfilled' && result.value;
-        }
+      const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:8080';
+      const response = await fetch(`${apiUrl}/api/v1/status/`, {
+        method: 'GET',
+        headers: { 'Cache-Control': 'no-cache' }
       });
       
-      setServicesStatus(updatedServices);
+      if (response.ok) {
+        const data = await response.json();
+        const mappedServices = data.services.map((service: any) => ({
+          name: service.name,
+          status: service.status,
+          latency_ms: service.latency_ms,
+          uptime_percentage: service.uptime_percentage,
+          error: service.error,
+          description: getServiceDescription(service.name)
+        }));
+        setServicesStatus(mappedServices);
+      } else {
+        // If status API is down, mark all services as down
+        setServicesStatus(current => 
+          current.map(service => ({ ...service, status: 'down' as const }))
+        );
+      }
     } catch (error) {
       console.error("Error checking services:", error);
+      // If request fails, mark all services as down
+      setServicesStatus(current => 
+        current.map(service => ({ ...service, status: 'down' as const }))
+      );
     }
-  }, [servicesStatus]);
+  }, []);
+
+  const getServiceDescription = (name: string): string => {
+    switch (name.toLowerCase()) {
+      case 'api': return 'Main API service';
+      case 'database': return 'PostgreSQL database';
+      case 'code_stats': return 'Code statistics service';
+      default: return `${name} service`;
+    }
+  };
+
+  const getOverallStatus = (): 'operational' | 'degraded' | 'down' => {
+    if (servicesStatus.length === 0) return 'down';
+    
+    const operationalCount = servicesStatus.filter(s => s.status === 'operational').length;
+    const degradedCount = servicesStatus.filter(s => s.status === 'degraded').length;
+    
+    if (operationalCount === servicesStatus.length) return 'operational';
+    if (operationalCount > 0 || degradedCount > 0) return 'degraded';
+    return 'down';
+  };
   
   // Check services on mount and every 30 seconds
   useEffect(() => {
@@ -333,13 +362,16 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ themeMode, toggleTheme })
         </HamburgerButton>
 
         <NavLinks $isOpen={isMenuOpen}>
-          <div style={{ position: 'relative', width: '100%' }}>
+          <div style={{ position: 'relative' }}>
             <ServiceStatusButton
               onClick={() => setIsServicesOpen(!isServicesOpen)}
               aria-expanded={isServicesOpen}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
+              <StatusIndicator
+                $status={getOverallStatus()}
+              />
               Services Status
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M6 9l6 6 6-6" />
@@ -367,13 +399,34 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ themeMode, toggleTheme })
                         <ServiceDescription>{service.description}</ServiceDescription>
                       </ServiceInfo>
                       <StatusIndicator
-                        $status={service.status ? 'online' : 'offline'}
+                        $status={service.status}
                         initial={{ scale: 0.8 }}
                         animate={{ scale: 1 }}
                         transition={{ repeat: Infinity, duration: 2 }}
                       />
                     </ServiceItem>
                   ))}
+                  <ServiceItem
+                    as={Link}
+                    to="/status"
+                    style={{ 
+                      borderTop: '1px solid',
+                      borderTopColor: 'inherit',
+                      cursor: 'pointer',
+                      textDecoration: 'none',
+                      display: 'block'
+                    }}
+                    onClick={() => setIsServicesOpen(false)}
+                  >
+                    <div style={{ 
+                      color: '#0078ff',
+                      fontSize: '0.875rem',
+                      fontWeight: '500',
+                      width: '100%'
+                    }}>
+                      View Detailed Status Page →
+                    </div>
+                  </ServiceItem>
                 </ServiceStatusDropdown>
               )}
             </AnimatePresence>

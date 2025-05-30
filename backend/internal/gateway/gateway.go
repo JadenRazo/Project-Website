@@ -59,7 +59,7 @@ func (g *Gateway) RegisterHealthCheck() {
         status := make(map[string]interface{})
         
         // Check all services
-        for name, service := range g.services.GetAllServices() {
+        for name, _ := range g.services.GetAllServices() {
             serviceStatus, err := g.services.GetServiceStatus(name)
             if err != nil {
                 status[name] = gin.H{
@@ -93,50 +93,4 @@ func (g *Gateway) RegisterMetrics() {
     })
 }
 
-// RegisterDevPanel adds dev panel endpoints
-func (g *Gateway) RegisterDevPanel() {
-    devPanel := g.router.Group("/api/v1/devpanel")
-    devPanel.Use(g.middleware...)
-    
-    // Service control endpoints
-    devPanel.POST("/services/:name/start", func(c *gin.Context) {
-        name := c.Param("name")
-        if err := g.services.StartService(name); err != nil {
-            c.JSON(500, gin.H{"error": err.Error()})
-            return
-        }
-        c.JSON(200, gin.H{"status": "started"})
-    })
-    
-    devPanel.POST("/services/:name/stop", func(c *gin.Context) {
-        name := c.Param("name")
-        if err := g.services.StopService(name); err != nil {
-            c.JSON(500, gin.H{"error": err.Error()})
-            return
-        }
-        c.JSON(200, gin.H{"status": "stopped"})
-    })
-    
-    devPanel.POST("/services/:name/restart", func(c *gin.Context) {
-        name := c.Param("name")
-        if err := g.services.RestartService(name); err != nil {
-            c.JSON(500, gin.H{"error": err.Error()})
-            return
-        }
-        c.JSON(200, gin.H{"status": "restarted"})
-    })
-    
-    // Service status endpoint
-    devPanel.GET("/services", func(c *gin.Context) {
-        status := make(map[string]interface{})
-        for name, service := range g.services.GetAllServices() {
-            serviceStatus, err := g.services.GetServiceStatus(name)
-            if err != nil {
-                status[name] = gin.H{"error": err.Error()}
-                continue
-            }
-            status[name] = serviceStatus
-        }
-        c.JSON(200, status)
-    })
-} 
+ 
