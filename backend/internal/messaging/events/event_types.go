@@ -3,7 +3,10 @@ package events
 import (
 	"time"
 
+	"Project-Website/backend/internal/messaging/domain"
+
 	"github.com/JadenRazo/Project-Website/backend/internal/domain"
+	"github.com/google/uuid"
 )
 
 // Event types
@@ -68,4 +71,125 @@ type PresenceEventData struct {
 	UserID    uint   `json:"userId"`
 	Status    string `json:"status"`
 	StatusMsg string `json:"statusMsg,omitempty"`
+}
+
+// EventType represents the type of message event
+type EventType string
+
+const (
+	// MessageCreatedEvent is emitted when a new message is created
+	MessageCreated EventType = "message.created"
+
+	// MessageUpdatedEvent is emitted when a message is updated
+	MessageUpdated EventType = "message.updated"
+
+	// MessageDeletedEvent is emitted when a message is deleted
+	MessageDeleted EventType = "message.deleted"
+
+	// MessageDeliveredEvent is emitted when a message is delivered
+	MessageDelivered EventType = "message.delivered"
+
+	// MessageReadEvent is emitted when a message is read
+	MessageRead EventType = "message.read"
+
+	// MessageReactionAddedEvent is emitted when a reaction is added to a message
+	MessageReactionAdded EventType = "message.reaction.added"
+
+	// MessageReactionRemovedEvent is emitted when a reaction is removed from a message
+	MessageReactionRemoved EventType = "message.reaction.removed"
+
+	// MessagePinnedEvent is emitted when a message is pinned
+	MessagePinned EventType = "message.pinned"
+
+	// MessageUnpinnedEvent is emitted when a message is unpinned
+	MessageUnpinned EventType = "message.unpinned"
+
+	// MessageReportedEvent is emitted when a message is reported
+	MessageReported EventType = "message.reported"
+
+	// MessageModeratedEvent is emitted when a message is moderated
+	MessageModerated EventType = "message.moderated"
+
+	// MessageFilteredEvent is emitted when a message is filtered
+	MessageFiltered EventType = "message.filtered"
+)
+
+// MessageEvent represents a message event
+type MessageEvent struct {
+	ID        uuid.UUID `json:"id"`
+	Type      EventType `json:"type"`
+	Timestamp time.Time `json:"timestamp"`
+	Data      any       `json:"data"`
+}
+
+// MessageCreatedData represents the data for a message created event
+type MessageCreatedData struct {
+	Message   *domain.Message `json:"message"`
+	ChannelID uuid.UUID       `json:"channel_id"`
+	UserID    uuid.UUID       `json:"user_id"`
+}
+
+// MessageUpdatedData represents the data for a message updated event
+type MessageUpdatedData struct {
+	Message   *domain.Message `json:"message"`
+	ChannelID uuid.UUID       `json:"channel_id"`
+	UserID    uuid.UUID       `json:"user_id"`
+}
+
+// MessageDeletedData represents the data for a message deleted event
+type MessageDeletedData struct {
+	MessageID uuid.UUID `json:"message_id"`
+	ChannelID uuid.UUID `json:"channel_id"`
+	UserID    uuid.UUID `json:"user_id"`
+}
+
+// MessageDeliveredData represents the data for a message delivered event
+type MessageDeliveredData struct {
+	MessageID uuid.UUID `json:"message_id"`
+	UserID    uuid.UUID `json:"user_id"`
+}
+
+// MessageReadData represents the data for a message read event
+type MessageReadData struct {
+	MessageID uuid.UUID `json:"message_id"`
+	UserID    uuid.UUID `json:"user_id"`
+}
+
+// MessageReactionData represents the data for a message reaction event
+type MessageReactionData struct {
+	MessageID uuid.UUID `json:"message_id"`
+	UserID    uuid.UUID `json:"user_id"`
+	Emoji     string    `json:"emoji"`
+}
+
+// MessagePinnedData represents the data for a message pinned event
+type MessagePinnedData struct {
+	MessageID uuid.UUID `json:"message_id"`
+	ChannelID uuid.UUID `json:"channel_id"`
+	UserID    uuid.UUID `json:"user_id"`
+}
+
+// MessageReportedData represents the data for a message reported event
+type MessageReportedData struct {
+	MessageID   uuid.UUID `json:"message_id"`
+	ReporterID  uuid.UUID `json:"reporter_id"`
+	Reason      string    `json:"reason"`
+	Description string    `json:"description"`
+}
+
+// MessageModeratedData represents the data for a message moderated event
+type MessageModeratedData struct {
+	MessageID   uuid.UUID                   `json:"message_id"`
+	ModeratorID uuid.UUID                   `json:"moderator_id"`
+	Action      domain.ModerationActionType `json:"action"`
+	Reason      string                      `json:"reason"`
+	Duration    *time.Duration              `json:"duration,omitempty"`
+}
+
+// MessageFilteredData represents the data for a message filtered event
+type MessageFilteredData struct {
+	MessageID uuid.UUID              `json:"message_id"`
+	FilterID  uuid.UUID              `json:"filter_id"`
+	Scope     domain.WordFilterScope `json:"scope"`
+	Word      string                 `json:"word"`
 }

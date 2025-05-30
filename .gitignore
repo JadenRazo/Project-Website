@@ -21,6 +21,10 @@ build/
 node_modules/
 vendor/
 
+# Build cache files
+.tsbuildinfo
+frontend/.tsbuildinfo
+
 # Test binary, built with `go test -c`
 *.test
 
@@ -77,3 +81,6 @@ coverage/
 
 # Project specific
 frontend/src/.cursor-rules
+
+# Configuration files (sensitive)
+backend/config/*.yaml

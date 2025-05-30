@@ -5,7 +5,6 @@ import (
     "gorm.io/gorm"
     
     "github.com/JadenRazo/Project-Website/backend/internal/core"
-    "github.com/JadenRazo/Project-Website/backend/internal/domain"
 )
 
 // Service handles URL shortener operations

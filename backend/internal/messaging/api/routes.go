@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/Jadenrazo/Project-Website/backend/internal/messaging/domain"
+	"github.com/JadenRazo/Project-Website/backend/internal/messaging/domain"
 	"github.com/gin-gonic/gin"
 )
 

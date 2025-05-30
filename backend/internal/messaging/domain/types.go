@@ -251,8 +251,8 @@ type MessageRetentionPolicy struct {
 	UpdatedAt     time.Time `json:"updated_at" db:"updated_at"`
 }
 
-// User represents a user in the system
-type User struct {
+// MessagingUser represents a user in the messaging system
+type MessagingUser struct {
 	ID        uuid.UUID `json:"id" db:"id"`
 	Username  string    `json:"username" db:"username"`
 	Email     string    `json:"email" db:"email"`

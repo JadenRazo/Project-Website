@@ -3,14 +3,19 @@ package websocket
 import (
 	"sync"
 	"time"
-
-	"github.com/JadenRazo/Project-Website/backend/internal/config"
 )
+
+// WebSocketConfig holds websocket configuration
+type WebSocketConfig struct {
+	MaxConnections      int
+	RateLimitPerMinute  int
+	ConnectionTimeout   time.Duration
+}
 
 // ConnectionManager handles WebSocket connection limits and rate limiting
 type ConnectionManager struct {
 	// Configuration settings
-	config *config.WebSocketConfig
+	config *WebSocketConfig
 
 	// Active connections count
 	activeConnections int
@@ -32,7 +37,7 @@ type RateLimitData struct {
 }
 
 // NewConnectionManager creates a new connection manager
-func NewConnectionManager(cfg *config.WebSocketConfig) *ConnectionManager {
+func NewConnectionManager(cfg *WebSocketConfig) *ConnectionManager {
 	return &ConnectionManager{
 		config:            cfg,
 		activeConnections: 0,

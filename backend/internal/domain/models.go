@@ -1,9 +1,11 @@
 package domain
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"time"
 
-	"golang.org/x/crypto/bcrypt"
+	"github.com/JadenRazo/Project-Website/backend/internal/domain/entity"
 	"gorm.io/gorm"
 )
 
@@ -15,51 +17,8 @@ type BaseModel struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
-// User represents a user account in the system
-type User struct {
-	BaseModel
-	Email        string    `gorm:"uniqueIndex;not null" json:"email"`
-	Username     string    `gorm:"uniqueIndex;not null" json:"username"`
-	PasswordHash string    `gorm:"not null" json:"-"`
-	FirstName    string    `json:"firstName,omitempty"`
-	LastName     string    `json:"lastName,omitempty"`
-	Avatar       string    `json:"avatar,omitempty"`
-	Bio          string    `json:"bio,omitempty"`
-	Role         string    `gorm:"default:user" json:"role"`
-	Status       string    `gorm:"default:offline" json:"status"`
-	LastLogin    time.Time `json:"lastLogin,omitempty"`
-	IsActive     bool      `gorm:"default:true" json:"isActive"`
-
-	// Relations
-	Channels  []Channel  `gorm:"many2many:user_channels" json:"-"`
-	Messages  []Message  `gorm:"foreignKey:SenderID" json:"-"`
-	Reactions []Reaction `gorm:"foreignKey:UserID" json:"-"`
-	ShortURLs []ShortURL `gorm:"foreignKey:CreatorID" json:"-"`
-}
-
-// SetPassword hashes and sets the user's password
-func (u *User) SetPassword(password string) error {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return err
-	}
-	u.PasswordHash = string(hash)
-	return nil
-}
-
-// CheckPassword verifies if the provided password matches the stored hash
-func (u *User) CheckPassword(password string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password))
-	return err == nil
-}
-
-// FullName returns the user's full name
-func (u *User) FullName() string {
-	if u.FirstName == "" && u.LastName == "" {
-		return u.Username
-	}
-	return u.FirstName + " " + u.LastName
-}
+// User is an alias for entity.User to maintain backward compatibility
+type User = entity.User
 
 // Channel represents a messaging channel
 type Channel struct {
@@ -182,4 +141,47 @@ type CustomDomain struct {
 
 	// Relations
 	User User `gorm:"foreignKey:UserID" json:"-"`
+}
+
+// CodeStats represents code statistics for the project
+type CodeStats struct {
+	ID           uint             `gorm:"primaryKey" json:"id"`
+	Languages    LanguageStatsArr `gorm:"type:jsonb" json:"languages"`
+	TotalLines   int64            `json:"total_lines"`
+	TotalFiles   int              `json:"total_files"`
+	TotalBlanks  int64            `json:"total_blanks"`
+	TotalCode    int64            `json:"total_code"`
+	TotalComment int64            `json:"total_comment"`
+	UpdatedAt    time.Time        `json:"updated_at"`
+	CreatedAt    time.Time        `json:"created_at"`
+}
+
+// LanguageStats represents statistics for a single language
+type LanguageStats struct {
+	Name     string `json:"name"`
+	Files    int    `json:"files"`
+	Lines    int64  `json:"lines"`
+	Code     int64  `json:"code"`
+	Comments int64  `json:"comments"`
+	Blanks   int64  `json:"blanks"`
+}
+
+// LanguageStatsArr is a custom type for JSONB storage
+type LanguageStatsArr []LanguageStats
+
+// Value implements the driver.Valuer interface
+func (l LanguageStatsArr) Value() (driver.Value, error) {
+	return json.Marshal(l)
+}
+
+// Scan implements the sql.Scanner interface
+func (l *LanguageStatsArr) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+	bytes, ok := value.([]byte)
+	if !ok {
+		return nil
+	}
+	return json.Unmarshal(bytes, l)
 }

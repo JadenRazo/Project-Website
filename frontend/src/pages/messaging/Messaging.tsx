@@ -411,8 +411,24 @@ const Messaging: React.FC = () => {
 
   // Initialize WebSocket connection
   useEffect(() => {
-    // Try to connect to the real WebSocket endpoint
-    const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/messaging/ws`;
+    // Try to determine the WebSocket URL from environment or use fallback
+    let wsUrl: string;
+    
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      // Development environment
+      wsUrl = 'ws://localhost:8082/ws';
+    } else {
+      // Production environment - use environment config or fallback to demo mode
+      const envWsUrl = (window as any)._env_?.REACT_APP_WS_URL;
+      if (envWsUrl) {
+        wsUrl = `${envWsUrl}:8082/ws`;
+      } else {
+        // No WebSocket service available, use mock data only
+        console.log('No WebSocket service configured, using demo mode');
+        const cleanup = createMockWebSocketEvents(setChannels, setMessages, setUsers);
+        return cleanup;
+      }
+    }
     
     try {
       const ws = new WebSocket(wsUrl);
@@ -433,7 +449,7 @@ const Messaging: React.FC = () => {
       };
       
       ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
+        console.log('WebSocket connection failed, using demo mode');
         setConnected(false);
         
         // If can't connect, use mock data
@@ -451,7 +467,7 @@ const Messaging: React.FC = () => {
         ws.close();
       };
     } catch (error) {
-      console.error('Failed to connect to WebSocket:', error);
+      console.log('Failed to initialize WebSocket, using demo mode');
       
       // Use mock data
       const cleanup = createMockWebSocketEvents(setChannels, setMessages, setUsers);
