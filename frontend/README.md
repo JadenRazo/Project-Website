@@ -50,6 +50,11 @@ This is the frontend for the Project Website, built with React and TypeScript, a
    ```
    Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
+   **For a fresh start (recommended if experiencing cache issues):**
+   ```bash
+   npm run dev:fresh
+   ```
+
 3. **Build for production:**
    ```bash
    npm run build
@@ -68,6 +73,58 @@ This is the frontend for the Project Website, built with React and TypeScript, a
 - TailwindCSS
 - react-icons
 - Create React App
+- CRACO (Create React App Configuration Override)
+
+## Troubleshooting
+
+### Browser Cache Issues in Development
+
+If you're experiencing issues where code changes aren't reflected in the browser:
+
+1. **Use the fresh start command:**
+   ```bash
+   npm run dev:fresh
+   ```
+   This clears all caches before starting the development server.
+
+2. **Manually clear caches:**
+   ```bash
+   npm run clear-cache
+   ```
+
+3. **In the browser console (development mode only):**
+   ```javascript
+   window.__clearAllCaches()
+   ```
+
+4. **Hard refresh the browser:**
+   - Windows/Linux: `Ctrl + Shift + R`
+   - Mac: `Cmd + Shift + R`
+
+5. **Check for service workers:**
+   - Open DevTools → Application → Service Workers
+   - Unregister any service workers for localhost
+
+### Development Configuration
+
+The project uses CRACO to customize the webpack configuration without ejecting from Create React App. Key configurations:
+
+- **Cache busting headers** are automatically set in development
+- **Service workers** are automatically unregistered on startup
+- **Hot Module Replacement (HMR)** is configured for instant updates
+- **Development environment variables** are in `.env.development`
+
+### Available Scripts
+
+- `npm start` - Start development server (uses CRACO)
+- `npm run build` - Create production build (uses CRACO)
+- `npm test` - Run tests (uses CRACO)
+- `npm run clear-cache` - Clear all development caches
+- `npm run dev:fresh` - Clear caches and start fresh
+- `npm run lint` - Run ESLint
+- `npm run lint:fix` - Auto-fix linting issues
+- `npm run format` - Format code with Prettier
+- `npm run type-check` - Check TypeScript types
 
 ## Contributing
 Pull requests and issues are welcome! Please follow best practices for code style and documentation.

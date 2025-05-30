@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "es2020",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
@@ -16,11 +16,15 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "incremental": true,
+    "tsBuildInfoFile": ".tsbuildinfo",
     "baseUrl": "src",
     "types": ["node", "react", "react-dom"],
     "jsxImportSource": "react",
-    "typeRoots": ["./node_modules/@types", "./src/types"]
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "importsNotUsedAsValues": "remove",
+    "removeComments": true,
+    "preserveConstEnums": false
   },
   "include": ["src"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "build", ".tsbuildinfo"]
 }

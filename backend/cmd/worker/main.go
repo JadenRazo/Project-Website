@@ -14,6 +14,7 @@ import (
 	"github.com/JadenRazo/Project-Website/backend/internal/common/database"
 	"github.com/JadenRazo/Project-Website/backend/internal/common/logger"
 	"github.com/JadenRazo/Project-Website/backend/internal/core/db"
+	"github.com/JadenRazo/Project-Website/backend/internal/worker/tasks"
 	"gorm.io/gorm"
 )
 
@@ -378,6 +379,9 @@ func main() {
 
 	// Initialize worker with database connection
 	worker := NewWorker(dbConn)
+	
+	// Initialize scheduled tasks
+	scheduledTasks := tasks.NewScheduledTasks(dbConn)
 
 	// Set up signal handling for graceful shutdown
 	quit := make(chan os.Signal, 1)
@@ -387,6 +391,13 @@ func main() {
 	go func() {
 		if err := worker.Start(ctx); err != nil && err != context.Canceled {
 			logger.Fatal("Worker failed", "error", err)
+		}
+	}()
+	
+	// Start scheduled tasks in background
+	go func() {
+		if err := scheduledTasks.Start(ctx); err != nil && err != context.Canceled {
+			logger.Fatal("Scheduled tasks failed", "error", err)
 		}
 	}()
 

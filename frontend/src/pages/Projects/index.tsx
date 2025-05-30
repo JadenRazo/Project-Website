@@ -5,6 +5,7 @@ import {
   FaExternalLinkAlt as FaExternalLinkAltIcon,
   FaLaptopCode as FaLaptopCodeIcon,
   FaCode as FaCodeIcon,
+  FaTimes as FaTimesIcon,
 } from 'react-icons/fa';
 import styled from 'styled-components';
 
@@ -31,6 +32,16 @@ const projects: Project[] = [
     mediaType: 'gif',
     githubUrl: '/Project-Website',
     liveUrl: 'https://jadenrazo.dev'
+  },
+  {
+    id: 'quiz-bot',
+    title: 'Educational Quiz Discord Bot',
+    description: 'An advanced Discord bot that leverages LLMs to create educational quizzes with multi-guild support, achievement system, and real-time leaderboards.',
+    technologies: ['Python', 'Discord.py', 'PostgreSQL', 'OpenAI API', 'Anthropic Claude', 'Google Gemini'],
+    mediaUrl: '/web_ready_quizbot_example_video.mp4',
+    mediaType: 'video',
+    githubUrl: '/Discord-Bot-Python',
+    liveUrl: 'https://discord.gg/your-bot-invite'
   },
   {
     id: 'devpanel',
@@ -69,11 +80,22 @@ const ProjectsContainer = styled.div`
   background: ${({ theme }) => theme?.colors?.background || '#111'};
   color: ${({ theme }) => theme?.colors?.text || '#fff'};
   box-sizing: border-box;
+  
+  @media (max-width: 1200px) {
+    max-width: 100%;
+    padding: calc(1.75rem + ${HEADER_HEIGHT}px) 1.5rem 3.5rem 1.5rem;
+  }
+  
   @media (max-width: 900px) {
     padding: calc(1.5rem + ${HEADER_HEIGHT}px) 1rem 3rem 1rem;
   }
+  
   @media (max-width: 600px) {
     padding: calc(1rem + ${HEADER_HEIGHT}px) 0.75rem 2rem 0.75rem;
+  }
+  
+  @media (max-width: 480px) {
+    padding: calc(0.75rem + ${HEADER_HEIGHT}px) 0.5rem 1.5rem 0.5rem;
   }
 `;
 
@@ -90,6 +112,15 @@ const PageTitle = styled.h1`
   font-weight: 700;
   position: relative;
   display: inline-block;
+  text-align: center;
+  
+  @media (max-width: 768px) {
+    font-size: 2.5rem;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 2rem;
+  }
   
   &::after {
     content: '';
@@ -101,6 +132,11 @@ const PageTitle = styled.h1`
     height: 4px;
     background: ${({ theme }) => theme?.colors?.primary || '#007bff'};
     border-radius: 2px;
+    
+    @media (max-width: 480px) {
+      width: 60px;
+      height: 3px;
+    }
   }
 `;
 
@@ -111,6 +147,19 @@ const PageDescription = styled.p`
   font-size: 1.1rem;
   line-height: 1.6;
   margin-bottom: 2rem;
+  text-align: center;
+  
+  @media (max-width: 768px) {
+    font-size: 1rem;
+    max-width: 90%;
+    margin-bottom: 1.5rem;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+  }
 `;
 
 const CodeStatsDisplayContainer = styled(motion.div)`
@@ -126,16 +175,52 @@ const CodeStatsDisplayContainer = styled(motion.div)`
   color: ${({ theme }) => theme?.colors?.textSecondary || '#aaa'};
   font-size: 1rem;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  max-width: 100%;
+  text-align: center;
+  flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    padding: 0.875rem 1.25rem;
+    margin-bottom: 2.5rem;
+    font-size: 0.95rem;
+    border-radius: 10px;
+    gap: 0.6rem;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 0.75rem 1rem;
+    margin-bottom: 2rem;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    gap: 0.5rem;
+    flex-direction: column;
+  }
 
   svg {
     color: ${({ theme }) => theme?.colors?.primary || '#007bff'};
     font-size: 1.5rem;
+    
+    @media (max-width: 768px) {
+      font-size: 1.35rem;
+    }
+    
+    @media (max-width: 480px) {
+      font-size: 1.25rem;
+    }
   }
 
   strong {
     color: ${({ theme }) => theme?.colors?.text || '#fff'};
     font-weight: 600;
     font-size: 1.1rem;
+    
+    @media (max-width: 768px) {
+      font-size: 1.05rem;
+    }
+    
+    @media (max-width: 480px) {
+      font-size: 1rem;
+    }
   }
 `;
 
@@ -146,9 +231,24 @@ const ProjectsGrid = styled.div`
   width: 100%;
   box-sizing: border-box;
   overflow: visible;
+  
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.75rem;
+  }
+  
   @media (max-width: 900px) {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1.5rem;
+  }
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+  
+  @media (max-width: 480px) {
+    gap: 1rem;
   }
 `;
 
@@ -163,8 +263,8 @@ const Card = styled(motion.div)<{ $expanded: boolean }>`
   outline: none;
   position: relative;
   height: ${({ $expanded }) => $expanded ? 'auto' : '260px'};
-  min-height: ${({ $expanded }) => $expanded ? '440px' : '260px'};
-  max-height: ${({ $expanded }) => $expanded ? '600px' : '260px'};
+  min-height: ${({ $expanded }) => $expanded ? '600px' : '260px'};
+  max-height: ${({ $expanded }) => $expanded ? 'none' : '260px'};
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -173,10 +273,32 @@ const Card = styled(motion.div)<{ $expanded: boolean }>`
   width: 100%;
   ${({ $expanded }) => $expanded ? 'z-index: 2;' : 'z-index: 1;'}
   
+  @media (max-width: 768px) {
+    border-radius: 12px;
+    height: ${({ $expanded }) => $expanded ? 'auto' : '240px'};
+    min-height: ${({ $expanded }) => $expanded ? '500px' : '240px'};
+    max-height: ${({ $expanded }) => $expanded ? 'none' : '240px'};
+  }
+  
+  @media (max-width: 480px) {
+    border-radius: 8px;
+    height: ${({ $expanded }) => $expanded ? 'auto' : '220px'};
+    min-height: ${({ $expanded }) => $expanded ? '420px' : '220px'};
+    max-height: ${({ $expanded }) => $expanded ? 'none' : '220px'};
+  }
+  
   &:hover, &:focus {
     box-shadow: 0 8px 32px rgba(0,0,0,0.18);
     border-color: ${({ theme }) => theme?.colors?.primary || '#007bff'};
     transform: ${({ $expanded }) => $expanded ? 'none' : 'translateY(-5px)'};
+    
+    @media (max-width: 768px) {
+      transform: ${({ $expanded }) => $expanded ? 'none' : 'translateY(-3px)'};
+    }
+    
+    @media (max-width: 480px) {
+      transform: none; /* Disable hover transform on mobile */
+    }
   }
   
   &::before {
@@ -193,6 +315,10 @@ const Card = styled(motion.div)<{ $expanded: boolean }>`
     );
     opacity: 0;
     transition: opacity 0.3s;
+    
+    @media (max-width: 480px) {
+      height: 3px;
+    }
   }
   
   &:hover::before {
@@ -212,6 +338,14 @@ const CardHeader = styled.div`
 const CardContent = styled.div`
   padding: 1.75rem 1.5rem;
   width: 100%;
+  
+  @media (max-width: 768px) {
+    padding: 1.5rem 1.25rem;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 1.25rem 1rem;
+  }
 `;
 
 const CardTitle = styled.h2`
@@ -222,9 +356,25 @@ const CardTitle = styled.h2`
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  line-height: 1.3;
+  
+  @media (max-width: 768px) {
+    font-size: 1.35rem;
+    margin-bottom: 0.6rem;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 1.2rem;
+    gap: 0.4rem;
+    margin-bottom: 0.5rem;
+  }
   
   svg {
     color: ${({ theme }) => theme?.colors?.primary || '#007bff'};
+    
+    @media (max-width: 480px) {
+      font-size: 1rem;
+    }
   }
 `;
 
@@ -233,6 +383,18 @@ const CardDescription = styled.p`
   margin-bottom: 1.5rem;
   color: ${({ theme }) => theme?.colors?.textSecondary || '#aaa'};
   line-height: 1.6;
+  
+  @media (max-width: 768px) {
+    font-size: 0.95rem;
+    margin-bottom: 1.25rem;
+    line-height: 1.5;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    line-height: 1.4;
+  }
 `;
 
 const TechStack = styled.div`
@@ -240,6 +402,16 @@ const TechStack = styled.div`
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-bottom: 1.5rem;
+  
+  @media (max-width: 768px) {
+    gap: 0.4rem;
+    margin-bottom: 1.25rem;
+  }
+  
+  @media (max-width: 480px) {
+    gap: 0.35rem;
+    margin-bottom: 1rem;
+  }
 `;
 
 const TechTag = styled.span`
@@ -250,11 +422,28 @@ const TechTag = styled.span`
   font-size: 0.875rem;
   font-family: ${({ theme }) => theme?.fonts?.mono || 'monospace'};
   transition: transform 0.2s, background 0.2s;
+  white-space: nowrap;
+  
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 0.75rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 10px;
+  }
   
   &:hover {
     transform: translateY(-2px);
     background: ${({ theme }) => theme?.colors?.primary || '#007bff'};
     color: white;
+    
+    @media (max-width: 480px) {
+      transform: none; /* Disable hover transform on mobile */
+    }
   }
 `;
 
@@ -262,6 +451,17 @@ const CardLinks = styled.div`
   display: flex;
   gap: 1rem;
   margin-top: 1rem;
+  
+  @media (max-width: 768px) {
+    gap: 0.8rem;
+    margin-top: 0.8rem;
+  }
+  
+  @media (max-width: 480px) {
+    gap: 0.6rem;
+    margin-top: 0.6rem;
+    flex-direction: column;
+  }
 `;
 
 const CardLink = styled.a`
@@ -276,14 +476,39 @@ const CardLink = styled.a`
   border-radius: 8px;
   background: ${({ theme }) => `${theme?.colors?.primary}15` || 'rgba(0,123,255,0.1)'};
   transition: background 0.2s, transform 0.2s;
+  white-space: nowrap;
+  
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+    padding: 0.45rem 0.65rem;
+    border-radius: 6px;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+    justify-content: center;
+    white-space: normal;
+    text-align: center;
+    min-height: 36px;
+  }
   
   &:hover {
     background: ${({ theme }) => `${theme?.colors?.primary}25` || 'rgba(0,123,255,0.15)'};
     transform: translateY(-2px);
+    
+    @media (max-width: 480px) {
+      transform: none;
+    }
   }
   
   svg {
     font-size: 1rem;
+    
+    @media (max-width: 480px) {
+      font-size: 0.9rem;
+    }
   }
 `;
 
@@ -300,6 +525,23 @@ const MediaWrapper = styled(motion.div)`
   overflow: hidden;
   border-top: 1px solid ${({ theme }) => theme?.colors?.border || 'rgba(255,255,255,0.1)'};
   background: ${({ theme }) => theme?.colors?.surface || 'rgba(255,255,255,0.08)'};
+  
+  /* Significantly larger video sizes for better visibility */
+  @media (min-width: 1200px) {
+    min-height: 350px;
+  }
+  
+  @media (min-width: 769px) and (max-width: 1199px) {
+    min-height: 300px;
+  }
+  
+  @media (max-width: 768px) {
+    min-height: 250px;
+  }
+  
+  @media (max-width: 480px) {
+    min-height: 200px;
+  }
 `;
 
 const Placeholder = styled.div`
@@ -312,6 +554,36 @@ const Placeholder = styled.div`
   color: ${({ theme }) => theme?.colors?.textSecondary || 'rgba(255,255,255,0.5)'};
 `;
 
+const MobileCloseButton = styled.button`
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  z-index: 10;
+  transition: background 0.2s;
+  
+  @media (min-width: 769px) {
+    display: none;
+  }
+  
+  &:hover {
+    background: rgba(0, 0, 0, 0.9);
+  }
+  
+  svg {
+    font-size: 0.875rem;
+  }
+`;
+
 // --- Project Card Animations ---
 const cardVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -320,7 +592,7 @@ const cardVariants = {
     y: 0,
     transition: {
       delay: i * 0.1,
-      duration: 0.5,
+      duration: window.innerWidth <= 768 ? 0.4 : 0.5,
       ease: "easeOut"
     }
   })
@@ -336,10 +608,22 @@ const ProjectCard: React.FC<{
 }> = ({ project, expanded, onClick, tabIndex, index }) => {
   // Ref for outside click
   const cardRef = useRef<HTMLDivElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
-  // Close on outside click
+  // Check if mobile on mount and resize
   useEffect(() => {
-    if (!expanded) return;
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Close on outside click (desktop only)
+  useEffect(() => {
+    if (!expanded || isMobile) return;
     const handleClick = (e: MouseEvent) => {
       if (cardRef.current && !cardRef.current.contains(e.target as Node)) {
         onClick();
@@ -347,7 +631,7 @@ const ProjectCard: React.FC<{
     };
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
-  }, [expanded, onClick]);
+  }, [expanded, onClick, isMobile]);
 
   return (
     <Card
@@ -363,9 +647,9 @@ const ProjectCard: React.FC<{
         opacity: 1,
         y: 0, 
         boxShadow: expanded ? '0 8px 32px rgba(0,0,0,0.25)' : '0 4px 16px rgba(0,0,0,0.12)',
-        height: expanded ? 'auto' : '260px',
-        minHeight: expanded ? '440px' : '260px',
-        maxHeight: expanded ? '600px' : '260px',
+        height: expanded ? 'auto' : (isMobile ? (window.innerWidth <= 480 ? '220px' : '240px') : '260px'),
+        minHeight: expanded ? (isMobile ? (window.innerWidth <= 480 ? '420px' : '500px') : '600px') : (isMobile ? (window.innerWidth <= 480 ? '220px' : '240px') : '260px'),
+        maxHeight: expanded ? 'none' : (isMobile ? (window.innerWidth <= 480 ? '220px' : '240px') : '260px'),
       }}
       transition={{ 
         type: 'spring', 
@@ -422,15 +706,37 @@ const ProjectCard: React.FC<{
           <MediaWrapper
             key={"media-" + project.id}
             initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 220 }}
+            animate={{ 
+              opacity: 1, 
+              height: (() => {
+                const width = window.innerWidth;
+                if (width <= 480) return 200;      // Mobile: larger than before
+                if (width <= 768) return 250;      // Tablet: much larger
+                if (width <= 1024) return 300;     // Small desktop: larger
+                if (width <= 1200) return 320;     // Medium desktop: larger
+                return 350;                         // Large desktop: much larger
+              })()
+            }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ 
               type: 'spring', 
-              stiffness: 200, 
-              damping: 25
+              stiffness: window.innerWidth <= 768 ? 180 : 200, 
+              damping: window.innerWidth <= 768 ? 20 : 25,
+              duration: window.innerWidth <= 480 ? 0.4 : 0.5
             }}
             onClick={e => e.stopPropagation()} // Prevent bubbling to header
           >
+            {isMobile && (
+              <MobileCloseButton
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClick();
+                }}
+                aria-label="Close media"
+              >
+                <FaTimesIcon />
+              </MobileCloseButton>
+            )}
             <motion.div
               key={"media-content-" + project.id}
               style={{ width: '100%', height: '100%' }}
@@ -447,16 +753,40 @@ const ProjectCard: React.FC<{
                     loop
                     muted
                     playsInline
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 0 }}
+                    controls={window.innerWidth <= 768} // Show controls on mobile/tablet
+                    preload="metadata"
+                    style={{ 
+                      width: '100%', 
+                      height: '100%', 
+                      objectFit: 'contain', // Changed from 'cover' to 'contain' to show full video
+                      borderRadius: 0,
+                      cursor: window.innerWidth <= 768 ? 'auto' : 'pointer',
+                      backgroundColor: 'rgba(0, 0, 0, 0.05)' // Subtle background for letterboxing
+                    }}
                     aria-label={project.title + ' demo video'}
-                    poster=""
+                    onError={(e) => console.error('Video load error:', e)}
+                    onLoadStart={() => console.log('Video loading started for:', project.title)}
+                    onCanPlay={() => console.log('Video can play:', project.title)}
+                    onClick={(e) => {
+                      // On mobile, let video controls handle interaction
+                      if (window.innerWidth <= 768) {
+                        e.stopPropagation();
+                      }
+                    }}
                   />
                 ) : (
                   <img
                     src={project.mediaUrl}
                     alt={project.title + ' demo'}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 0 }}
+                    style={{ 
+                      width: '100%', 
+                      height: '100%', 
+                      objectFit: 'cover', 
+                      borderRadius: 0,
+                      cursor: 'pointer'
+                    }}
                     loading="lazy"
+                    onError={(e) => console.error('Image load error:', e)}
                   />
                 )
               ) : (
@@ -477,15 +807,27 @@ const Projects: React.FC = () => {
   const [totalLinesOfCode, setTotalLinesOfCode] = useState<number | null>(null);
   const [isLoadingLines, setIsLoadingLines] = useState<boolean>(true);
   const [errorLines, setErrorLines] = useState<string | null>(null);
+  const [isMobileView, setIsMobileView] = useState<boolean>(false);
+
+  // Detect mobile view
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobileView(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Handler for card click
   const handleCardClick = (id: string) => {
     setExpandedId(prev => (prev === id ? null : id));
   };
   
-  // Close expanded card when clicking outside of any card
+  // Close expanded card when clicking outside of any card (desktop only)
   useEffect(() => {
-    if (!expandedId) return;
+    if (!expandedId || window.innerWidth <= 768) return;
     
     const handleOutsideClick = (e: MouseEvent) => {
       const projectsGrid = document.querySelector('[data-projects-grid]');
@@ -503,26 +845,33 @@ const Projects: React.FC = () => {
       setIsLoadingLines(true);
       setErrorLines(null);
       try {
-        // Fetch the static JSON file generated by the shell script
-        const response = await fetch('/code_stats.json'); // Assumes code_stats.json is in the public folder
+        // Try API endpoint first, fallback to static JSON
+        let response;
+        try {
+          // Use the API URL from environment or default to localhost
+          const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:8080';
+          response = await fetch(`${apiUrl}/api/v1/code/stats`);
+        } catch {
+          // Fallback to static JSON file
+          response = await fetch('/code_stats.json');
+        }
+        
         if (!response.ok) {
-          throw new Error(`Failed to fetch code_stats.json: ${response.status} ${response.statusText}`);
+          throw new Error(`Failed to fetch code stats: ${response.status} ${response.statusText}`);
         }
         const data = await response.json();
         
         if (data.error) {
-          throw new Error(`Error in code_stats.json: ${data.error}`);
+          throw new Error(`Error in code stats: ${data.error}`);
         }
 
-        if (typeof data.totalLines === 'number') {
-          setTotalLinesOfCode(data.totalLines);
+        // API now returns totalLines directly
+        const totalLines = data.totalLines;
+        if (typeof totalLines === 'number') {
+          setTotalLinesOfCode(totalLines);
         } else {
-          // This case might happen if totalLines is null but no explicit error was set
-          // or if the format is unexpectedly different.
-          setTotalLinesOfCode(null); // Explicitly set to null if not a number
-          console.warn("Warning: totalLines in code_stats.json was not a number or was missing.");
-          // Optionally, set an error message if this is unexpected
-          // setErrorLines("Invalid or missing lines of code data from statistics file.");
+          setTotalLinesOfCode(null);
+          console.warn("Warning: Total lines of code was not a number or was missing.");
         }
       } catch (err) {
         console.error("Error fetching or processing lines of code:", err);

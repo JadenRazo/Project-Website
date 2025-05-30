@@ -1,0 +1,52 @@
+port: "8080"
+jwtSecret: "I2lA2KrH/LBQRknj974bITcEZcHc1hq4f/tNfvYAPOI="
+environment: "production"
+baseURL: "https://www.jadenrazo.dev"
+logLevel: "info"
+metricsEnabled: true
+tracingEnabled: false
+enablePprof: false
+
+# Server timeouts (can be tighter or adjusted based on needs)
+readTimeout: "10s"
+writeTimeout: "15s"
+idleTimeout: "60s"
+shutdownTimeout: "15s"
+
+# TLS settings (should be enabled in production)
+tlsEnabled: true
+tlsCert: "/etc/letsencrypt/live/yourdomain.com/fullchain.pem" # CRITICAL: Path to your TLS certificate
+tlsKey: "/etc/letsencrypt/live/yourdomain.com/privkey.pem"    # CRITICAL: Path to your TLS private key
+
+# CORS allowed origins
+allowedOrigins:
+  - "https://www.jadenrazo.dev"
+
+# Rate limiting (adjust based on expected traffic and capacity)
+apiRateLimit: 200       # requests per minute
+redirectRateLimit: 1000 # requests per minute
+
+# Database configuration for PostgreSQL
+database:
+  driver: "postgres"
+  host: "195.201.136.53"    # CRITICAL: Override with ENV_DB_HOST or actual value
+  port: 5432
+  user: "project_website"    # CRITICAL: Override with ENV_DB_USER or actual value
+  password: "School101%" # CRITICAL: Override with ENV_DB_PASSWORD
+  dbName: "project_website"   # Production database name
+  sslMode: "require" # Or "verify-full", "verify-ca". CRITICAL for production security
+
+# URL Shortener Configuration
+urlShortener:
+  baseURL: "https://www.jadenrazo.dev"
+  shortCodeLength: 7
+
+# Messaging Configuration
+messaging:
+  maxMessageSize: 8192 # 8KB, adjust based on production needs
+
+# DevPanel Configuration
+devPanel:
+  metricsInterval: "60s"
+  maxLogLines: 5000
+  logRetention: "720h" # 30 days

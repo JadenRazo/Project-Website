@@ -1,11 +1,15 @@
 package messaging
 
 import (
+    "fmt"
+    "net/http"
+    "time"
+    
     "github.com/gin-gonic/gin"
     "gorm.io/gorm"
     
     "github.com/JadenRazo/Project-Website/backend/internal/core"
-    "github.com/JadenRazo/Project-Website/backend/internal/domain"
+    "github.com/JadenRazo/Project-Website/backend/internal/messaging/delivery/websocket"
 )
 
 // Service handles messaging operations
@@ -24,29 +28,22 @@ type Config struct {
     AllowedFileTypes []string
 }
 
-// Hub manages WebSocket connections
-type Hub struct {
-    clients    map[*Client]bool
-    broadcast  chan []byte
-    register   chan *Client
-    unregister chan *Client
-}
+// Hub is an alias for the websocket Hub
+type Hub = websocket.Hub
 
-// Client represents a WebSocket client
-type Client struct {
-    hub  *Hub
-    conn *websocket.Conn
-    send chan []byte
-}
+// Client is an alias for the websocket Client  
+type Client = websocket.Client
 
 // NewService creates a new messaging service
 func NewService(db *gorm.DB, config Config) *Service {
-    hub := &Hub{
-        clients:    make(map[*Client]bool),
-        broadcast:  make(chan []byte),
-        register:   make(chan *Client),
-        unregister: make(chan *Client),
-    }
+    // Create connection manager with default config
+    connManager := websocket.NewConnectionManager(&websocket.WebSocketConfig{
+        MaxConnections:     1000,
+        RateLimitPerMinute: 100,
+        ConnectionTimeout:  5 * time.Minute,
+    })
+    
+    hub := websocket.NewHub(connManager)
 
     service := &Service{
         BaseService: core.NewBaseService("messaging"),
@@ -55,7 +52,7 @@ func NewService(db *gorm.DB, config Config) *Service {
         hub:    hub,
     }
 
-    go hub.run()
+    go hub.Run()
     return service
 }
 
@@ -162,11 +159,6 @@ func (s *Service) Stop() error {
         return err
     }
 
-    // Close all WebSocket connections
-    for client := range s.hub.clients {
-        client.conn.Close()
-        delete(s.hub.clients, client)
-    }
-
+    // The hub will handle closing connections when it stops
     return nil
 } 

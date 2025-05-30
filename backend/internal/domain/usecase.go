@@ -7,19 +7,19 @@ import (
 // ChannelUseCase defines the use case interface for channel operations
 type ChannelUseCase interface {
 	// CreateChannel creates a new channel
-	CreateChannel(ctx context.Context, channel *MessagingChannel, members []*MessagingMember) (*MessagingChannel, error)
+	CreateChannel(ctx context.Context, channel *Channel, members []*MessagingMember) (*Channel, error)
 
 	// GetChannel retrieves a channel by ID
-	GetChannel(ctx context.Context, channelID string) (*MessagingChannel, error)
+	GetChannel(ctx context.Context, channelID string) (*Channel, error)
 
 	// UpdateChannel updates an existing channel
-	UpdateChannel(ctx context.Context, channel *MessagingChannel) (*MessagingChannel, error)
+	UpdateChannel(ctx context.Context, channel *Channel) (*Channel, error)
 
 	// DeleteChannel deletes a channel
 	DeleteChannel(ctx context.Context, channelID string) error
 
 	// ListChannels retrieves a list of channels with pagination
-	ListChannels(ctx context.Context, userID string, pagination *Pagination) ([]MessagingChannel, int, error)
+	ListChannels(ctx context.Context, userID string, pagination *Pagination) ([]Channel, int, error)
 
 	// IsChannelAdmin checks if a user is an admin of a channel
 	IsChannelAdmin(ctx context.Context, channelID string, userID string) (bool, error)

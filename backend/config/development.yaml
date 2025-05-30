@@ -1,0 +1,53 @@
+port: "8080"
+jwtSecret: "7+9HWOZi1nvXebXsfpfETyN0xjtcYDcSmtvaxLx5wLI="
+environment: "development"
+baseURL: "http://195.201.136.53:8080"
+logLevel: "debug"
+metricsEnabled: true
+tracingEnabled: true
+enablePprof: true
+
+# Server timeouts
+readTimeout: "15s"
+writeTimeout: "15s"
+idleTimeout: "120s"
+shutdownTimeout: "10s"
+
+# TLS settings (typically disabled for local HTTP development)
+tlsEnabled: false
+tlsCert: "" # Path to TLS certificate (e.g., cert.pem)
+tlsKey: ""  # Path to TLS key (e.g., key.pem)
+
+# CORS allowed origins
+allowedOrigins:
+  - "http://localhost:3000" # For local frontend
+  - "http://127.0.0.1:3000"
+
+# Rate limiting (can be generous for development)
+apiRateLimit: 1000      # requests per minute
+redirectRateLimit: 5000 # requests per minute
+
+# Database configuration for PostgreSQL
+database:
+  driver: "postgres"
+  host: "195.201.136.53"     # Or your local DB host
+  port: 5432
+  user: "postgres"      # Your local PostgreSQL username
+  password: "School101%" # Your local PostgreSQL password - REPLACE THIS
+  dbName: "project_website" # Development database name
+  sslMode: "disable"    # Common for local PostgreSQL development
+
+# URL Shortener Configuration
+urlShortener:
+  baseURL: "http://195.201.136.53:8080" # Should match the main baseURL for dev
+  shortCodeLength: 7
+
+# Messaging Configuration
+messaging:
+  maxMessageSize: 4096 # 4KB, adjust as needed
+
+# DevPanel Configuration
+devPanel:
+  metricsInterval: "30s"
+  maxLogLines: 1000
+  logRetention: "168h" # 7 days

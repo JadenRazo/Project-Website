@@ -1,66 +1,80 @@
 package config
 
 import (
+	"log"
+	"strconv"
+	"strings"
 	"time"
+
+	loaderConfig "github.com/JadenRazo/Project-Website/backend/config" // Import the actual config loader
 )
 
 // Config holds all configuration for the application
+// This struct should mirror the structure that main.go expects.
 type Config struct {
-	App            AppConfig          `yaml:"app"`
-	Server         ServerConfig       `yaml:"server"`
-	Database       DatabaseConfig     `yaml:"database"`
-	Cache          CacheConfig        `yaml:"cache"`
-	Auth           AuthConfig         `yaml:"auth"`
-	Logging        LoggingConfig      `yaml:"logging"`
-	Metrics        MetricsConfig      `yaml:"metrics"`
-	Tracing        TracingConfig      `yaml:"tracing"`
-	RateLimit      RateLimitConfig    `yaml:"rateLimit"`
-	Compression    CompressionConfig  `yaml:"compression"`
-	Environment    string             `yaml:"environment"`
-	AdminToken     string             `yaml:"adminToken"`
-	MaxLogLines    int                `yaml:"maxLogLines"`
-	LogRetention   time.Duration      `yaml:"logRetention"`
-	AllowedOrigins string             `yaml:"allowedOrigins"`
-	Port           string             `yaml:"port"`
-	URLShortener   URLShortenerConfig `yaml:"urlShortener"`
-	Messaging      MessagingConfig    `yaml:"messaging"`
+	App            AppConfig
+	Server         ServerConfig
+	Database       DatabaseConfig
+	Cache          CacheConfig
+	Auth           AuthConfig
+	Logging        LoggingConfig
+	Metrics        MetricsConfig
+	Tracing        TracingConfig
+	RateLimit      RateLimitConfig
+	Compression    CompressionConfig
+	Environment    string
+	AdminToken     string        // For DevPanel, maps to JWTSecret
+	MaxLogLines    int           // For main logger, from DevPanelConfig.MaxLogLines (or default)
+	LogRetention   time.Duration // For main logger, from DevPanelConfig.LogRetention (or default)
+	AllowedOrigins string
+	Port           string
+	URLShortener   URLShortenerConfig // Populated from loaderConfig.URLShortener
+	Messaging      MessagingConfig    // Populated from loaderConfig.Messaging
+	DevPanel       DevPanelCoreConfig // Specific core config for DevPanel service params
+	EnablePprof    bool
 }
 
 // AppConfig holds application-specific configuration
 type AppConfig struct {
-	Name           string   `yaml:"name"`
-	Description    string   `yaml:"description"`
-	Version        string   `yaml:"version"`
-	BaseURL        string   `yaml:"baseUrl"`
-	APIPrefix      string   `yaml:"apiPrefix"`
-	Timezone       string   `yaml:"timezone"`
-	AllowedOrigins []string `yaml:"allowedOrigins"`
+	Name           string
+	Description    string
+	Version        string
+	BaseURL        string // Populated from loaderConfig.BaseURL
+	APIPrefix      string
+	Timezone       string
+	AllowedOrigins []string // Populated from loaderConfig.AllowedOrigins
 }
 
 // ServerConfig holds server configuration
 type ServerConfig struct {
-	Host            string        `yaml:"host"`
-	Port            int           `yaml:"port"`
-	ReadTimeout     time.Duration `yaml:"readTimeout"`
-	WriteTimeout    time.Duration `yaml:"writeTimeout"`
-	IdleTimeout     time.Duration `yaml:"idleTimeout"`
-	ShutdownTimeout time.Duration `yaml:"shutdownTimeout"`
-	MaxHeaderBytes  int           `yaml:"maxHeaderBytes"`
-	TLSEnabled      bool          `yaml:"tlsEnabled"`
-	TLSCert         string        `yaml:"tlsCert"`
-	TLSKey          string        `yaml:"tlsKey"`
+	Host            string
+	Port            int
+	ReadTimeout     time.Duration // Populated from loaderConfig.ReadTimeout
+	WriteTimeout    time.Duration // Populated from loaderConfig.WriteTimeout
+	IdleTimeout     time.Duration // Populated from loaderConfig.IdleTimeout
+	ShutdownTimeout time.Duration // Populated from loaderConfig.ShutdownTimeout
+	MaxHeaderBytes  int
+	TLSEnabled      bool   // Populated from loaderConfig.TLSEnabled
+	TLSCert         string // Populated from loaderConfig.TLSCert
+	TLSKey          string // Populated from loaderConfig.TLSKey
 }
 
 // DatabaseConfig holds database configuration
 type DatabaseConfig struct {
-	Driver                 string `yaml:"driver"`
-	DSN                    string `yaml:"dsn"`
-	MaxIdleConns           int    `yaml:"maxIdleConns"`
-	MaxOpenConns           int    `yaml:"maxOpenConns"`
-	ConnMaxLifetimeMinutes int    `yaml:"connMaxLifetimeMinutes"`
-	LogLevel               string `yaml:"logLevel"`
-	SlowThresholdMs        int    `yaml:"slowThresholdMs"`
-	AutoMigrate            bool   `yaml:"autoMigrate"`
+	Driver                 string // Populated from loaderConfig.Database.Driver
+	DSN                    string // Populated from loaderConfig.Database.DSN
+	Host                   string
+	Port                   int
+	User                   string
+	Password               string
+	DBName                 string
+	SSLMode                string
+	MaxIdleConns           int
+	MaxOpenConns           int
+	ConnMaxLifetimeMinutes int
+	LogLevel               string // This could be loaderConfig.LogLevel or specific DB log level
+	SlowThresholdMs        int
+	AutoMigrate            bool
 }
 
 // CacheConfig holds cache configuration
@@ -95,7 +109,7 @@ type LoggingConfig struct {
 	Filename   string `yaml:"filename"`
 	MaxSize    int    `yaml:"maxSize"`
 	MaxBackups int    `yaml:"maxBackups"`
-	MaxAge     int    `yaml:"maxAge"`
+	MaxAge     int    `yaml:"maxAge"` // This is int in core, but string (duration) in loader for DevPanel.LogRetention
 	Compress   bool   `yaml:"compress"`
 }
 
@@ -140,34 +154,114 @@ type CompressionConfig struct {
 	BrotliQuality int      `yaml:"brotliQuality"`
 }
 
-// URLShortenerConfig holds configuration for URL shortener
+// URLShortenerConfig matches the loader's definition
 type URLShortenerConfig struct {
-	BaseURL         string `yaml:"baseUrl"`
+	BaseURL         string `yaml:"baseURL"`
 	ShortCodeLength int    `yaml:"shortCodeLength"`
 }
 
-// MessagingConfig holds configuration for messaging service
+// MessagingConfig matches the loader's definition
 type MessagingConfig struct {
-	MaxMessageSize    int `yaml:"maxMessageSize"`
-	MaxAttachmentSize int `yaml:"maxAttachmentSize"`
+	MaxMessageSize int `yaml:"maxMessageSize"`
+}
+
+// DevPanelCoreConfig holds parameters for DevPanel service initialization in main.go
+type DevPanelCoreConfig struct {
+	MetricsInterval time.Duration // Parsed from loaderConfig.DevPanel.MetricsInterval
+	MaxLogLines     int           // From loaderConfig.DevPanel.MaxLogLines
+	LogRetention    time.Duration // Parsed from loaderConfig.DevPanel.LogRetention
 }
 
 // GetConfig loads and returns the application configuration
+// using the actual loader and maps it to the local core.Config struct.
 func GetConfig() *Config {
-	// This is a simplified version just to make imports work
-	return &Config{
-		Port:           "8080",
-		AdminToken:     "admin",
-		MaxLogLines:    1000,
-		LogRetention:   7 * 24 * time.Hour,
-		AllowedOrigins: "*",
+	cfgFromLoader, err := loaderConfig.LoadConfig()
+	if err != nil {
+		log.Fatalf("CRITICAL: Failed to load configuration: %v", err)
+	}
+
+	// --- Parse durations for DevPanel from strings ---
+	devPanelMetricsInterval, errPI := time.ParseDuration(cfgFromLoader.DevPanel.MetricsInterval)
+	if errPI != nil {
+		log.Printf("WARNING: Could not parse DevPanel MetricsInterval '%s', using default 30s. Error: %v", cfgFromLoader.DevPanel.MetricsInterval, errPI)
+		devPanelMetricsInterval = 30 * time.Second
+	}
+	devPanelLogRetention, errLR := time.ParseDuration(cfgFromLoader.DevPanel.LogRetention)
+	if errLR != nil {
+		log.Printf("WARNING: Could not parse DevPanel LogRetention '%s', using default 168h. Error: %v", cfgFromLoader.DevPanel.LogRetention, errLR)
+		devPanelLogRetention = 168 * time.Hour
+	}
+
+	// Attempt to parse Port from loaderConfig.Port (string) to int for coreConfig.Server.Port
+	serverPortInt := 8080 // Default
+	if cfgFromLoader.Port != "" {
+		p, err := strconv.Atoi(cfgFromLoader.Port)
+		if err == nil {
+			serverPortInt = p
+		} else {
+			log.Printf("WARNING: Could not parse Server Port '%s' to int, using default %d. Error: %v", cfgFromLoader.Port, serverPortInt, err)
+		}
+	}
+
+	coreCfg := &Config{
+		Environment:    cfgFromLoader.Environment,
+		Port:           cfgFromLoader.Port,      // For server Addr string in main.go
+		AdminToken:     cfgFromLoader.JWTSecret, // For DevPanel service init
+		AllowedOrigins: strings.Join(cfgFromLoader.AllowedOrigins, ","),
+		EnablePprof:    cfgFromLoader.EnablePprof,
+		MaxLogLines:    cfgFromLoader.DevPanel.MaxLogLines, // Main logger uses DevPanel's MaxLogLines
+		LogRetention:   devPanelLogRetention,               // Main logger uses DevPanel's LogRetention
+
+		App: AppConfig{
+			BaseURL:        cfgFromLoader.BaseURL,
+			AllowedOrigins: cfgFromLoader.AllowedOrigins,
+		},
+		Server: ServerConfig{
+			// Host: not directly in top-level loaderConfig.Config, usually "" or "0.0.0.0"
+			Port:            serverPortInt, // Parsed int for consistency if needed by other parts
+			ReadTimeout:     cfgFromLoader.ReadTimeout,
+			WriteTimeout:    cfgFromLoader.WriteTimeout,
+			IdleTimeout:     cfgFromLoader.IdleTimeout,
+			ShutdownTimeout: cfgFromLoader.ShutdownTimeout,
+			TLSEnabled:      cfgFromLoader.TLSEnabled,
+			TLSCert:         cfgFromLoader.TLSCert,
+			TLSKey:          cfgFromLoader.TLSKey,
+		},
+		Database: DatabaseConfig{
+			Driver:   cfgFromLoader.Database.Driver,
+			DSN:      cfgFromLoader.Database.DSN,
+			Host:     cfgFromLoader.Database.Host,
+			Port:     cfgFromLoader.Database.Port,
+			User:     cfgFromLoader.Database.User,
+			Password: cfgFromLoader.Database.Password,
+			DBName:   cfgFromLoader.Database.DBName,
+			SSLMode:  cfgFromLoader.Database.SSLMode,
+			LogLevel: cfgFromLoader.LogLevel, // Main LogLevel used for DB too for now
+		},
+		Logging: LoggingConfig{
+			Level:      cfgFromLoader.LogLevel,
+			Format:     "json",
+			Output:     "stdout",
+			TimeFormat: time.RFC3339Nano,                       // Default
+			Filename:   "logs/api.log",                         // Default
+			MaxSize:    100,                                    // Default
+			MaxBackups: 10,                                     // Default
+			MaxAge:     int(devPanelLogRetention.Hours() / 24), // MaxAge in days for logger from retention
+			Compress:   true,                                   // Default
+		},
 		URLShortener: URLShortenerConfig{
-			BaseURL:         "http://localhost:8080",
-			ShortCodeLength: 6,
+			BaseURL:         cfgFromLoader.URLShortener.BaseURL,
+			ShortCodeLength: cfgFromLoader.URLShortener.ShortCodeLength,
 		},
 		Messaging: MessagingConfig{
-			MaxMessageSize:    4096,
-			MaxAttachmentSize: 10 * 1024 * 1024,
+			MaxMessageSize: cfgFromLoader.Messaging.MaxMessageSize,
+		},
+		DevPanel: DevPanelCoreConfig{
+			MetricsInterval: devPanelMetricsInterval,
+			MaxLogLines:     cfgFromLoader.DevPanel.MaxLogLines,
+			LogRetention:    devPanelLogRetention,
 		},
 	}
+
+	return coreCfg
 }
