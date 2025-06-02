@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { motion, useAnimation } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import SystemMetrics from '../../components/metrics/SystemMetrics';
@@ -301,6 +301,11 @@ const IncidentCard = styled(motion.div)<{ severity: string }>`
   }
 `;
 
+const spin = keyframes`
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+`;
+
 const LoadingContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -314,18 +319,13 @@ const LoadingContainer = styled.div`
     border: 4px solid ${({ theme }) => theme.colors.border};
     border-top: 4px solid ${({ theme }) => theme.colors.primary};
     border-radius: 50%;
-    animation: spin 1s linear infinite;
+    animation: ${spin} 1s linear infinite;
     margin-bottom: ${({ theme }) => theme.spacing.lg};
   }
   
   p {
     color: ${({ theme }) => theme.colors.textSecondary};
     font-size: 1.1rem;
-  }
-  
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
   }
 `;
 
@@ -355,6 +355,15 @@ const EmptyState = styled.div`
 `;
 
 // Helper functions
+const getServiceDisplayName = (name: string): string => {
+  switch (name.toLowerCase()) {
+    case 'api': return 'API';
+    case 'database': return 'Database';
+    case 'code_stats': return 'LOC Counter';
+    default: return name;
+  }
+};
+
 const getStatusText = (status: string) => {
   switch (status) {
     case 'operational': return 'All Systems Operational';
@@ -536,7 +545,7 @@ const Status: React.FC = () => {
               <motion.div key={service.name} variants={itemVariants}>
                 <ServiceCard status={service.status}>
                   <ServiceHeader>
-                    <h3>{service.name}</h3>
+                    <h3>{getServiceDisplayName(service.name)}</h3>
                     <StatusBadge status={service.status}>
                       {service.status}
                     </StatusBadge>

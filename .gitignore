@@ -84,3 +84,97 @@ frontend/src/.cursor-rules
 
 # Configuration files (sensitive)
 backend/config/*.yaml
+
+# Claude AI files
+CLAUDE.md
+.claude/
+*.claude
+claude-chat-*
+.anthropic/
+
+# AI/LLM related files
+.cursor/
+.continue/
+.aider*
+.codeium/
+.copilot/
+.openai/
+.ai-commits/
+
+# Backup and temporary files
+*.bak
+*.backup
+*.orig
+*.rej
+.*.swp
+.*.swo
+*~
+#*#
+.#*
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Package manager lock files (keep package-lock.json but ignore yarn.lock if using npm)
+yarn.lock
+pnpm-lock.yaml
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage and test artifacts
+.nyc_output
+coverage/
+*.lcov
+.coverage
+htmlcov/
+.pytest_cache/
+.jest/
+
+# Profiling and debugging
+*.prof
+*.pprof
+*.trace
+debug.log
+
+# Local development overrides
+docker-compose.override.yml
+.env.override
+
+# Generated documentation
+docs/generated/
+docs/build/
+
+# Security scans and reports
+.snyk
+security-report.json
+audit-report.json
+
+# Certificates and keys
+*.pem
+*.key
+*.crt
+*.csr
+*.p12
+*.jks
+ssl/
+certs/
+
+# Database dumps and migrations artifacts
+*.dump
+*.sql.gz
+migrations/temp/
+
+# Performance monitoring
+.perf/
+*.perf

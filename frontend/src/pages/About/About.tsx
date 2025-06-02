@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
-import { motion, useAnimation } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 
 // Import the image using require
@@ -251,17 +251,16 @@ const experienceItemVariants = {
 // Experience section component
 const ExperienceSection = () => {
   // Experience lines data
-  const experienceLines = [
+  const experienceLines = useMemo(() => [
     "• Developed and maintained multiple full-stack SaaS applications using React, HTML, CSS, TypeScript, Python, and Go",
     "• Implemented microservices architecture for scalable backend solutions",
     "• Created efficient CI/CD pipelines using GitHub Actions and Docker",
     "• Designed and implemented RESTful APIs and WebSocket services"
-  ];
+  ], []);
   
   // State for typing animation
   const [activeLineIndex, setActiveLineIndex] = useState(0);
   const [typedCharacters, setTypedCharacters] = useState<string[]>(["", "", "", ""]);
-  const [isTypingComplete, setIsTypingComplete] = useState(false);
   const [showCursor, setShowCursor] = useState(true);
   const animationRef = useRef<NodeJS.Timeout | null>(null);
   
@@ -281,31 +280,9 @@ const ExperienceSection = () => {
     };
   }, []);
   
-  // Start or reset animation when section comes into view
-  useEffect(() => {
-    if (inView) {
-      // Reset animation state
-      setActiveLineIndex(0);
-      setTypedCharacters(["", "", "", ""]);
-      setIsTypingComplete(false);
-      setShowCursor(true);
-      
-      // Clear any existing timeouts
-      if (animationRef.current) {
-        clearTimeout(animationRef.current);
-      }
-      
-      // Start typing after a small delay
-      animationRef.current = setTimeout(() => {
-        typeCharacter(0, 0);
-      }, 500);
-    }
-  }, [inView]);
-  
   // Type each character one by one
-  const typeCharacter = (lineIndex: number, charIndex: number) => {
+  const typeCharacter = useCallback((lineIndex: number, charIndex: number) => {
     if (lineIndex >= experienceLines.length) {
-      setIsTypingComplete(true);
       setTimeout(() => setShowCursor(false), 800);
       return;
     }
@@ -334,7 +311,27 @@ const ExperienceSection = () => {
         typeCharacter(lineIndex + 1, 0);
       }, 700);
     }
-  };
+  }, [experienceLines]);
+  
+  // Start or reset animation when section comes into view
+  useEffect(() => {
+    if (inView) {
+      // Reset animation state
+      setActiveLineIndex(0);
+      setTypedCharacters(["", "", "", ""]);
+      setShowCursor(true);
+      
+      // Clear any existing timeouts
+      if (animationRef.current) {
+        clearTimeout(animationRef.current);
+      }
+      
+      // Start typing after a small delay
+      animationRef.current = setTimeout(() => {
+        typeCharacter(0, 0);
+      }, 500);
+    }
+  }, [inView, typeCharacter]);
   
   return (
     <Section

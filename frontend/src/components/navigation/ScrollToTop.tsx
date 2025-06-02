@@ -9,11 +9,12 @@
  * It uses multiple scroll methods for maximum browser compatibility
  */
 import { useEffect, useRef } from 'react';
-import { useLocation, useNavigationType } from 'react-router-dom';
+import { useLocation, useNavigationType, useNavigate } from 'react-router-dom';
 
 const ScrollToTop = () => {
   const { pathname, hash } = useLocation();
   const navigationType = useNavigationType();
+  const navigate = useNavigate();
   const prevPathRef = useRef(pathname);
   
   useEffect(() => {
@@ -36,8 +37,14 @@ const ScrollToTop = () => {
     
     // Handle hash links differently
     if (hash) {
-      // Small timeout to ensure DOM is ready
-      setTimeout(() => {
+      // Special handling for #projects - redirect to projects page
+      if (hash === '#projects' && pathname === '/') {
+        navigate('/projects', { replace: true });
+        return;
+      }
+      
+      // Small timeout to ensure DOM is ready for other hashes
+      const timeoutId = setTimeout(() => {
         try {
           const element = document.getElementById(hash.substring(1));
           if (element) {
@@ -52,7 +59,9 @@ const ScrollToTop = () => {
           forceScrollToTop();
         }
       }, 100);
-      return;
+      
+      // Cleanup timeout on unmount
+      return () => clearTimeout(timeoutId);
     }
     
     // If no hash and path changed, scroll to top
@@ -60,7 +69,7 @@ const ScrollToTop = () => {
       forceScrollToTop();
       prevPathRef.current = pathname;
     }
-  }, [pathname, hash, navigationType]);
+  }, [pathname, hash, navigationType, navigate]);
   
   // Add a global click handler for all internal navigation links
   useEffect(() => {

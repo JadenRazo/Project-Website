@@ -42,7 +42,7 @@ func GetDB() (*gorm.DB, error) {
 			getEnvWithDefault("DB_PORT", "5432"),
 			getEnvWithDefault("DB_USER", "postgres"),
 			password,
-			getEnvWithDefault("DB_NAME", "project_website_dev"),
+			getEnvWithDefault("DB_NAME", "project_website"),
 			getEnvWithDefault("DB_SSL_MODE", "disable"),
 		)
 	}

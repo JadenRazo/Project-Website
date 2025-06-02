@@ -67,7 +67,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     return () => {
       mediaQuery.removeEventListener('change', handleChange);
     };
-  }, []);
+  }, [themeMode]);
   
   useEffect(() => {
     document.body.dataset.theme = themeMode;

@@ -60,7 +60,6 @@ export const usePerformanceOptimizations = (): {
   const performanceSettings = useMemo<PerformanceSettings>(() => {
     const {
       isLowPoweredDevice,
-      connectionType,
       effectiveConnectionType,
       connectionSavingEnabled,
       prefersReducedMotion,

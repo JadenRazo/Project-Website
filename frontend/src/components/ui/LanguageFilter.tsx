@@ -1,7 +1,6 @@
 import React, { memo, useMemo } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import useDeviceCapabilities from '../../hooks/useDeviceCapabilities';
 import usePerformanceOptimizations from '../../hooks/usePerformanceOptimizations';
 
 interface LanguageFilterProps {
@@ -86,14 +85,6 @@ const ButtonBg = styled.div<{ $isActive: boolean }>`
   z-index: 1;
 `;
 
-// Optimized ripple effect component that uses efficient DOM operations
-const Ripple = styled(motion.span)`
-  position: absolute;
-  border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.3);
-  transform: scale(0);
-  pointer-events: none;
-`;
 
 const LanguageFilter: React.FC<LanguageFilterProps> = ({ 
   languages, 

@@ -1,8 +1,6 @@
-import React, { useRef, useState, useCallback, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { motion, useInView, useAnimation } from 'framer-motion';
 import styled from 'styled-components';
-import { useTheme } from '../../contexts/ThemeContext';
-import { useZIndex } from '../../hooks/useZIndex';
 
 interface Milestone {
   year: string;
@@ -205,8 +203,6 @@ const animationVariants = {
 };
 
 export const About: React.FC = () => {
-  const { theme } = useTheme();
-  const { zIndex } = useZIndex();
   const [isFirstRender, setIsFirstRender] = useState(true);
   
   // Animation controls for better performance

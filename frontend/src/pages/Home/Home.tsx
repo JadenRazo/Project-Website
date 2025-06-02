@@ -14,7 +14,7 @@ const SkillsSection: LazyComponent = lazy(() => import('../../components/section
 
 // Main Home component
 const Home = () => {
-  const { setLoading, isLoading } = useComponentLoading('Home');
+  useComponentLoading('Home');
 
   return (
     <div className="home-container">

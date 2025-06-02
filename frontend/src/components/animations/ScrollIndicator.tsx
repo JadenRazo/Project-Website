@@ -116,7 +116,6 @@ export const ScrollIndicator: React.FC<ScrollIndicatorProps> = ({
 }) => {
   const [showIndicator, setShowIndicator] = useState(showAboveFold);
   const { scrollY } = useScroll();
-  const { theme } = useTheme();
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   
   // Detect touch devices on mount
