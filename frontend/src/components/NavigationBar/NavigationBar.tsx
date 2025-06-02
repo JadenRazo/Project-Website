@@ -254,7 +254,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ themeMode, toggleTheme })
       description: 'PostgreSQL database'
     },
     {
-      name: 'Code Stats',
+      name: 'LOC Counter',
       status: 'operational',
       description: 'Code statistics service'
     }
@@ -277,7 +277,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ themeMode, toggleTheme })
       if (response.ok) {
         const data = await response.json();
         const mappedServices = data.services.map((service: any) => ({
-          name: service.name,
+          name: getServiceDisplayName(service.name),
           status: service.status,
           latency_ms: service.latency_ms,
           uptime_percentage: service.uptime_percentage,
@@ -299,6 +299,15 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ themeMode, toggleTheme })
       );
     }
   }, []);
+
+  const getServiceDisplayName = (name: string): string => {
+    switch (name.toLowerCase()) {
+      case 'api': return 'API';
+      case 'database': return 'Database';
+      case 'code_stats': return 'LOC Counter';
+      default: return name;
+    }
+  };
 
   const getServiceDescription = (name: string): string => {
     switch (name.toLowerCase()) {

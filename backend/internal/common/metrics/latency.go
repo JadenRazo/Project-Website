@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"sort"
 	"sync"
 	"time"
 )
@@ -25,10 +26,12 @@ func NewLatencyTracker(maxSize int) *LatencyTracker {
 		maxSize = 10080 // Default: 1 week of 1-minute intervals
 	}
 	
-	return &LatencyTracker{
+	tracker := &LatencyTracker{
 		metrics: make([]LatencyMetric, 0, maxSize),
 		maxSize: maxSize,
 	}
+	
+	return tracker
 }
 
 // AddMetric adds a new latency metric
@@ -81,6 +84,11 @@ func (lt *LatencyTracker) GetMetrics(period TimePeriod) []LatencyMetric {
 		}
 	}
 	
+	// Sort by timestamp chronologically
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Timestamp.Before(result[j].Timestamp)
+	})
+	
 	return result
 }
 
@@ -94,13 +102,13 @@ func (lt *LatencyTracker) GetAggregatedMetrics(period TimePeriod) []LatencyMetri
 	var interval time.Duration
 	switch period {
 	case TimePeriodDay:
-		interval = 5 * time.Minute // 5-minute intervals for day view
+		interval = 10 * time.Minute // 10-minute intervals for day view (12:00, 12:10, 12:20, etc.)
 	case TimePeriodWeek:
 		interval = 30 * time.Minute // 30-minute intervals for week view
 	case TimePeriodMonth:
 		interval = 2 * time.Hour // 2-hour intervals for month view
 	default:
-		interval = 5 * time.Minute
+		interval = 10 * time.Minute
 	}
 	
 	return lt.aggregateByInterval(metrics, interval)
@@ -113,16 +121,31 @@ func (lt *LatencyTracker) aggregateByInterval(metrics []LatencyMetric, interval 
 	}
 	
 	buckets := make(map[int64][]float64)
+	bucketTimeSet := make(map[int64]bool)
+	var bucketTimes []int64
 	
-	// Group metrics into time buckets
+	// Group metrics into time buckets aligned to clean intervals
 	for _, metric := range metrics {
-		bucket := metric.Timestamp.Unix() / int64(interval.Seconds())
-		buckets[bucket] = append(buckets[bucket], metric.Latency)
+		// Align timestamp to the interval boundary
+		intervalSeconds := int64(interval.Seconds())
+		alignedTime := (metric.Timestamp.Unix() / intervalSeconds) * intervalSeconds
+		
+		if !bucketTimeSet[alignedTime] {
+			bucketTimes = append(bucketTimes, alignedTime)
+			bucketTimeSet[alignedTime] = true
+		}
+		buckets[alignedTime] = append(buckets[alignedTime], metric.Latency)
 	}
 	
-	// Calculate averages for each bucket
+	// Sort bucket times chronologically
+	sort.Slice(bucketTimes, func(i, j int) bool {
+		return bucketTimes[i] < bucketTimes[j]
+	})
+	
+	// Calculate averages for each bucket in chronological order
 	var result []LatencyMetric
-	for bucketTime, latencies := range buckets {
+	for _, bucketTime := range bucketTimes {
+		latencies := buckets[bucketTime]
 		if len(latencies) == 0 {
 			continue
 		}
@@ -133,7 +156,8 @@ func (lt *LatencyTracker) aggregateByInterval(metrics []LatencyMetric, interval 
 		}
 		avg := sum / float64(len(latencies))
 		
-		timestamp := time.Unix(bucketTime*int64(interval.Seconds()), 0)
+		// Use the aligned timestamp directly
+		timestamp := time.Unix(bucketTime, 0)
 		result = append(result, LatencyMetric{
 			Timestamp: timestamp,
 			Latency:   avg,
@@ -177,13 +201,13 @@ func (lt *LatencyTracker) HasSufficientData(period TimePeriod) bool {
 	
 	switch period {
 	case TimePeriodDay:
-		return len(metrics) >= 12 // At least 1 hour of 5-minute intervals
+		return len(metrics) >= 6 // At least 30 minutes of 30-second intervals
 	case TimePeriodWeek:
-		return len(metrics) >= 168 // At least 1 day worth of data
+		return len(metrics) >= 48 // At least 2 hours worth of data
 	case TimePeriodMonth:
-		return len(metrics) >= 720 // At least 1 week worth of data
+		return len(metrics) >= 168 // At least 12 hours worth of data
 	default:
-		return len(metrics) >= 12
+		return len(metrics) >= 6
 	}
 }
 
@@ -238,3 +262,4 @@ func (lt *LatencyTracker) GetLatencyStats(period TimePeriod) LatencyStats {
 	
 	return stats
 }
+

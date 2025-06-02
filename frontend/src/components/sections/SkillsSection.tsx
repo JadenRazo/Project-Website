@@ -1,9 +1,7 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import styled from 'styled-components';
 import { motion, useAnimation, AnimatePresence, Variants } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
-import { useTheme } from '../../contexts/ThemeContext';
-import { useZIndex } from '../../hooks/useZIndex';
 
 // SVG Icons for skill categories
 const DesignIcon = () => (
@@ -212,8 +210,6 @@ const ProjectTag = styled.span<{ color: string }>`
 `;
 
 export const SkillsSection: React.FC = () => {
-  const { theme } = useTheme();
-  const { zIndex } = useZIndex();
   
   // Optimized animation configuration for faster animations
   const animationConfig = useMemo(() => ({
@@ -369,18 +365,6 @@ export const SkillsSection: React.FC = () => {
     }
   }, [controls, inView, hasAnimated]);
   
-  // Generate staggered delays with faster timing
-  const getRandomDelay = useMemo(() => {
-    return (index: number) => ({
-      visible: { 
-        transition: { 
-          delay: 0.05 + (index * 0.04), // Reduced from 0.1 + (index * 0.07)
-          duration: animationConfig.duration.enter * 0.8,
-          ease: [0.16, 1, 0.3, 1] // Snappier easing
-        }
-      }
-    });
-  }, [animationConfig]);
   
   // Skills data
   const skills: Skill[] = [

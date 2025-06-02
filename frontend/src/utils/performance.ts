@@ -138,7 +138,7 @@ export const useMemoryTracker = (componentName: string, options: MemoryMonitorOp
         }
       }, 1000);
     };
-  }, [componentName]);
+  }, [componentName, options]);
   
   return metricsRef.current;
 };

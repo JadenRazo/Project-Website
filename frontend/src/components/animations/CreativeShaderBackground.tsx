@@ -487,21 +487,6 @@ export const CreativeShaderBackground: React.FC<CreativeShaderBackgroundProps> =
     let lastPatternValue = patternValue;
     const patternChangeTime = Date.now();
     
-    // Animation transition helper function
-    const animatePatternTransition = () => {
-      const now = Date.now();
-      const elapsed = (now - patternChangeTime) / 1000; // seconds
-      const transitionDuration = 1.0; // seconds
-      
-      if (elapsed < transitionDuration && material.uniforms.pattern.value !== patternValue) {
-        // Transition in progress - could implement cross-fade here if needed
-        material.uniforms.pattern.value = patternValue;
-      }
-      
-      if (lastPatternValue !== patternValue) {
-        lastPatternValue = patternValue;
-      }
-    };
     
     return () => {
       // Clean up on unmount
@@ -513,8 +498,9 @@ export const CreativeShaderBackground: React.FC<CreativeShaderBackgroundProps> =
       resizeObserver.disconnect();
       
       // Remove renderer from container
-      if (containerRef.current?.contains(renderer.domElement)) {
-        containerRef.current.removeChild(renderer.domElement);
+      const container = containerRef.current;
+      if (container?.contains(renderer.domElement)) {
+        container.removeChild(renderer.domElement);
       }
       
       // Properly clean up Three.js objects
@@ -564,9 +550,6 @@ export const CreativeShaderBackground: React.FC<CreativeShaderBackgroundProps> =
                      performanceSettings.performanceTier === 'medium' ? 45 : 30;
     const frameInterval = 1000 / targetFPS;
     
-    // Pattern rotation timing
-    const patternCycleDuration = 30000; // 30 seconds per pattern
-    const startTime = Date.now();
     
     const animate = (currentTime: number) => {
       if (!materialRef.current || !rendererRef.current || !sceneRef.current || !cameraRef.current) return;
@@ -671,17 +654,18 @@ export const CreativeShaderBackground: React.FC<CreativeShaderBackgroundProps> =
     };
     
     // Add touch event listeners
-    if (containerRef.current) {
-      containerRef.current.addEventListener('touchstart', handleTouch, { passive: true });
-      containerRef.current.addEventListener('touchmove', handleTouch, { passive: true });
-      containerRef.current.addEventListener('touchend', resetTouch, { passive: true });
+    const container = containerRef.current;
+    if (container) {
+      container.addEventListener('touchstart', handleTouch, { passive: true });
+      container.addEventListener('touchmove', handleTouch, { passive: true });
+      container.addEventListener('touchend', resetTouch, { passive: true });
     }
     
     return () => {
-      if (containerRef.current) {
-        containerRef.current.removeEventListener('touchstart', handleTouch);
-        containerRef.current.removeEventListener('touchmove', handleTouch);
-        containerRef.current.removeEventListener('touchend', resetTouch);
+      if (container) {
+        container.removeEventListener('touchstart', handleTouch);
+        container.removeEventListener('touchmove', handleTouch);
+        container.removeEventListener('touchend', resetTouch);
       }
     };
   }, [disableParallax, performanceSettings.reduceMotion]);

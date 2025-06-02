@@ -35,13 +35,6 @@ interface BurgerLineProps {
   delay: number;
 }
 
-// Custom Error Classes
-class NavigationError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'NavigationError';
-  }
-}
 
 // SVG Icons Component with error boundaries
 const Icons = {
@@ -591,7 +584,7 @@ const MenuItemComponent: React.FC<MenuItemProps> = ({
 };
 
 // Memoize the MenuItem component to prevent unnecessary re-renders
-const MenuItem = memo(MenuItemComponent);
+const MemoizedMenuItem = memo(MenuItemComponent);
 
 // Main BurgerMenu component with error boundary
 export const BurgerMenu: React.FC<BurgerMenuProps> = ({ 
@@ -788,39 +781,39 @@ export const BurgerMenu: React.FC<BurgerMenuProps> = ({
               >
                 {/* Main navigation items */}
                 {MENU_ITEMS.map((item) => (
-                  <MenuItem
+                  <MemoizedMenuItem
                     key={item.href}
                     {...item}
                     onClick={() => handleItemClick(item.href, item.isExternal, item.isService)}
                     $isActive={!item.isExternal && !item.isService && item.href.replace('#', '') === activeSection}
                   >
                     {item.label}
-                  </MenuItem>
+                  </MemoizedMenuItem>
                 ))}
 
                 {/* Services section */}
                 <MenuDivider>Services</MenuDivider>
                 {SERVICES_ITEMS.map((item) => (
-                  <MenuItem
+                  <MemoizedMenuItem
                     key={item.href}
                     {...item}
                     onClick={() => handleItemClick(item.href, item.isExternal, item.isService)}
                     description={item.description}
                   >
                     {item.label}
-                  </MenuItem>
+                  </MemoizedMenuItem>
                 ))}
                 
                 {/* External links */}
                 <MenuDivider>Links</MenuDivider>
                 {EXTERNAL_ITEMS.map((item) => (
-                  <MenuItem
+                  <MemoizedMenuItem
                     key={item.href}
                     {...item}
                     onClick={() => handleItemClick(item.href, item.isExternal)}
                   >
                     {item.label}
-                  </MenuItem>
+                  </MemoizedMenuItem>
                 ))}
               </motion.nav>
 

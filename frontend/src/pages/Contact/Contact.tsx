@@ -107,30 +107,7 @@ const SubmitButton = styled(motion.button)`
   }
 `;
 
-const SocialLinks = styled(motion.div)`
-  display: flex;
-  justify-content: center;
-  gap: ${({ theme }) => theme.spacing.lg};
-  margin-top: ${({ theme }) => theme.spacing.xl};
-`;
 
-const SocialLink = styled.a`
-  color: ${({ theme }) => theme.colors.text};
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.xs};
-  transition: color 0.2s ease;
-
-  &:hover {
-    color: ${({ theme }) => theme.colors.primary};
-  }
-
-  svg {
-    width: 20px;
-    height: 20px;
-  }
-`;
 
 const Contact: React.FC = () => {
   const [formData, setFormData] = useState({

@@ -1,17 +1,9 @@
-import React, { memo, useMemo, useState, useCallback, useRef, useEffect, forwardRef } from 'react';
-import styled, { css, keyframes } from 'styled-components';
-import { motion, Variants, HTMLMotionProps, AnimatePresence, useAnimation } from 'framer-motion';
+import React, { memo, useMemo, useState, useCallback, useRef, useEffect } from 'react';
+import styled, { keyframes } from 'styled-components';
+import { motion, AnimatePresence, HTMLMotionProps } from 'framer-motion';
 import { useTheme } from '../../contexts/ThemeContext';
 import useDeviceCapabilities from '../../hooks/useDeviceCapabilities';
-import useTouchInteractions from '../../hooks/useTouchInteractions';
 import usePerformanceOptimizations from '../../hooks/usePerformanceOptimizations';
-import { useInView } from 'react-intersection-observer';
-import { CreativeShaderBackground } from '../animations/CreativeShaderBackground';
-
-// Types
-interface AnimatedElementProps extends HTMLMotionProps<"div"> {
-  isInteractive?: boolean;
-}
 
 interface BioItemProps {
   $active: boolean;
@@ -51,73 +43,6 @@ const media = {
 };
 
 // Dynamic animation variants based on performance settings
-const createAnimationVariants = (performanceSettings: any) => {
-  const { transitionSpeed, staggerDelay, reduceMotion } = performanceSettings;
-  
-  return {
-    container: {
-      hidden: { opacity: 0 },
-      visible: {
-        opacity: 1,
-        transition: {
-          staggerChildren: reduceMotion ? staggerDelay / 2 : staggerDelay,
-          when: "beforeChildren",
-        },
-      },
-    },
-    item: {
-      hidden: { opacity: 0, y: reduceMotion ? 5 : 15 },
-      visible: {
-        opacity: 1,
-        y: 0,
-        transition: {
-          type: "tween",
-          duration: transitionSpeed,
-          ease: [0.25, 0.1, 0.25, 1.0],
-        },
-      },
-    },
-    skillDetail: {
-      initial: { 
-        opacity: 0, 
-        height: 0,
-        y: reduceMotion ? -5 : -20
-      },
-      animate: { 
-        opacity: 1, 
-        height: 'auto',
-        y: 0,
-        transition: {
-          opacity: { duration: transitionSpeed * 0.75 },
-          height: { duration: transitionSpeed },
-          y: { duration: transitionSpeed * 0.75, ease: "easeOut" }
-        }
-      },
-      exit: { 
-        opacity: 0, 
-        height: 0,
-        y: reduceMotion ? -5 : -10,
-        transition: {
-          opacity: { duration: transitionSpeed * 0.5 },
-          height: { duration: transitionSpeed * 0.75 },
-          y: { duration: transitionSpeed * 0.5 }
-        }
-      }
-    },
-    parallax: {
-      initial: { y: 0 },
-      animate: (custom: number) => ({
-        y: custom,
-        transition: {
-          type: reduceMotion ? "tween" : "spring",
-          stiffness: 10,
-          damping: 25,
-          mass: 1
-        }
-      })
-    }
-  };
-};
 
 // Create animation objects based on performance
 const createAnimationObjects = (performanceSettings: any) => {
@@ -222,33 +147,6 @@ const ContentWrapper = styled(motion.div)<StyledMotionProps>`
   }
 `;
 
-const Greeting = styled(motion.h1)`
-  font-size: 2rem;
-  color: ${({ theme }) => theme.colors.text};
-  margin: 0;
-  line-height: 1.2;
-  transition: all 0.3s ease;
-  cursor: default;
-
-  &:hover {
-    font-size: 2.2rem;
-    color: ${({ theme }) => theme.colors.primary};
-  }
-
-  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    font-size: 1.75rem;
-    &:hover {
-      font-size: 1.95rem;
-    }
-  }
-
-  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    font-size: 1.5rem;
-    &:hover {
-      font-size: 1.7rem;
-    }
-  }
-`;
 
 const Name = styled(motion.h2)<StyledMotionProps>`
   font-size: 4rem;
@@ -267,36 +165,7 @@ const Name = styled(motion.h2)<StyledMotionProps>`
   }
 `;
 
-const Title = styled(motion.h3)`
-  font-size: 2rem;
-  color: ${({ theme }) => theme.colors.text};
-  margin: 0;
-  line-height: 1.2;
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    font-size: 1.75rem;
-  }
-
-  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    font-size: 1.5rem;
-  }
-`;
-
-const Description = styled(motion.p)`
-  font-size: 1.25rem;
-  color: ${({ theme }) => theme.colors.text};
-  max-width: 600px;
-  line-height: 1.6;
-  margin: 0;
-
-  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    font-size: 1.1rem;
-  }
-
-  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    font-size: 1rem;
-  }
-`;
 
 // Enhanced skill detail container with more visual feedback
 const SkillDetailContainer = styled(motion.div)`
@@ -541,7 +410,6 @@ const AnimatedBioItem = memo(({
   animationVariants,
   animationObjects
 }: AnimatedBioItemProps) => {
-  const skillId = text === 'UI Designer' ? 'ui' : text === 'API Coding' ? 'api' : 'db';
   
   return (
     <motion.button
@@ -735,22 +603,12 @@ export const Hero: React.FC = () => {
   
   // Create refs for touch interactions and section visibility
   const bioRef = useRef<HTMLDivElement>(null);
-  const sectionRef = useRef<HTMLElement>(null);
-  const heroRef = useRef<HTMLElement>(null);
   
-  // Initialize animation controller for parallax effects
-  const parallaxControls = useAnimation();
   
   // Use our new hooks for device optimization
   const deviceCapabilities = useDeviceCapabilities();
   const { performanceSettings } = usePerformanceOptimizations();
-  const touchInteractions = useTouchInteractions(heroRef);
   
-  // Create observation for element visibility
-  const [contentRef, inView] = useInView({
-    threshold: 0.1,
-    triggerOnce: false
-  });
   
   // Memoize animation settings based on performance
   const animationVariants = useMemo(
@@ -801,39 +659,8 @@ export const Hero: React.FC = () => {
   // Determine if we're on a touch device for interaction optimizations
   const isTouchDevice = deviceCapabilities.isTouchDevice;
   
-  // Window size tracking for responsive adjustments
-  const [windowSize, setWindowSize] = useState({ 
-    width: deviceCapabilities.viewportWidth || 0, 
-    height: deviceCapabilities.viewportHeight || 0 
-  });
   
-  // Update window size when device capabilities change
-  useEffect(() => {
-    setWindowSize({
-      width: deviceCapabilities.viewportWidth,
-      height: deviceCapabilities.viewportHeight
-    });
-  }, [deviceCapabilities.viewportWidth, deviceCapabilities.viewportHeight]);
   
-  // Parallax effect on mouse move
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    // Skip parallax on touch devices or if disabled
-    if (isTouchDevice || !performanceSettings.enableParallax) return;
-    
-    const { clientX, clientY } = e;
-    const moveX = (clientX - windowSize.width / 2) / 50;
-    const moveY = (clientY - windowSize.height / 2) / 50;
-    
-    parallaxControls.start((i) => ({
-      x: moveX * (i * 0.5),
-      y: moveY * (i * 0.5),
-    }));
-  }, [isTouchDevice, windowSize, parallaxControls, performanceSettings.enableParallax]);
-  
-  // Reset parallax on mouse leave
-  const handleMouseLeave = useCallback(() => {
-    parallaxControls.start({ x: 0, y: 0 });
-  }, [parallaxControls]);
   
   // Memoize bio items
   const bioItems = useMemo(() => [

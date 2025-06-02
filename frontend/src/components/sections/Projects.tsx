@@ -5,18 +5,23 @@ import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import useDeviceCapabilities from '../../hooks/useDeviceCapabilities';
 import usePerformanceOptimizations from '../../hooks/usePerformanceOptimizations';
-import useTouchInteractions from '../../hooks/useTouchInteractions';
 import { ProjectCard } from '../ui/ProjectCard';
 import LanguageFilter from '../ui/LanguageFilter';
+import { mockProjects } from '../../data/projects';
 
 // Types
 interface Project {
   id: string;
-  title: string;
+  name: string;
+  title?: string; // For backward compatibility
   description: string;
-  image: string;
-  link: string;
-  language: string;
+  image?: string;
+  link?: string;
+  repo_url?: string;
+  live_url?: string;
+  language?: string;
+  tags?: string[];
+  status: string;
 }
 
 interface ProjectsProps {
@@ -175,14 +180,17 @@ const ProjectCardWrapper = styled(motion.div)`
 `;
 
 export const Projects: React.FC<ProjectsProps> = ({
-  projects = [],
-  title = 'Selected Work',
+  projects: propProjects,
+  title = 'Featured Projects',
   subtitle = 'A showcase of my recent projects and experiments.',
   languages = ['All'],
   selectedLanguage = 'All',
   onLanguageChange
 }) => {
-  // State for filtering
+  // State for filtering and data
+  const [projects, setProjects] = useState<Project[]>(propProjects ? [...propProjects] : []);
+  const [loading, setLoading] = useState(!propProjects);
+  const [error, setError] = useState<string | null>(null);
   const [currentLanguage, setCurrentLanguage] = useState(selectedLanguage);
   const [isInitialRender, setIsInitialRender] = useState(true);
   
@@ -196,7 +204,6 @@ export const Projects: React.FC<ProjectsProps> = ({
   // Get device capabilities and performance settings for optimization
   const deviceCapabilities = useDeviceCapabilities();
   const { performanceSettings } = usePerformanceOptimizations();
-  const touchInteractions = useTouchInteractions(containerRef);
   
   // Animation controls for grid items
   const controls = useAnimation();
@@ -217,12 +224,77 @@ export const Projects: React.FC<ProjectsProps> = ({
     }
   }, [controls, inView]);
   
+  // Fetch projects from API if not provided via props
+  useEffect(() => {
+    if (!propProjects) {
+      const fetchProjects = async () => {
+        try {
+          setLoading(true);
+          setError(null);
+          
+          // Get API URL from environment
+          const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:8080';
+          const response = await fetch(`${apiUrl}/api/v1/projects/featured`);
+          
+          if (!response.ok) {
+            throw new Error(`Failed to fetch projects: ${response.status} ${response.statusText}`);
+          }
+          
+          const data = await response.json();
+          const fetchedProjects = data.projects || [];
+          
+          // Transform backend data to match frontend interface
+          const transformedProjects = fetchedProjects.map((proj: any) => ({
+            id: proj.id,
+            name: proj.name,
+            title: proj.name, // Map name to title for compatibility
+            description: proj.description,
+            language: proj.tags?.[0] || 'Other', // Use first tag as language
+            link: proj.live_url || proj.repo_url, // Prefer live URL
+            image: '/favicon-32x32.png', // Placeholder image
+            repo_url: proj.repo_url,
+            live_url: proj.live_url,
+            tags: proj.tags || [],
+            status: proj.status,
+          }));
+          
+          setProjects(transformedProjects);
+        } catch (err) {
+          console.error('Error fetching projects:', err);
+          setError(err instanceof Error ? err.message : 'Failed to load projects');
+          
+          // Fallback to mock data on error
+          const transformedMockProjects = mockProjects.map((proj: any) => ({
+            id: proj.id,
+            name: proj.name,
+            title: proj.name,
+            description: proj.description,
+            language: proj.tags?.[0] || 'Other',
+            link: proj.live_url || proj.repo_url,
+            image: '/favicon-32x32.png',
+            repo_url: proj.repo_url,
+            live_url: proj.live_url,
+            tags: proj.tags || [],
+            status: proj.status,
+          }));
+          
+          setProjects(transformedMockProjects);
+          setError(null); // Clear error since we have fallback data
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchProjects();
+    }
+  }, [propProjects]);
+
   // Effect to sync external selectedLanguage prop if provided
   useEffect(() => {
     if (selectedLanguage !== currentLanguage) {
       setCurrentLanguage(selectedLanguage);
     }
-  }, [selectedLanguage]);
+  }, [selectedLanguage, currentLanguage]);
   
   // Memoize filter handler to prevent unnecessary re-renders
   const handleLanguageSelect = useCallback((language: string) => {
@@ -237,6 +309,17 @@ export const Projects: React.FC<ProjectsProps> = ({
     if (currentLanguage === 'All') return projects;
     return projects.filter(project => project.language === currentLanguage);
   }, [currentLanguage, projects]);
+
+  // Generate languages from project data
+  const availableLanguages = useMemo(() => {
+    const langs = new Set(['All']);
+    projects.forEach(project => {
+      if (project.language) {
+        langs.add(project.language);
+      }
+    });
+    return Array.from(langs);
+  }, [projects]);
   
   // Create animation variants based on performance settings and device capabilities
   const containerVariants = useMemo(() => ({
@@ -316,7 +399,7 @@ export const Projects: React.FC<ProjectsProps> = ({
         </Subtitle>
         
         <LanguageFilter
-          languages={languages}
+          languages={availableLanguages}
           selectedLanguage={currentLanguage}
           onSelectLanguage={handleLanguageSelect}
         />
@@ -329,7 +412,25 @@ export const Projects: React.FC<ProjectsProps> = ({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
           >
-            {filteredProjects.length > 0 ? (
+            {loading ? (
+              <EmptyState
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+              >
+                <h3>Loading projects...</h3>
+                <p>Please wait while we fetch the latest project information.</p>
+              </EmptyState>
+            ) : error ? (
+              <EmptyState
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+              >
+                <h3>Error loading projects</h3>
+                <p>{error}</p>
+              </EmptyState>
+            ) : filteredProjects.length > 0 ? (
               <ProjectsGrid
                 variants={containerVariants}
                 initial="hidden"
@@ -343,7 +444,12 @@ export const Projects: React.FC<ProjectsProps> = ({
                     layoutId={`project-${project.id || index}`}
                   >
                     <ProjectCard 
-                      {...project} 
+                      id={project.id}
+                      title={project.title || project.name}
+                      description={project.description}
+                      image={project.image || '/favicon-32x32.png'}
+                      link={project.link || project.live_url || project.repo_url || '#'}
+                      language={project.language}
                       useSimplifiedEffects={shouldUseSimplifiedAnimation}
                       supportsBackdropFilter={supportsBackdropFilter}
                     />

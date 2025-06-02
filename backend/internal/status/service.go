@@ -8,7 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"github.com/jadenrazo/project-website/backend/internal/common/metrics"
+	"github.com/JadenRazo/Project-Website/backend/internal/common/metrics"
 )
 
 // ServiceStatus represents the status of a service
@@ -88,9 +88,9 @@ func NewService(db *gorm.DB, checkInterval time.Duration, metricsManager *metric
 	// Start monitoring
 	go service.startMonitoring()
 
-	// Start periodic latency collection
+	// Start periodic latency collection (every 30 seconds for more granular data)
 	if metricsManager != nil {
-		metricsManager.StartPeriodicLatencyCollector(1*time.Minute, "http://localhost:8080/api/status")
+		metricsManager.StartPeriodicLatencyCollector(30*time.Second, "http://localhost:8080/api/v1/status/")
 	}
 
 	return service

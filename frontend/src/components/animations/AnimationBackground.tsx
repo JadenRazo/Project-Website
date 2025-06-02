@@ -104,6 +104,71 @@ export const AnimationBackground: React.FC = () => {
     };
   }, []);
 
+  // Update and draw particles
+  const updateAndDrawParticles = (ctx: CanvasRenderingContext2D) => {
+    particlesRef.current.forEach(particle => {
+      // Update position
+      particle.x += particle.speedX;
+      particle.y += particle.speedY;
+      
+      // Wrap around edges
+      if (particle.x > dimensions.width + particle.size) {
+        particle.x = -particle.size;
+      } else if (particle.x < -particle.size) {
+        particle.x = dimensions.width + particle.size;
+      }
+      
+      if (particle.y > dimensions.height + particle.size) {
+        particle.y = -particle.size;
+      } else if (particle.y < -particle.size) {
+        particle.y = dimensions.height + particle.size;
+      }
+      
+      // Draw particle
+      ctx.beginPath();
+      ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+      
+      // Use particle opacity to make it more interesting
+      const opacity = Math.floor(particle.opacity * 255).toString(16).padStart(2, '0');
+      ctx.fillStyle = `${ANIMATION_CONFIG.PARTICLE_COLOR}${opacity}`;
+      ctx.fill();
+    });
+  };
+
+  // Draw connections between particles
+  const drawConnections = (ctx: CanvasRenderingContext2D) => {
+    ctx.strokeStyle = ANIMATION_CONFIG.CONNECTION_COLOR;
+    ctx.lineWidth = 0.8;
+    
+    for (let i = 0; i < particlesRef.current.length; i++) {
+      const p1 = particlesRef.current[i];
+      
+      for (let j = i + 1; j < particlesRef.current.length; j++) {
+        const p2 = particlesRef.current[j];
+        
+        // Calculate distance between particles
+        const dx = p1.x - p2.x;
+        const dy = p1.y - p2.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // Only draw connections if particles are close enough
+        if (distance < ANIMATION_CONFIG.CONNECTION_DISTANCE) {
+          // Make connections fade with distance
+          const opacity = 1 - distance / ANIMATION_CONFIG.CONNECTION_DISTANCE;
+          ctx.globalAlpha = opacity * 0.5; // Make connections semi-transparent
+          
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.stroke();
+        }
+      }
+    }
+    
+    // Reset global alpha
+    ctx.globalAlpha = 1;
+  };
+
   // Initialize particles when dimensions change
   useEffect(() => {
     if (dimensions.width === 0 || dimensions.height === 0) return;
@@ -174,72 +239,7 @@ export const AnimationBackground: React.FC = () => {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [dimensions]);
-
-  // Update and draw particles
-  const updateAndDrawParticles = (ctx: CanvasRenderingContext2D) => {
-    particlesRef.current.forEach(particle => {
-      // Update position
-      particle.x += particle.speedX;
-      particle.y += particle.speedY;
-      
-      // Wrap around edges
-      if (particle.x > dimensions.width + particle.size) {
-        particle.x = -particle.size;
-      } else if (particle.x < -particle.size) {
-        particle.x = dimensions.width + particle.size;
-      }
-      
-      if (particle.y > dimensions.height + particle.size) {
-        particle.y = -particle.size;
-      } else if (particle.y < -particle.size) {
-        particle.y = dimensions.height + particle.size;
-      }
-      
-      // Draw particle
-      ctx.beginPath();
-      ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-      
-      // Use particle opacity to make it more interesting
-      const opacity = Math.floor(particle.opacity * 255).toString(16).padStart(2, '0');
-      ctx.fillStyle = `${ANIMATION_CONFIG.PARTICLE_COLOR}${opacity}`;
-      ctx.fill();
-    });
-  };
-
-  // Draw connections between particles
-  const drawConnections = (ctx: CanvasRenderingContext2D) => {
-    ctx.strokeStyle = ANIMATION_CONFIG.CONNECTION_COLOR;
-    ctx.lineWidth = 0.8;
-    
-    for (let i = 0; i < particlesRef.current.length; i++) {
-      const p1 = particlesRef.current[i];
-      
-      for (let j = i + 1; j < particlesRef.current.length; j++) {
-        const p2 = particlesRef.current[j];
-        
-        // Calculate distance between particles
-        const dx = p1.x - p2.x;
-        const dy = p1.y - p2.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        
-        // Only draw connections if particles are close enough
-        if (distance < ANIMATION_CONFIG.CONNECTION_DISTANCE) {
-          // Make connections fade with distance
-          const opacity = 1 - distance / ANIMATION_CONFIG.CONNECTION_DISTANCE;
-          ctx.globalAlpha = opacity * 0.5; // Make connections semi-transparent
-          
-          ctx.beginPath();
-          ctx.moveTo(p1.x, p1.y);
-          ctx.lineTo(p2.x, p2.y);
-          ctx.stroke();
-        }
-      }
-    }
-    
-    // Reset global alpha
-    ctx.globalAlpha = 1;
-  };
+  }, [dimensions, updateAndDrawParticles, drawConnections]);
 
   return (
     <AnimationContainer ref={containerRef} className="animation-background">

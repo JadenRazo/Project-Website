@@ -2,9 +2,9 @@ package metrics
 
 import (
 	"net/http"
-	"strconv"
 	"time"
 )
+
 
 // LatencyMiddleware creates middleware that tracks request latency
 func (m *Manager) LatencyMiddleware() func(http.Handler) http.Handler {
@@ -33,16 +33,6 @@ func (m *Manager) LatencyMiddleware() func(http.Handler) http.Handler {
 	}
 }
 
-// responseWriter wraps http.ResponseWriter to capture status code
-type responseWriter struct {
-	http.ResponseWriter
-	statusCode int
-}
-
-func (rw *responseWriter) WriteHeader(code int) {
-	rw.statusCode = code
-	rw.ResponseWriter.WriteHeader(code)
-}
 
 // HealthCheckMiddleware specifically tracks health check latency
 func (m *Manager) HealthCheckMiddleware() func(http.Handler) http.Handler {
@@ -72,22 +62,24 @@ func (m *Manager) StartPeriodicLatencyCollector(interval time.Duration, healthCh
 		defer ticker.Stop()
 
 		client := &http.Client{
-			Timeout: 10 * time.Second,
+			Timeout: 5 * time.Second,
 		}
 
 		for range ticker.C {
 			start := time.Now()
 			
 			resp, err := client.Get(healthCheckURL)
+			latency := float64(time.Since(start).Nanoseconds()) / 1e6
+			
 			if err != nil {
+				// Still record the latency even if there's an error (shows system issues)
+				m.RecordLatency(latency, "/api/status")
 				continue
 			}
 			resp.Body.Close()
 			
-			if resp.StatusCode == http.StatusOK {
-				latency := float64(time.Since(start).Nanoseconds()) / 1e6
-				m.RecordLatency(latency, "/health-check")
-			}
+			// Record latency regardless of status code to show real response times
+			m.RecordLatency(latency, "/api/status")
 		}
 	}()
 }
