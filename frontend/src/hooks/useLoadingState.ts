@@ -158,7 +158,8 @@ export const useAsyncOperation = <T = any>(
       setState({ data: null, loading: false, error: errorObj });
       throw errorObj;
     }
-  }, dependencies);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [operation, ...dependencies]);
 
   return {
     ...state,

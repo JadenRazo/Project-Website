@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { useAuth } from '../../hooks/useAuth';
 import Collapsible from 'react-collapsible';
+import ProjectManager from '../../components/devpanel/ProjectManager';
 import {
   LineChart,
   Line,
@@ -12,22 +13,12 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell
+  ResponsiveContainer
 } from 'recharts';
 
 // Types
-interface Project {
-  id: string;
-  name: string;
-  description: string;
-  url: string;
-  status: string;
-}
 
-interface ServiceMetrics {
+interface ServiceMetricsData {
   name: string;
   status: string;
   uptime: string;
@@ -161,67 +152,11 @@ const ChartContainer = styled.div`
   }
 `;
 
-const ProjectsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 1.5rem;
-  margin-top: 2rem;
-`;
 
-const ProjectCard = styled.div`
-  background: ${({ theme }) => theme.colors.card};
-  border-radius: 8px;
-  padding: 1.5rem;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
-  }
-`;
 
-const ProjectTitle = styled.h3`
-  font-size: 1.25rem;
-  margin-bottom: 0.5rem;
-  color: ${({ theme }) => theme.colors.text};
-`;
 
-const ProjectDescription = styled.p`
-  color: ${({ theme }) => theme.colors.textSecondary};
-  margin-bottom: 1rem;
-  line-height: 1.5;
-`;
 
-const ProjectStatus = styled.span<{ status: string }>`
-  display: inline-block;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  background: ${({ theme, status }) => 
-    status === 'active' ? theme.colors.success + '20' :
-    status === 'development' ? theme.colors.warning + '20' :
-    theme.colors.error + '20'
-  };
-  color: ${({ theme, status }) => 
-    status === 'active' ? theme.colors.success :
-    status === 'development' ? theme.colors.warning :
-    theme.colors.error
-  };
-`;
 
-const ProjectLink = styled.a`
-  display: inline-block;
-  margin-top: 1rem;
-  color: ${({ theme }) => theme.colors.primary};
-  text-decoration: none;
-  
-  &:hover {
-    text-decoration: underline;
-  }
-`;
 
 const ErrorMessage = styled.div`
   padding: 1rem;
@@ -505,9 +440,8 @@ const LoadingContent = styled.div`
 // Main Component
 const DevPanel: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
-  const [projects, setProjects] = useState<Project[]>([]);
   const [systemMetrics, setSystemMetrics] = useState<SystemMetrics | null>(null);
-  const [serviceMetrics, setServiceMetrics] = useState<ServiceMetrics[]>([]);
+  const [serviceMetrics, setServiceMetrics] = useState<ServiceMetricsData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [controlError, setControlError] = useState<string | null>(null);
@@ -531,7 +465,7 @@ const DevPanel: React.FC = () => {
     }));
   };
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     if (!user?.token) {
       setError('Authentication required');
       return;
@@ -557,11 +491,6 @@ const DevPanel: React.FC = () => {
       const servicesData = await servicesResponse.json();
       setServiceMetrics(servicesData);
 
-      // Fetch projects
-      const projectsResponse = await fetch('/api/v1/devpanel/projects', { headers });
-      if (!projectsResponse.ok) throw new Error('Failed to fetch projects');
-      const projectsData = await projectsResponse.json();
-      setProjects(projectsData);
 
     } catch (err) {
       console.error('Error fetching data:', err);
@@ -570,7 +499,7 @@ const DevPanel: React.FC = () => {
       setLoading(false);
       setIsRefreshing(false);
     }
-  };
+  }, [user?.token]);
 
   const controlService = async (serviceName: string, action: 'start' | 'stop' | 'restart') => {
     if (!user?.token) {
@@ -614,7 +543,7 @@ const DevPanel: React.FC = () => {
     const interval = setInterval(fetchData, 30000); // Refresh every 30 seconds
 
     return () => clearInterval(interval);
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, fetchData]);
 
   if (!isAuthenticated || !user?.isAdmin) {
     return (
@@ -637,7 +566,6 @@ const DevPanel: React.FC = () => {
     requests: service.requestCount,
   }));
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
   return (
     <PageContainer>
@@ -877,7 +805,7 @@ const DevPanel: React.FC = () => {
           <Collapsible
             trigger={
               <SectionHeader>
-                <h2>Projects</h2>
+                <h2>Project Management</h2>
                 <SectionIcon isOpen={openSections.projects}>▼</SectionIcon>
               </SectionHeader>
             }
@@ -886,20 +814,7 @@ const DevPanel: React.FC = () => {
             transitionTime={200}
           >
             <SectionContent>
-          <ProjectsGrid>
-            {projects.map(project => (
-              <ProjectCard key={project.id}>
-                <ProjectTitle>{project.name}</ProjectTitle>
-                <ProjectStatus status={project.status}>
-                  {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
-                </ProjectStatus>
-                <ProjectDescription>{project.description}</ProjectDescription>
-                <ProjectLink href={project.url} target={project.url.startsWith('http') ? "_blank" : undefined}>
-                  View Project
-                </ProjectLink>
-              </ProjectCard>
-            ))}
-          </ProjectsGrid>
+              <ProjectManager />
             </SectionContent>
           </Collapsible>
 

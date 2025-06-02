@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { preloader, smartPreloader, preloadRouteAssets, preloadCriticalAssets } from '../utils/preloader';
 
 interface UsePreloaderOptions {
@@ -18,7 +18,6 @@ export const usePreloader = (options: UsePreloaderOptions = {}) => {
   } = options;
 
   const location = useLocation();
-  const navigate = useNavigate();
 
   // Preload critical assets on app initialization
   useEffect(() => {

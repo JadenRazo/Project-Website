@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import styled, { keyframes } from 'styled-components';
+import styled, { keyframes, css } from 'styled-components';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -11,7 +11,6 @@ import {
   Tooltip,
   Legend,
   Filler,
-  TooltipItem,
 } from 'chart.js';
 
 // Register Chart.js components
@@ -192,7 +191,7 @@ const ChartContainer = styled.div<{ $hasData: boolean }>`
   justify-content: center;
   position: relative;
 
-  ${props => !props.$hasData && `
+  ${props => !props.$hasData && css`
     background: linear-gradient(90deg, 
       ${props.theme.colors.surface} 25%, 
       rgba(255, 255, 255, 0.1) 50%, 
@@ -303,9 +302,9 @@ const LastUpdated = styled.div`
 `;
 
 const HoverInfo = styled.div<{ $x: number; $y: number; $visible: boolean }>`
-  position: absolute;
-  left: ${props => props.$x}px;
-  top: ${props => props.$y}px;
+  position: fixed;
+  left: ${props => Math.max(10, Math.min(props.$x, window.innerWidth - 200))}px;
+  top: ${props => Math.max(10, props.$y - 80)}px;
   background: ${props => props.theme.colors.surface};
   color: ${props => props.theme.colors.text};
   padding: 12px 16px;
@@ -313,13 +312,13 @@ const HoverInfo = styled.div<{ $x: number; $y: number; $visible: boolean }>`
   border: 1px solid ${props => props.theme.colors.border};
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   pointer-events: none;
-  z-index: 1000;
+  z-index: 10000;
   opacity: ${props => props.$visible ? 1 : 0};
-  transform: translate(-50%, -100%) translateY(-8px);
   transition: opacity 0.2s ease;
   font-size: 14px;
   font-weight: 500;
   white-space: nowrap;
+  min-width: 180px;
 
   .date {
     color: ${props => props.theme.colors.textSecondary};
@@ -357,12 +356,23 @@ const SystemMetrics: React.FC = () => {
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`/api/status/metrics/${period}`);
+      const response = await fetch(`/api/v1/status/metrics/${period}`);
       if (!response.ok) {
         throw new Error(`Failed to fetch metrics: ${response.statusText}`);
       }
       
       const data: SystemMetricsData = await response.json();
+      
+      // Debug logging for development
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[SystemMetrics] Fetched ${period} metrics:`, {
+          period: data.period,
+          hasData: data.has_sufficient_data,
+          metricCount: data.metrics?.length || 0,
+          sampleTimestamps: data.metrics?.slice(0, 3).map(m => m.timestamp) || [],
+        });
+      }
+      
       setMetricsData(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch metrics');
@@ -383,21 +393,71 @@ const SystemMetrics: React.FC = () => {
     return () => clearInterval(interval);
   }, [selectedPeriod, fetchMetrics]);
 
+  const sortedMetrics = useMemo(() => {
+    if (!metricsData?.metrics?.length) {
+      return [];
+    }
+    // Sort metrics by timestamp to ensure chronological order
+    const sorted = [...metricsData.metrics].sort((a, b) => 
+      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    );
+    
+    // Debug logging for development
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[SystemMetrics] Sorted metrics for ${selectedPeriod}:`, {
+        originalCount: metricsData.metrics.length,
+        sortedCount: sorted.length,
+        firstTimestamp: sorted[0]?.timestamp,
+        lastTimestamp: sorted[sorted.length - 1]?.timestamp,
+        sampleLabels: sorted.slice(0, 5).map(m => {
+          const date = new Date(m.timestamp);
+          return selectedPeriod === 'day' 
+            ? date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+            : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }),
+      });
+    }
+    
+    return sorted;
+  }, [metricsData?.metrics, selectedPeriod]);
+
   const chartData = useMemo(() => {
-    if (!metricsData?.has_sufficient_data || !metricsData.metrics.length) {
+    if (!metricsData?.has_sufficient_data || !sortedMetrics.length) {
       return null;
     }
 
-    const labels = metricsData.metrics.map(metric => {
+    const labels = sortedMetrics.map(metric => {
       const date = new Date(metric.timestamp);
-      return selectedPeriod === 'day' 
-        ? date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-        : selectedPeriod === 'week'
-        ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit' })
-        : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      switch (selectedPeriod) {
+        case 'day':
+          return date.toLocaleTimeString('en-US', { 
+            hour: 'numeric', 
+            minute: '2-digit',
+            hour12: true 
+          });
+        case 'week':
+          return date.toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric'
+          }) + ' ' + date.toLocaleTimeString('en-US', { 
+            hour: 'numeric',
+            hour12: true 
+          });
+        case 'month':
+          return date.toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric' 
+          });
+        default:
+          return date.toLocaleTimeString('en-US', { 
+            hour: 'numeric', 
+            minute: '2-digit',
+            hour12: true 
+          });
+      }
     });
 
-    const data = metricsData.metrics.map(metric => metric.latency);
+    const data = sortedMetrics.map(metric => metric.latency);
 
     return {
       labels,
@@ -421,7 +481,7 @@ const SystemMetrics: React.FC = () => {
         },
       ],
     };
-  }, [metricsData, selectedPeriod]);
+  }, [sortedMetrics, selectedPeriod, metricsData?.has_sufficient_data]);
 
   const chartOptions = useMemo(() => ({
     responsive: true,
@@ -447,19 +507,21 @@ const SystemMetrics: React.FC = () => {
           const position = chart.canvas.getBoundingClientRect();
           const dataPoint = tooltip.dataPoints?.[0];
           
-          if (dataPoint && metricsData?.metrics[dataPoint.dataIndex]) {
-            const metric = metricsData.metrics[dataPoint.dataIndex];
+          if (dataPoint && sortedMetrics[dataPoint.dataIndex]) {
+            const metric = sortedMetrics[dataPoint.dataIndex];
             const date = new Date(metric.timestamp);
             
             setHoverInfo({
-              x: position.left + tooltip.caretX,
-              y: position.top + tooltip.caretY,
+              x: position.left + window.scrollX + tooltip.caretX,
+              y: position.top + window.scrollY + tooltip.caretY,
               visible: true,
               date: date.toLocaleString('en-US', {
+                weekday: 'short',
                 month: 'short',
                 day: 'numeric',
-                hour: '2-digit',
+                hour: 'numeric',
                 minute: '2-digit',
+                hour12: true,
               }),
               latency: metric.latency,
             });
@@ -475,7 +537,9 @@ const SystemMetrics: React.FC = () => {
         },
         ticks: {
           color: '#9ca3af',
-          maxTicksLimit: selectedPeriod === 'day' ? 12 : selectedPeriod === 'week' ? 7 : 15,
+          maxTicksLimit: selectedPeriod === 'day' ? 24 : selectedPeriod === 'week' ? 14 : 12,
+          maxRotation: 45,
+          minRotation: 0,
         },
       },
       y: {
@@ -495,7 +559,7 @@ const SystemMetrics: React.FC = () => {
         hoverBorderWidth: 3,
       },
     },
-  }), [selectedPeriod, metricsData]);
+  }), [selectedPeriod, sortedMetrics]);
 
   const handlePeriodChange = (period: TimePeriod) => {
     setSelectedPeriod(period);

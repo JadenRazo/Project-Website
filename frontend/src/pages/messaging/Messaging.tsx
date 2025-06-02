@@ -84,7 +84,7 @@ const ChannelList = styled.div`
   padding: 1rem 0;
 `;
 
-const Channel = styled.div<{ active?: boolean }>`
+const ChannelItem = styled.div<{ active?: boolean }>`
   padding: 0.75rem 1rem;
   cursor: pointer;
   color: ${({ theme, active }) => active ? theme.colors.primary : theme.colors.text};
@@ -588,13 +588,13 @@ const Messaging: React.FC = () => {
           
           <ChannelList>
             {channels.map(channel => (
-              <Channel 
+              <ChannelItem 
                 key={channel.id}
                 active={selectedChannel?.id === channel.id}
                 onClick={() => setSelectedChannel(channel)}
               >
                 <ChannelName># {channel.name}</ChannelName>
-              </Channel>
+              </ChannelItem>
             ))}
           </ChannelList>
           

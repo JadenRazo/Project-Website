@@ -1,69 +1,45 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FaGithub as FaGithubIcon,
   FaExternalLinkAlt as FaExternalLinkAltIcon,
   FaLaptopCode as FaLaptopCodeIcon,
   FaCode as FaCodeIcon,
-  FaTimes as FaTimesIcon,
 } from 'react-icons/fa';
 import styled from 'styled-components';
+import { mockProjects } from '../../data/projects';
 
 // --- Types ---
 interface Project {
-  id: string;
-  title: string;
-  description: string;
-  technologies: string[];
-  mediaUrl?: string; // GIF or video
-  mediaType?: 'image' | 'gif' | 'video';
-  githubUrl: string;
-  liveUrl: string;
+  readonly id: string;
+  readonly title: string;
+  readonly description: string;
+  readonly technologies: readonly string[];
+  readonly mediaUrl?: string;
+  readonly mediaType?: 'image' | 'gif' | 'video';
+  readonly githubUrl: string;
+  readonly liveUrl: string;
 }
 
-// --- Sample Data ---
-const projects: Project[] = [
-  {
-    id: 'portfolio',
-    title: 'Portfolio Website',
-    description: 'A modern, responsive portfolio website built with React, TypeScript, and styled-components.',
-    technologies: ['React', 'TypeScript', 'Styled Components', 'Framer Motion'],
-    mediaUrl: '',
-    mediaType: 'gif',
-    githubUrl: '/Project-Website',
-    liveUrl: 'https://jadenrazo.dev'
-  },
-  {
-    id: 'quiz-bot',
-    title: 'Educational Quiz Discord Bot',
-    description: 'An advanced Discord bot that leverages LLMs to create educational quizzes with multi-guild support, achievement system, and real-time leaderboards.',
-    technologies: ['Python', 'Discord.py', 'PostgreSQL', 'OpenAI API', 'Anthropic Claude', 'Google Gemini'],
-    mediaUrl: '/web_ready_quizbot_example_video.mp4',
-    mediaType: 'video',
-    githubUrl: '/Discord-Bot-Python',
-    liveUrl: 'https://discord.gg/your-bot-invite'
-  },
-  {
-    id: 'devpanel',
-    title: 'DevPanel',
-    description: 'A development environment management system with real-time monitoring and control.',
-    technologies: ['React', 'Node.js', 'WebSocket', 'TypeScript'],
-    mediaUrl: '',
-    mediaType: 'video',
-    githubUrl: '/Project-Website/backend/internal/devpanel',
-    liveUrl: 'https://jadenrazo.dev/devpanel'
-  },
-  {
-    id: 'messaging',
-    title: 'Messaging Platform',
-    description: 'A real-time messaging platform with WebSocket integration and modern UI.',
-    technologies: ['React', 'WebSocket', 'Node.js', 'TypeScript'],
-    mediaUrl: '',
-    mediaType: 'gif',
-    githubUrl: '/Project-Website/backend/internal/messaging',
-    liveUrl: 'https://jadenrazo.dev/messaging'
-  }
-];
+// --- Interface for backend data ---
+interface BackendProject {
+  readonly id: string;
+  readonly name: string;
+  readonly description: string;
+  readonly repo_url: string;
+  readonly live_url?: string;
+  readonly tags: readonly string[];
+  readonly status: string;
+}
+
+// --- Component Props ---
+interface ProjectCardProps {
+  readonly project: Project;
+  readonly expanded: boolean;
+  readonly onClick: () => void;
+  readonly tabIndex: number;
+  readonly index: number;
+}
 
 // --- Constants ---
 const HEADER_HEIGHT = 60; // Adjust if your header is taller
@@ -226,29 +202,35 @@ const CodeStatsDisplayContainer = styled(motion.div)`
 
 const ProjectsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 2rem;
   width: 100%;
   box-sizing: border-box;
   overflow: visible;
+  justify-items: center;
+  align-items: start;
   
   @media (max-width: 1200px) {
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 1.75rem;
   }
   
   @media (max-width: 900px) {
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1.5rem;
   }
   
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
     gap: 1.25rem;
+    max-width: 500px;
+    margin: 0 auto;
   }
   
   @media (max-width: 480px) {
     gap: 1rem;
+    max-width: 100%;
+    padding: 0 0.5rem;
   }
 `;
 
@@ -259,32 +241,30 @@ const Card = styled(motion.div)<{ $expanded: boolean }>`
   box-shadow: 0 4px 16px rgba(0,0,0,0.12);
   border: 1px solid ${({ theme }) => theme?.colors?.border || 'rgba(255,255,255,0.1)'};
   overflow: hidden;
-  transition: box-shadow 0.3s, border 0.3s, transform 0.3s;
+  transition: box-shadow 0.3s, border 0.3s;
   outline: none;
   position: relative;
-  height: ${({ $expanded }) => $expanded ? 'auto' : '260px'};
-  min-height: ${({ $expanded }) => $expanded ? '600px' : '260px'};
-  max-height: ${({ $expanded }) => $expanded ? 'none' : '260px'};
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  align-items: stretch;
   box-sizing: border-box;
   width: 100%;
-  ${({ $expanded }) => $expanded ? 'z-index: 2;' : 'z-index: 1;'}
+  height: auto;
+  z-index: ${({ $expanded }) => $expanded ? '999' : '1'};
+  contain: layout style;
+  
+  ${({ $expanded }) => $expanded && `
+    overflow: visible;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    border-color: var(--primary-color, #007bff);
+  `}
+  
   
   @media (max-width: 768px) {
     border-radius: 12px;
-    height: ${({ $expanded }) => $expanded ? 'auto' : '240px'};
-    min-height: ${({ $expanded }) => $expanded ? '500px' : '240px'};
-    max-height: ${({ $expanded }) => $expanded ? 'none' : '240px'};
   }
   
   @media (max-width: 480px) {
     border-radius: 8px;
-    height: ${({ $expanded }) => $expanded ? 'auto' : '220px'};
-    min-height: ${({ $expanded }) => $expanded ? '420px' : '220px'};
-    max-height: ${({ $expanded }) => $expanded ? 'none' : '220px'};
   }
   
   &:hover, &:focus {
@@ -297,7 +277,7 @@ const Card = styled(motion.div)<{ $expanded: boolean }>`
     }
     
     @media (max-width: 480px) {
-      transform: none; /* Disable hover transform on mobile */
+      transform: none;
     }
   }
   
@@ -336,41 +316,48 @@ const CardHeader = styled.div`
 `;
 
 const CardContent = styled.div`
-  padding: 1.75rem 1.5rem;
+  padding: 1.5rem;
   width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 0;
   
   @media (max-width: 768px) {
-    padding: 1.5rem 1.25rem;
+    padding: 1.25rem;
+    gap: 0.875rem;
   }
   
   @media (max-width: 480px) {
-    padding: 1.25rem 1rem;
+    padding: 1rem;
+    gap: 0.75rem;
   }
 `;
 
 const CardTitle = styled.h2`
-  font-size: 1.5rem;
-  margin-bottom: 0.75rem;
+  font-size: 1.25rem;
+  margin: 0;
   color: ${({ theme }) => theme?.colors?.text || '#fff'};
   font-family: ${({ theme }) => theme?.fonts?.primary || 'system-ui'};
   display: flex;
   align-items: center;
   gap: 0.5rem;
   line-height: 1.3;
+  font-weight: 600;
   
   @media (max-width: 768px) {
-    font-size: 1.35rem;
-    margin-bottom: 0.6rem;
+    font-size: 1.15rem;
   }
   
   @media (max-width: 480px) {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     gap: 0.4rem;
-    margin-bottom: 0.5rem;
   }
   
   svg {
     color: ${({ theme }) => theme?.colors?.primary || '#007bff'};
+    flex-shrink: 0;
     
     @media (max-width: 480px) {
       font-size: 1rem;
@@ -379,20 +366,19 @@ const CardTitle = styled.h2`
 `;
 
 const CardDescription = styled.p`
-  font-size: 1rem;
-  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+  margin: 0;
   color: ${({ theme }) => theme?.colors?.textSecondary || '#aaa'};
-  line-height: 1.6;
+  line-height: 1.5;
+  flex: 1;
   
   @media (max-width: 768px) {
-    font-size: 0.95rem;
-    margin-bottom: 1.25rem;
-    line-height: 1.5;
+    font-size: 0.85rem;
+    line-height: 1.4;
   }
   
   @media (max-width: 480px) {
-    font-size: 0.9rem;
-    margin-bottom: 1rem;
+    font-size: 0.8rem;
     line-height: 1.4;
   }
 `;
@@ -400,114 +386,132 @@ const CardDescription = styled.p`
 const TechStack = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
+  gap: 0.4rem;
+  margin: 0;
   
   @media (max-width: 768px) {
-    gap: 0.4rem;
-    margin-bottom: 1.25rem;
+    gap: 0.35rem;
   }
   
   @media (max-width: 480px) {
-    gap: 0.35rem;
-    margin-bottom: 1rem;
+    gap: 0.3rem;
   }
 `;
 
 const TechTag = styled.span`
   background: ${({ theme }) => theme?.colors?.primaryLight || 'rgba(0,123,255,0.1)'};
   color: ${({ theme }) => theme?.colors?.primary || '#007bff'};
-  padding: 0.25rem 0.75rem;
-  border-radius: 15px;
-  font-size: 0.875rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
   font-family: ${({ theme }) => theme?.fonts?.mono || 'monospace'};
   transition: transform 0.2s, background 0.2s;
   white-space: nowrap;
+  font-weight: 500;
   
   @media (max-width: 768px) {
-    font-size: 0.8rem;
-    padding: 0.2rem 0.6rem;
-    border-radius: 12px;
-  }
-  
-  @media (max-width: 480px) {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     padding: 0.15rem 0.5rem;
     border-radius: 10px;
   }
   
+  @media (max-width: 480px) {
+    font-size: 0.65rem;
+    padding: 0.125rem 0.4rem;
+    border-radius: 8px;
+  }
+  
   &:hover {
-    transform: translateY(-2px);
+    transform: translateY(-1px);
     background: ${({ theme }) => theme?.colors?.primary || '#007bff'};
     color: white;
     
     @media (max-width: 480px) {
-      transform: none; /* Disable hover transform on mobile */
+      transform: none;
     }
   }
 `;
 
 const CardLinks = styled.div`
   display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
+  gap: 0.75rem;
+  margin-top: auto;
   
   @media (max-width: 768px) {
-    gap: 0.8rem;
-    margin-top: 0.8rem;
+    gap: 0.6rem;
   }
   
   @media (max-width: 480px) {
-    gap: 0.6rem;
-    margin-top: 0.6rem;
+    gap: 0.5rem;
+    flex-direction: row;
+  }
+  
+  @media (max-width: 360px) {
     flex-direction: column;
+    gap: 0.4rem;
   }
 `;
 
 const CardLink = styled.a`
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   color: ${({ theme }) => theme?.colors?.primary || '#007bff'};
   text-decoration: none;
   font-family: ${({ theme }) => theme?.fonts?.mono || 'monospace'};
-  font-size: 0.875rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: 8px;
+  font-size: 0.8rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 6px;
   background: ${({ theme }) => `${theme?.colors?.primary}15` || 'rgba(0,123,255,0.1)'};
   transition: background 0.2s, transform 0.2s;
   white-space: nowrap;
+  flex: 1;
+  text-align: center;
+  justify-content: center;
+  min-height: 36px;
+  font-weight: 500;
   
   @media (max-width: 768px) {
-    font-size: 0.8rem;
-    padding: 0.45rem 0.65rem;
-    border-radius: 6px;
+    font-size: 0.75rem;
+    padding: 0.5rem 0.6rem;
+    min-height: 34px;
+    gap: 0.3rem;
   }
   
   @media (max-width: 480px) {
-    font-size: 0.75rem;
-    padding: 0.4rem 0.6rem;
-    border-radius: 6px;
-    justify-content: center;
-    white-space: normal;
-    text-align: center;
-    min-height: 36px;
+    font-size: 0.7rem;
+    padding: 0.4rem 0.5rem;
+    min-height: 32px;
+    gap: 0.25rem;
+  }
+  
+  @media (max-width: 360px) {
+    font-size: 0.65rem;
+    padding: 0.35rem 0.4rem;
+    min-height: 30px;
+    gap: 0.2rem;
   }
   
   &:hover {
     background: ${({ theme }) => `${theme?.colors?.primary}25` || 'rgba(0,123,255,0.15)'};
-    transform: translateY(-2px);
+    transform: translateY(-1px);
     
     @media (max-width: 480px) {
       transform: none;
+      background: ${({ theme }) => `${theme?.colors?.primary}20` || 'rgba(0,123,255,0.12)'};
     }
   }
   
   svg {
-    font-size: 1rem;
+    font-size: 0.9rem;
+    flex-shrink: 0;
     
     @media (max-width: 480px) {
-      font-size: 0.9rem;
+      font-size: 0.8rem;
+    }
+    
+    @media (max-width: 360px) {
+      font-size: 0.75rem;
     }
   }
 `;
@@ -525,22 +529,17 @@ const MediaWrapper = styled(motion.div)`
   overflow: hidden;
   border-top: 1px solid ${({ theme }) => theme?.colors?.border || 'rgba(255,255,255,0.1)'};
   background: ${({ theme }) => theme?.colors?.surface || 'rgba(255,255,255,0.08)'};
+  contain: layout style;
   
-  /* Significantly larger video sizes for better visibility */
-  @media (min-width: 1200px) {
-    min-height: 350px;
-  }
-  
-  @media (min-width: 769px) and (max-width: 1199px) {
-    min-height: 300px;
-  }
+  /* Fixed height to prevent grid disruption */
+  height: 300px;
   
   @media (max-width: 768px) {
-    min-height: 250px;
+    height: 250px;
   }
   
   @media (max-width: 480px) {
-    min-height: 200px;
+    height: 200px;
   }
 `;
 
@@ -599,13 +598,13 @@ const cardVariants = {
 };
 
 // Expandable Card component
-const ProjectCard: React.FC<{
-  project: Project;
-  expanded: boolean;
-  onClick: () => void;
-  tabIndex: number;
-  index: number;
-}> = ({ project, expanded, onClick, tabIndex, index }) => {
+const ProjectCard: React.FC<ProjectCardProps> = React.memo(({ 
+  project, 
+  expanded, 
+  onClick, 
+  tabIndex, 
+  index 
+}) => {
   // Ref for outside click
   const cardRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -624,11 +623,14 @@ const ProjectCard: React.FC<{
   // Close on outside click (desktop only)
   useEffect(() => {
     if (!expanded || isMobile) return;
+    
+    const cardElement = cardRef.current;
     const handleClick = (e: MouseEvent) => {
-      if (cardRef.current && !cardRef.current.contains(e.target as Node)) {
+      if (cardElement && !cardElement.contains(e.target as Node)) {
         onClick();
       }
     };
+    
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [expanded, onClick, isMobile]);
@@ -637,9 +639,7 @@ const ProjectCard: React.FC<{
     <Card
       ref={cardRef}
       $expanded={expanded}
-      tabIndex={tabIndex}
       aria-expanded={expanded}
-      role="button"
       initial="hidden"
       variants={cardVariants}
       whileHover={{ scale: expanded ? 1 : 1.02 }}
@@ -647,9 +647,6 @@ const ProjectCard: React.FC<{
         opacity: 1,
         y: 0, 
         boxShadow: expanded ? '0 8px 32px rgba(0,0,0,0.25)' : '0 4px 16px rgba(0,0,0,0.12)',
-        height: expanded ? 'auto' : (isMobile ? (window.innerWidth <= 480 ? '220px' : '240px') : '260px'),
-        minHeight: expanded ? (isMobile ? (window.innerWidth <= 480 ? '420px' : '500px') : '600px') : (isMobile ? (window.innerWidth <= 480 ? '220px' : '240px') : '260px'),
-        maxHeight: expanded ? 'none' : (isMobile ? (window.innerWidth <= 480 ? '220px' : '240px') : '260px'),
       }}
       transition={{ 
         type: 'spring', 
@@ -705,25 +702,19 @@ const ProjectCard: React.FC<{
         {expanded && (
           <MediaWrapper
             key={"media-" + project.id}
-            initial={{ opacity: 0, height: 0 }}
+            initial={{ opacity: 0, scaleY: 0 }}
             animate={{ 
               opacity: 1, 
-              height: (() => {
-                const width = window.innerWidth;
-                if (width <= 480) return 200;      // Mobile: larger than before
-                if (width <= 768) return 250;      // Tablet: much larger
-                if (width <= 1024) return 300;     // Small desktop: larger
-                if (width <= 1200) return 320;     // Medium desktop: larger
-                return 350;                         // Large desktop: much larger
-              })()
+              scaleY: 1
             }}
-            exit={{ opacity: 0, height: 0 }}
+            exit={{ opacity: 0, scaleY: 0 }}
             transition={{ 
               type: 'spring', 
-              stiffness: window.innerWidth <= 768 ? 180 : 200, 
-              damping: window.innerWidth <= 768 ? 20 : 25,
-              duration: window.innerWidth <= 480 ? 0.4 : 0.5
+              stiffness: 300, 
+              damping: 30,
+              duration: 0.4
             }}
+            style={{ transformOrigin: 'top' }}
             onClick={e => e.stopPropagation()} // Prevent bubbling to header
           >
             {isMobile && (
@@ -734,7 +725,7 @@ const ProjectCard: React.FC<{
                 }}
                 aria-label="Close media"
               >
-                <FaTimesIcon />
+                ×
               </MobileCloseButton>
             )}
             <motion.div
@@ -798,7 +789,18 @@ const ProjectCard: React.FC<{
       </AnimatePresence>
     </Card>
   );
-};
+}, (prevProps: ProjectCardProps, nextProps: ProjectCardProps): boolean => {
+  // Custom comparison function for React.memo
+  return (
+    prevProps.project.id === nextProps.project.id &&
+    prevProps.expanded === nextProps.expanded &&
+    prevProps.tabIndex === nextProps.tabIndex &&
+    prevProps.index === nextProps.index &&
+    prevProps.onClick === nextProps.onClick
+  );
+});
+
+ProjectCard.displayName = 'ProjectCard';
 
 // --- Main Projects Page ---
 const Projects: React.FC = () => {
@@ -807,23 +809,30 @@ const Projects: React.FC = () => {
   const [totalLinesOfCode, setTotalLinesOfCode] = useState<number | null>(null);
   const [isLoadingLines, setIsLoadingLines] = useState<boolean>(true);
   const [errorLines, setErrorLines] = useState<string | null>(null);
-  const [isMobileView, setIsMobileView] = useState<boolean>(false);
+  
+  // Projects state
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [projectsLoading, setProjectsLoading] = useState<boolean>(true);
+  const [projectsError, setProjectsError] = useState<string | null>(null);
 
-  // Detect mobile view
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobileView(window.innerWidth <= 768);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   // Handler for card click
-  const handleCardClick = (id: string) => {
-    setExpandedId(prev => (prev === id ? null : id));
-  };
+  const handleCardClick = useCallback((id: string) => {
+    if (expandedId === id) {
+      setExpandedId(null);
+    } else {
+      setExpandedId(id);
+    }
+  }, [expandedId]);
+
+  // Memoized click handlers for each project to prevent unnecessary re-renders
+  const clickHandlers = useMemo(() => {
+    const handlers = new Map<string, () => void>();
+    projects.forEach(project => {
+      handlers.set(project.id, () => handleCardClick(project.id));
+    });
+    return handlers;
+  }, [projects, handleCardClick]);
   
   // Close expanded card when clicking outside of any card (desktop only)
   useEffect(() => {
@@ -840,13 +849,96 @@ const Projects: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, [expandedId]);
 
+  // Fetch projects from API
   useEffect(() => {
-    const fetchLinesOfCode = async () => {
+    const fetchProjects = async (): Promise<void> => {
+      setProjectsLoading(true);
+      setProjectsError(null);
+      
+      try {
+        const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:8080';
+        const response = await fetch(`${apiUrl}/api/v1/projects?status=active`);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch projects: ${response.status} ${response.statusText}`);
+        }
+        
+        const data: { projects?: BackendProject[] } = await response.json();
+        const backendProjects: BackendProject[] = data.projects ?? [];
+        
+        if (backendProjects.length === 0) {
+          // Use mock data when API returns empty results
+          const transformedMockProjects: Project[] = mockProjects.map((proj): Project => ({
+            id: proj.id,
+            title: proj.name,
+            description: proj.description,
+            technologies: proj.tags ?? [],
+            mediaUrl: proj.mediaUrl ?? '',
+            mediaType: (proj.mediaType as Project['mediaType']) ?? 'image',
+            githubUrl: proj.repo_url.includes('github.com/JadenRazo') 
+              ? proj.repo_url.replace('https://github.com/JadenRazo', '') 
+              : proj.repo_url,
+            liveUrl: proj.live_url ?? proj.repo_url
+          }));
+          
+          setProjects(transformedMockProjects);
+        } else {
+          // Transform backend data and merge with mock data for media
+          const transformedProjects: Project[] = backendProjects.map((proj: BackendProject): Project => {
+            const mockProject = mockProjects.find(mock => mock.name === proj.name);
+            return {
+              id: proj.id,
+              title: proj.name,
+              description: proj.description,
+              technologies: proj.tags ?? [],
+              mediaUrl: mockProject?.mediaUrl ?? '',
+              mediaType: (mockProject?.mediaType as Project['mediaType']) ?? 'image',
+              githubUrl: proj.repo_url.includes('github.com/JadenRazo') 
+                ? proj.repo_url.replace('https://github.com/JadenRazo', '') 
+                : proj.repo_url,
+              liveUrl: proj.live_url ?? proj.repo_url
+            };
+          });
+          
+          setProjects(transformedProjects);
+        }
+      } catch (err) {
+        console.error("Error fetching projects:", err);
+        const errorMessage = err instanceof Error ? err.message : "Failed to load projects";
+        setProjectsError(errorMessage);
+        
+        // Fallback to mock data
+        const transformedMockProjects: Project[] = mockProjects.map((proj): Project => ({
+          id: proj.id,
+          title: proj.name,
+          description: proj.description,
+          technologies: proj.tags ?? [],
+          mediaUrl: proj.mediaUrl ?? '',
+          mediaType: (proj.mediaType as Project['mediaType']) ?? 'image',
+          githubUrl: proj.repo_url.includes('github.com/JadenRazo') 
+            ? proj.repo_url.replace('https://github.com/JadenRazo', '') 
+            : proj.repo_url,
+          liveUrl: proj.live_url ?? proj.repo_url
+        }));
+        
+        setProjects(transformedMockProjects);
+        setProjectsError(null); // Clear error since we have fallback data
+      } finally {
+        setProjectsLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, []);
+
+  useEffect(() => {
+    const fetchLinesOfCode = async (): Promise<void> => {
       setIsLoadingLines(true);
       setErrorLines(null);
+      
       try {
         // Try API endpoint first, fallback to static JSON
-        let response;
+        let response: Response;
         try {
           // Use the API URL from environment or default to localhost
           const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:8080';
@@ -859,7 +951,8 @@ const Projects: React.FC = () => {
         if (!response.ok) {
           throw new Error(`Failed to fetch code stats: ${response.status} ${response.statusText}`);
         }
-        const data = await response.json();
+        
+        const data: { totalLines?: number; error?: string } = await response.json();
         
         if (data.error) {
           throw new Error(`Error in code stats: ${data.error}`);
@@ -875,7 +968,8 @@ const Projects: React.FC = () => {
         }
       } catch (err) {
         console.error("Error fetching or processing lines of code:", err);
-        setErrorLines(err instanceof Error ? err.message : "An unknown error occurred while loading code stats.");
+        const errorMessage = err instanceof Error ? err.message : "An unknown error occurred while loading code stats.";
+        setErrorLines(errorMessage);
         setTotalLinesOfCode(null); // Clear any previous data
       } finally {
         setIsLoadingLines(false);
@@ -915,18 +1009,38 @@ const Projects: React.FC = () => {
         )}
       </CodeStatsDisplayContainer>
       
-      <ProjectsGrid data-projects-grid>
-        {projects.map((project, idx) => (
-          <ProjectCard
-            key={project.id}
-            project={project}
-            expanded={expandedId === project.id}
-            onClick={() => handleCardClick(project.id)}
-            tabIndex={0}
-            index={idx}
-          />
-        ))}
-      </ProjectsGrid>
+      {projectsLoading ? (
+        <CodeStatsDisplayContainer
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <FaCodeIcon />
+          <span>Loading projects...</span>
+        </CodeStatsDisplayContainer>
+      ) : projectsError ? (
+        <CodeStatsDisplayContainer
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <FaCodeIcon />
+          <span>Error loading projects: {projectsError}</span>
+        </CodeStatsDisplayContainer>
+      ) : (
+        <ProjectsGrid data-projects-grid>
+          {projects.map((project, idx) => (
+            <ProjectCard
+              key={project.id}
+              project={project}
+              expanded={expandedId === project.id}
+              onClick={clickHandlers.get(project.id)!}
+              tabIndex={0}
+              index={idx}
+            />
+          ))}
+        </ProjectsGrid>
+      )}
     </ProjectsContainer>
   );
 };

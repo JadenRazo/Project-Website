@@ -30,6 +30,10 @@ import (
 	"github.com/JadenRazo/Project-Website/backend/internal/devpanel"
 	"github.com/JadenRazo/Project-Website/backend/internal/codestats"
 	codeStatsHTTP "github.com/JadenRazo/Project-Website/backend/internal/codestats/delivery/http"
+	// "github.com/JadenRazo/Project-Website/backend/internal/devpanel/project"
+	projectRepo "github.com/JadenRazo/Project-Website/backend/internal/projects/repository"
+	projectHTTP "github.com/JadenRazo/Project-Website/backend/internal/projects/delivery/http"
+	projectMemoryService "github.com/JadenRazo/Project-Website/backend/internal/projects/service"
 	"github.com/JadenRazo/Project-Website/backend/internal/gateway"
 	"github.com/JadenRazo/Project-Website/backend/internal/messaging"
 	"github.com/JadenRazo/Project-Website/backend/internal/status"
@@ -134,21 +138,14 @@ func main() {
 	}
 
 	// Run migrations
-	logger.Info("Skipping automatic migrations - use migration command instead")
-	// Temporarily commented out to avoid schema conflicts
-	/*
+	logger.Info("Running automatic migrations")
+	
 	err = db.RunMigrations(
-		&domain.User{},
-		&domain.ShortURL{},
-		&domain.Message{},
-		&domain.Channel{},
-		&domain.Attachment{},
-		&domain.CodeStats{},
+		&projectRepo.ProjectModel{},
 	)
 	if err != nil {
 		logger.Fatal("Failed to run migrations", "error", err)
 	}
-	*/
 
 	// Initialize services
 	logger.Info("Initializing services")
@@ -177,6 +174,11 @@ func main() {
 		codeStatsConfig = codestats.DefaultConfig()
 	}
 	codeStatsService := codestats.NewService(database, *codeStatsConfig)
+
+	// Initialize projects service (using memory service for now due to DB issues)
+	// projectRepository := projectRepo.NewGormRepository(database)
+	// projectService := project.NewService(projectRepository)
+	projectService := projectMemoryService.NewMemoryProjectService()
 
 	// Initialize metrics manager
 	metricsConfig := metrics.DefaultConfig()
@@ -258,7 +260,7 @@ func main() {
 
 	// Add latency tracking middleware
 	if metricsManager != nil {
-		apiGateway.AddMiddleware(metricsManager.LatencyMiddleware())
+		apiGateway.AddMiddleware(metricsManager.GinLatencyMiddleware())
 	}
 
 	// Add profiling endpoints in development or if explicitly enabled
@@ -309,6 +311,10 @@ func main() {
 	// Register code stats routes
 	codeStatsHandler := codeStatsHTTP.NewHandler(codeStatsService)
 	apiGateway.RegisterService("code", codeStatsHandler.RegisterRoutes)
+	
+	// Register projects routes - this will create routes at /api/v1/projects/*
+	projectHandler := projectHTTP.NewHandler(projectService)
+	apiGateway.RegisterService("projects", projectHandler.RegisterRoutes)
 	
 	// Register status monitoring routes
 	apiGateway.RegisterService("status", statusService.RegisterRoutes)

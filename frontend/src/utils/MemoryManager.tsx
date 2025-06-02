@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
-import { monitorMemoryUsage, formatBytes, captureMemoryMetrics, PerformanceMetrics } from './performance';
+import { monitorMemoryUsage, captureMemoryMetrics, PerformanceMetrics } from './performance';
 
 // Check if performance API is available
 const isPerformanceApiAvailable = typeof performance !== 'undefined' && 
@@ -77,67 +77,6 @@ export const MemoryManagerProvider: React.FC<MemoryManagerProviderProps> = ({
     virtualizationEnabled: true
   });
 
-  // Update memory metrics at regular intervals (only if API is available)
-  useEffect(() => {
-    if (!shouldMonitorMemory) {
-      if (enableLogging) {
-        console.info('Memory API not available, memory monitoring disabled');
-      }
-      return;
-    }
-    
-    const updateMemoryMetrics = () => {
-      const metrics = captureMemoryMetrics();
-      setMemoryUsage(metrics);
-      
-      // Keep history for trend analysis
-      metricsHistory.current.push(metrics);
-      if (metricsHistory.current.length > 10) {
-        metricsHistory.current = metricsHistory.current.slice(-10);
-      }
-      
-      // Check memory constraints
-      if (metrics.usedJSHeapSize && metrics.jsHeapSizeLimit) {
-        const usagePercent = (metrics.usedJSHeapSize / metrics.jsHeapSizeLimit) * 100;
-        const newMemoryConstrained = usagePercent > memoryThreshold;
-        
-        if (newMemoryConstrained !== isMemoryConstrained) {
-          setIsMemoryConstrained(newMemoryConstrained);
-          
-          // Auto-optimize if memory becomes constrained
-          if (newMemoryConstrained) {
-            optimizePerformance('medium');
-            
-            if (enableLogging) {
-              console.warn(
-                `%cMemory usage exceeded threshold (${usagePercent.toFixed(1)}%)`,
-                'color: #ff6b6b; font-weight: bold;',
-                '\nAuto-optimizing performance...'
-              );
-            }
-          }
-        }
-      }
-    };
-    
-    // Initial update
-    updateMemoryMetrics();
-    
-    // Regular updates
-    const intervalId = setInterval(updateMemoryMetrics, monitoringInterval);
-    
-    // Setup peak memory usage warnings
-    if (enableLogging) {
-      monitorMemoryUsage('Application', {
-        logToConsole: true,
-        thresholdPercent: memoryThreshold,
-        logLevel: 'warn'
-      });
-    }
-    
-    return () => clearInterval(intervalId);
-  }, [monitoringInterval, memoryThreshold, enableLogging, isMemoryConstrained, shouldMonitorMemory]);
-  
   // Free up memory (with API checks)
   const freeMemory = useCallback(() => {
     // Clear image cache (works in all browsers)
@@ -179,43 +118,109 @@ export const MemoryManagerProvider: React.FC<MemoryManagerProviderProps> = ({
       return updatedMetrics;
     }
     
-    return memoryUsage;
-  }, [enableLogging, memoryUsage, shouldMonitorMemory]);
-  
+    return { timestamp: Date.now() };
+  }, [enableLogging, shouldMonitorMemory]);
+
+  // Update memory metrics at regular intervals (only if API is available)
   // Apply performance optimizations based on memory constraints
   const optimizePerformance = useCallback((level: 'low' | 'medium' | 'high' = 'medium') => {
-    const newState = { ...applicationState };
+    let returnState: any = null;
     
-    switch (level) {
-      case 'low':
-        // Minimal optimizations
-        newState.backgroundEffectsEnabled = false;
-        break;
-        
-      case 'medium':
-        // Moderate optimizations
-        newState.backgroundEffectsEnabled = false;
-        newState.highQualityImagesEnabled = false;
-        newState.virtualizationEnabled = true;
-        break;
-        
-      case 'high':
-        // Aggressive optimizations
-        newState.backgroundEffectsEnabled = false;
-        newState.highQualityImagesEnabled = false;
-        newState.animationsEnabled = false;
-        newState.effectsEnabled = false;
-        newState.virtualizationEnabled = true;
-        break;
-    }
+    setApplicationState(prevState => {
+      const newState = { ...prevState };
+      
+      switch (level) {
+        case 'low':
+          // Minimal optimizations
+          newState.backgroundEffectsEnabled = false;
+          break;
+          
+        case 'medium':
+          // Moderate optimizations
+          newState.backgroundEffectsEnabled = false;
+          newState.highQualityImagesEnabled = false;
+          newState.virtualizationEnabled = true;
+          break;
+          
+        case 'high':
+          // Aggressive optimizations
+          newState.backgroundEffectsEnabled = false;
+          newState.highQualityImagesEnabled = false;
+          newState.animationsEnabled = false;
+          newState.effectsEnabled = false;
+          newState.virtualizationEnabled = true;
+          break;
+      }
+      
+      returnState = newState;
+      return newState;
+    });
     
-    setApplicationState(newState);
-    
-    // Force cleanup after optimization
+    // Force cleanup after optimization (outside setState to avoid loops)
     setTimeout(freeMemory, 500);
     
-    return newState;
-  }, [applicationState, freeMemory]);
+    return returnState;
+  }, [freeMemory]);
+
+  useEffect(() => {
+    if (!shouldMonitorMemory) {
+      if (enableLogging) {
+        console.info('Memory API not available, memory monitoring disabled');
+      }
+      return;
+    }
+    
+    const updateMemoryMetrics = () => {
+      const metrics = captureMemoryMetrics();
+      setMemoryUsage(metrics);
+      
+      // Keep history for trend analysis
+      metricsHistory.current.push(metrics);
+      if (metricsHistory.current.length > 10) {
+        metricsHistory.current = metricsHistory.current.slice(-10);
+      }
+      
+      // Check memory constraints
+      if (metrics.usedJSHeapSize && metrics.jsHeapSizeLimit) {
+        const usagePercent = (metrics.usedJSHeapSize / metrics.jsHeapSizeLimit) * 100;
+        const newMemoryConstrained = usagePercent > memoryThreshold;
+        
+        if (newMemoryConstrained !== isMemoryConstrained) {
+          setIsMemoryConstrained(newMemoryConstrained);
+          
+          // Auto-optimize if memory becomes constrained
+          if (newMemoryConstrained) {
+            setTimeout(() => optimizePerformance('medium'), 0);
+            
+            if (enableLogging) {
+              console.warn(
+                `%cMemory usage exceeded threshold (${usagePercent.toFixed(1)}%)`,
+                'color: #ff6b6b; font-weight: bold;',
+                '\nAuto-optimizing performance...'
+              );
+            }
+          }
+        }
+      }
+    };
+    
+    // Initial update
+    updateMemoryMetrics();
+    
+    // Regular updates
+    const intervalId = setInterval(updateMemoryMetrics, monitoringInterval);
+    
+    // Setup peak memory usage warnings
+    if (enableLogging) {
+      monitorMemoryUsage('Application', {
+        logToConsole: true,
+        thresholdPercent: memoryThreshold,
+        logLevel: 'warn'
+      });
+    }
+    
+    return () => clearInterval(intervalId);
+  }, [monitoringInterval, memoryThreshold, enableLogging, shouldMonitorMemory, isMemoryConstrained, optimizePerformance]);
   
   const contextValue: MemoryManagerContextType = {
     memoryUsage,
@@ -258,7 +263,6 @@ export function withMemoryOptimization<P extends object>(
   } = {}
 ): React.FC<P> {
   const { 
-    optimizationLevel = 'medium',
     disableWhenConstrained = false
   } = options;
   

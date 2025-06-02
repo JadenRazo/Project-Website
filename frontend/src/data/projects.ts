@@ -1,0 +1,61 @@
+// Mock project data that matches our backend structure
+export const mockProjects = [
+  {
+    id: '1',
+    name: 'Portfolio Website',
+    description: 'A modern, responsive portfolio website built with React, TypeScript, and styled-components featuring real-time messaging, URL shortener, and developer panel.',
+    repo_url: 'https://github.com/JadenRazo/Project-Website',
+    live_url: 'https://jadenrazo.dev',
+    tags: ['React', 'TypeScript', 'Go', 'PostgreSQL', 'WebSocket', 'REST API'],
+    status: 'active',
+  },
+  {
+    id: '2',
+    name: 'Educational Quiz Discord Bot',
+    description: 'An advanced Discord bot that leverages LLMs to create educational quizzes with multi-guild support, achievement system, and real-time leaderboards.',
+    repo_url: 'https://github.com/JadenRazo/Quiz-Bot',
+    live_url: 'https://discord.gg/BykmYEDrAJ',
+    tags: ['Python', 'Discord.py', 'PostgreSQL', 'OpenAI API', 'Anthropic Claude', 'Google Gemini'],
+    status: 'active',
+    mediaUrl: '/web_ready_quizbot_example_video.mp4',
+    mediaType: 'video',
+  },
+  {
+    id: '3',
+    name: 'DevPanel',
+    description: 'A development environment management system with real-time monitoring, service control, and comprehensive project management capabilities.',
+    repo_url: 'https://github.com/JadenRazo/Project-Website/tree/main/backend/internal/devpanel',
+    live_url: 'https://jadenrazo.dev/devpanel',
+    tags: ['React', 'Go', 'WebSocket', 'TypeScript', 'Real-time Monitoring'],
+    status: 'active',
+  },
+  {
+    id: '4',
+    name: 'Messaging Platform',
+    description: 'A real-time messaging platform with WebSocket integration, file attachments, reactions, and modern UI similar to Discord.',
+    repo_url: 'https://github.com/JadenRazo/Project-Website/tree/main/backend/internal/messaging',
+    live_url: 'https://jadenrazo.dev/messaging',
+    tags: ['React', 'WebSocket', 'Go', 'TypeScript', 'Real-time Chat'],
+    status: 'active',
+  },
+  {
+    id: '5',
+    name: 'URL Shortener Service',
+    description: 'A high-performance URL shortening service with analytics, custom short codes, and comprehensive statistics tracking.',
+    repo_url: 'https://github.com/JadenRazo/Project-Website/tree/main/backend/internal/urlshortener',
+    live_url: 'https://jadenrazo.dev/s/',
+    tags: ['Go', 'PostgreSQL', 'Analytics', 'REST API', 'Microservice'],
+    status: 'active',
+  },
+  {
+    id: '6',
+    name: 'Code Statistics Tracker',
+    description: 'Automated system for tracking lines of code across projects with scheduled updates and API integration.',
+    repo_url: 'https://github.com/JadenRazo/Project-Website/tree/main/scripts',
+    live_url: 'https://jadenrazo.dev/api/v1/code/stats',
+    tags: ['Go', 'Automation', 'CLI', 'Statistics', 'CRON'],
+    status: 'active',
+  },
+];
+
+export default mockProjects;

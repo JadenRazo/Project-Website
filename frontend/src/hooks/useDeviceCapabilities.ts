@@ -130,7 +130,7 @@ export const useDeviceCapabilities = (): DeviceCapabilities => {
       
       // Device category estimation
       let deviceCategory: 'mobile' | 'tablet' | 'desktop' = 'desktop';
-      if (viewportWidth < 768 || isTouchDevice && viewportWidth < 1024) {
+      if (viewportWidth < 768 || (isTouchDevice && viewportWidth < 1024)) {
         deviceCategory = viewportWidth < 480 ? 'mobile' : 'tablet';
       }
       

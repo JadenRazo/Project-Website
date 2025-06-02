@@ -89,8 +89,6 @@ export const FloatingElement: React.FC<FloatingElementProps> = ({
   // Motion values for smooth animations
   const rotateX = useMotionValue(0);
   const rotateY = useMotionValue(0);
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
   
   // Refs for optimization
   const elementRef = useRef<HTMLDivElement>(null);
@@ -251,7 +249,7 @@ export const FloatingElement: React.FC<FloatingElementProps> = ({
       
       return () => clearTimeout(timerId);
     }
-  }, [elementSize, particleCount, particleColors, particleLifetime, shouldReset, glowIntensity]);
+  }, [elementSize, particleCount, particleColors, particleLifetime, shouldReset, glowIntensity, createParticle]);
   
   // Handle element click with proper event handling
   const handlePop = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
