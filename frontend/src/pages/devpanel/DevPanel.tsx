@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
-import { useAuth } from '../../hooks/useAuth';
 import Collapsible from 'react-collapsible';
 import ProjectManager from '../../components/devpanel/ProjectManager';
+import AdminLogin from '../../components/devpanel/AdminLogin';
 import {
   LineChart,
   Line,
@@ -439,7 +439,9 @@ const LoadingContent = styled.div`
 
 // Main Component
 const DevPanel: React.FC = () => {
-  const { user, isAuthenticated } = useAuth();
+  const [adminUser, setAdminUser] = useState<any>(null);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const [systemMetrics, setSystemMetrics] = useState<SystemMetrics | null>(null);
   const [serviceMetrics, setServiceMetrics] = useState<ServiceMetricsData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -466,7 +468,8 @@ const DevPanel: React.FC = () => {
   };
 
   const fetchData = useCallback(async () => {
-    if (!user?.token) {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
       setError('Authentication required');
       return;
     }
@@ -475,7 +478,7 @@ const DevPanel: React.FC = () => {
         setLoading(true);
       setIsRefreshing(true);
       const headers = {
-        'Authorization': `Bearer ${user.token}`,
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       };
 
@@ -499,18 +502,19 @@ const DevPanel: React.FC = () => {
       setLoading(false);
       setIsRefreshing(false);
     }
-  }, [user?.token]);
+  }, []);
 
   const controlService = async (serviceName: string, action: 'start' | 'stop' | 'restart') => {
-    if (!user?.token) {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
       setControlError('Authentication required');
-          return;
-        }
+      return;
+    }
         
     try {
       setControlError(null);
       const headers = {
-        'Authorization': `Bearer ${user.token}`,
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       };
 
@@ -534,23 +538,69 @@ const DevPanel: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!isAuthenticated || !user?.isAdmin) {
-      setError('Unauthorized access');
+    checkAdminAuth();
+  }, []);
+
+  useEffect(() => {
+    if (isAdminAuthenticated && adminUser) {
+      fetchData();
+      const interval = setInterval(fetchData, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [isAdminAuthenticated, adminUser, fetchData]);
+
+  const checkAdminAuth = async () => {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      setCheckingAuth(false);
       return;
     }
 
-    fetchData();
-    const interval = setInterval(fetchData, 30000); // Refresh every 30 seconds
+    try {
+      const response = await fetch('/api/v1/auth/admin/validate', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
 
-    return () => clearInterval(interval);
-  }, [isAuthenticated, user, fetchData]);
+      if (response.ok) {
+        const userData = await response.json();
+        setAdminUser(userData);
+        setIsAdminAuthenticated(true);
+      } else {
+        localStorage.removeItem('auth_token');
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      localStorage.removeItem('auth_token');
+    } finally {
+      setCheckingAuth(false);
+    }
+  };
 
-  if (!isAuthenticated || !user?.isAdmin) {
+  const handleLoginSuccess = (userData: any) => {
+    setAdminUser(userData);
+    setIsAdminAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('auth_token');
+    setAdminUser(null);
+    setIsAdminAuthenticated(false);
+  };
+
+  if (checkingAuth) {
     return (
       <PageContainer>
-        <ErrorMessage>Access denied. Please log in as an administrator.</ErrorMessage>
+        <LoadingSpinner>Checking authentication...</LoadingSpinner>
       </PageContainer>
     );
+  }
+
+  if (!isAdminAuthenticated) {
+    return <AdminLogin onLoginSuccess={handleLoginSuccess} />;
   }
 
   // Prepare data for charts
@@ -570,8 +620,24 @@ const DevPanel: React.FC = () => {
   return (
     <PageContainer>
       <Header>
-        <Title>Developer Panel</Title>
-        <Subtitle>System monitoring and service management</Subtitle>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <Title>Developer Panel</Title>
+            <Subtitle>System monitoring and service management</Subtitle>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.9rem' }}>
+              Welcome, {adminUser?.email}
+            </span>
+            <ControlButton 
+              variant="config" 
+              onClick={handleLogout}
+              style={{ padding: '0.5rem 1rem', fontSize: '0.9rem' }}
+            >
+              Logout
+            </ControlButton>
+          </div>
+        </div>
       </Header>
 
       {error && <ErrorMessage>{error}</ErrorMessage>}

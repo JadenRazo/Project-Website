@@ -31,12 +31,25 @@ This repository contains a full-stack portfolio website with integrated microser
 Project-Website/
 ├── frontend/             # React/TypeScript frontend
 │   ├── build/            # Production build
-│   ├── public/           # Static assets
+│   ├── public/           # Essential public assets only
 │   │   ├── index.html    # HTML entry point
-│   │   ├── favicon.ico   # Website favicon
-│   │   └── manifest.json # PWA manifest
+│   │   ├── manifest.json # PWA manifest
+│   │   └── robots.txt    # SEO configuration
 │   ├── src/
-│   │   ├── assets/       # Images and resources
+│   │   ├── assets/       # Organized assets
+│   │   │   ├── data/     # JSON data files
+│   │   │   │   └── code_stats.json
+│   │   │   ├── icons/    # Favicons and icons
+│   │   │   │   ├── favicon.ico
+│   │   │   │   ├── favicon-16x16.png
+│   │   │   │   ├── favicon-32x32.png
+│   │   │   │   └── apple-touch-icon.png
+│   │   │   ├── images/   # Image assets
+│   │   │   │   └── headshot.jpg
+│   │   │   └── videos/   # Video assets
+│   │   │       └── web_ready_quizbot_example_video.mp4
+│   │   ├── config/       # Configuration files
+│   │   │   └── env-config.js
 │   │   ├── components/   # UI components
 │   │   │   ├── animations/  # Animation components
 │   │   │   │   ├── CreativeShaderBackground.tsx

@@ -122,7 +122,7 @@ export const preloadRouteAssets = {
   },
   
   '/projects': () => {
-    preloader.prefetchResource('/code_stats.json');
+    preloader.prefetchResource('/src/assets/data/code_stats.json');
     // Preload any project media files
   },
   

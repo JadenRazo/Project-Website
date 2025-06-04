@@ -302,9 +302,9 @@ const LastUpdated = styled.div`
 `;
 
 const HoverInfo = styled.div<{ $x: number; $y: number; $visible: boolean }>`
-  position: fixed;
-  left: ${props => Math.max(10, Math.min(props.$x, window.innerWidth - 200))}px;
-  top: ${props => Math.max(10, props.$y - 80)}px;
+  position: absolute;
+  left: ${props => props.$x}px;
+  top: ${props => props.$y}px;
   background: ${props => props.theme.colors.surface};
   color: ${props => props.theme.colors.text};
   padding: 12px 16px;
@@ -504,16 +504,49 @@ const SystemMetrics: React.FC = () => {
             return;
           }
 
-          const position = chart.canvas.getBoundingClientRect();
           const dataPoint = tooltip.dataPoints?.[0];
           
           if (dataPoint && sortedMetrics[dataPoint.dataIndex]) {
             const metric = sortedMetrics[dataPoint.dataIndex];
             const date = new Date(metric.timestamp);
             
+            // Use Chart.js's built-in pixel mapping for precise positioning
+            const yScale = chart.scales.y;
+            const dataPointY = yScale.getPixelForValue(metric.latency);
+            
+            // Get chart dimensions for boundary calculations
+            const chartWidth = chart.width;
+            const chartHeight = chart.height;
+            const tooltipWidth = 180; // min-width from styled component
+            const tooltipHeight = 80; // estimated height for date + latency
+            
+            // Smart positioning to keep tooltip within chart boundaries
+            let tooltipX = tooltip.caretX;
+            let tooltipY = dataPointY - tooltipHeight - 10; // 10px above the data point
+            
+            // Horizontal boundary checks
+            if (tooltipX + tooltipWidth > chartWidth - 10) {
+              // Too far right, position to the left of the data point
+              tooltipX = tooltip.caretX - tooltipWidth - 10;
+            }
+            if (tooltipX < 10) {
+              // Too far left, position at left edge with margin
+              tooltipX = 10;
+            }
+            
+            // Vertical boundary checks
+            if (tooltipY < 10) {
+              // Too high, position below the data point instead
+              tooltipY = dataPointY + 20;
+            }
+            if (tooltipY + tooltipHeight > chartHeight - 10) {
+              // Too low, position above with smaller margin
+              tooltipY = Math.max(10, chartHeight - tooltipHeight - 10);
+            }
+            
             setHoverInfo({
-              x: position.left + window.scrollX + tooltip.caretX,
-              y: position.top + window.scrollY + tooltip.caretY,
+              x: tooltipX,
+              y: tooltipY,
               visible: true,
               date: date.toLocaleString('en-US', {
                 weekday: 'short',

@@ -105,6 +105,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ../../scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+      - ../../schema.sql:/app/schema.sql:ro
     networks:
       - backend
     deploy:

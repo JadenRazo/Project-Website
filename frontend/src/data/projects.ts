@@ -17,7 +17,7 @@ export const mockProjects = [
     live_url: 'https://discord.gg/BykmYEDrAJ',
     tags: ['Python', 'Discord.py', 'PostgreSQL', 'OpenAI API', 'Anthropic Claude', 'Google Gemini'],
     status: 'active',
-    mediaUrl: '/web_ready_quizbot_example_video.mp4',
+    mediaUrl: '/src/assets/videos/web_ready_quizbot_example_video.mp4',
     mediaType: 'video',
   },
   {
