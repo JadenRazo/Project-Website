@@ -53,25 +53,9 @@ func DefaultConfig() *Config {
 				Path: "/quiz_bot",
 			},
 			{
-				Name: "Frontend",
-				Path: "/main/Project-Website/frontend",
-				Exclude: []string{"build", "node_modules"},
-			},
-			{
-				Name: "Backend CMD",
-				Path: "/main/Project-Website/backend/cmd",
-			},
-			{
-				Name: "Backend Config",
-				Path: "/main/Project-Website/backend/config",
-			},
-			{
-				Name: "Backend Middleware",
-				Path: "/main/Project-Website/backend/middleware",
-			},
-			{
-				Name: "Backend Internal",
-				Path: "/main/Project-Website/backend/internal",
+				Name: "Project Website",
+				Path: "/main/Project-Website",
+				Exclude: []string{"build", "node_modules", "logs", "bin"},
 			},
 		},
 		UpdateInterval: 1 * time.Hour,

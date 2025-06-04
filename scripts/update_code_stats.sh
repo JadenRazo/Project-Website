@@ -6,16 +6,12 @@
 # Make sure the user running this script has read access to these directories.
 PROJECT_DIRECTORIES=( \
   "/quiz_bot" \
-  "/main/Project-Website/frontend" \
-  "/main/Project-Website/backend/cmd" \
-  "/main/Project-Website/backend/config" \
-  "/main/Project-Website/backend/middleware" \
-  "/main/Project-Website/backend/internal" \
+  "/main/Project-Website" \
   # Add more FULL ABSOLUTE project paths here, each on a new line ending with \
 )
 
 # Directories to exclude
-EXCLUDE_DIRS=("build" "node_modules")
+EXCLUDE_DIRS=("build" "node_modules" "logs" "bin")
 
 # Path to the output JSON file, relative to the determined workspace root.
 OUTPUT_JSON_FILE_RELATIVE="main/Project-Website/frontend/public/code_stats.json"

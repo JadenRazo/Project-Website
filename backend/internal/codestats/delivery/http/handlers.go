@@ -23,6 +23,14 @@ func (h *Handler) RegisterRoutes(router *gin.RouterGroup) {
 }
 
 func (h *Handler) GetStats(c *gin.Context) {
+	// Always calculate fresh stats for /projects page loads
+	if err := h.service.UpdateStats(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to update code statistics",
+		})
+		return
+	}
+
 	stats, err := h.service.GetLatestStats()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
