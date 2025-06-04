@@ -10,10 +10,14 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/JadenRazo/Project-Website/backend/internal/common/auth"
+	"github.com/JadenRazo/Project-Website/backend/internal/common/database"
 	"github.com/JadenRazo/Project-Website/backend/internal/core"
 	"github.com/JadenRazo/Project-Website/backend/internal/core/config"
 	"github.com/JadenRazo/Project-Website/backend/internal/devpanel"
+	"github.com/JadenRazo/Project-Website/backend/internal/domain/entity"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-contrib/cors"
 )
 
 func main() {
@@ -29,12 +33,26 @@ func main() {
 
 	fmt.Println("Starting DevPanel service...")
 
+	// Initialize database
+	db, err := database.NewConnection()
+	if err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
+	}
+
+	// Auto-migrate User table
+	if err := db.AutoMigrate(&entity.User{}); err != nil {
+		log.Fatalf("Failed to migrate database: %v", err)
+	}
+
+	// Initialize auth handlers
+	authHandlers := auth.NewAdminAuthHandlers(db)
+
 	// Create service manager for devpanel to manage
 	serviceManager := core.NewServiceManager()
 
 	// Initialize devpanel service
 	devpanelService := devpanel.NewService(serviceManager, devpanel.Config{
-		AdminToken:      cfg.AdminToken,
+		AdminToken:      "", // Remove hardcoded admin token
 		MetricsInterval: 30 * time.Second,
 		MaxLogLines:     1000,
 		LogRetention:    7 * 24 * time.Hour,
@@ -48,8 +66,27 @@ func main() {
 	// Set up router
 	router := gin.Default()
 
-	// Create a router group for the service
-	routerGroup := router.Group("/")
+	// Configure CORS
+	config := cors.DefaultConfig()
+	config.AllowOrigins = []string{"http://localhost:3000", "http://localhost:8080"}
+	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
+	config.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "Authorization"}
+	config.AllowCredentials = true
+	router.Use(cors.New(config))
+
+	// Create auth routes (public)
+	authGroup := router.Group("/api/v1/auth")
+	{
+		authGroup.POST("/admin/login", authHandlers.Login)
+		authGroup.POST("/admin/validate", authHandlers.ValidateToken)
+		authGroup.POST("/admin/setup/request", authHandlers.RequestSetup)
+		authGroup.POST("/admin/setup/complete", authHandlers.CompleteSetup)
+		authGroup.GET("/admin/setup/status", authHandlers.CheckSetupStatus)
+	}
+
+	// Create a router group for the devpanel service (protected)
+	routerGroup := router.Group("/api/v1/devpanel")
+	routerGroup.Use(authHandlers.AuthMiddleware())
 
 	// Register devpanel routes
 	devpanelService.RegisterRoutes(routerGroup)

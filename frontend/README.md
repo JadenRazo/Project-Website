@@ -19,7 +19,7 @@ This is the frontend for the Project Website, built with React and TypeScript, a
 - `src/contexts/ThemeContext.tsx` — Theme provider and context for dark/light mode.
 - `src/styles/` — Global styles and theme definitions.
 - `src/types/` — Custom TypeScript type declarations
-- `public/code_stats.json` — Auto-generated file with up-to-date lines of code stats (do not edit manually).
+- `src/assets/data/code_stats.json` — Auto-generated file with up-to-date lines of code stats (do not edit manually).
 
 ## How the Codebase Works
 
@@ -31,7 +31,7 @@ This is the frontend for the Project Website, built with React and TypeScript, a
 
 - **Lines of Code Stats:**
   - A backend shell script runs [tokei](https://github.com/XAMPPRocky/tokei) on all major project directories.
-  - The script outputs a `code_stats.json` file in the `public/` directory.
+  - The script outputs a `code_stats.json` file in the `src/assets/data/` directory.
   - The frontend fetches this file on the Projects page and displays the total lines of code.
   - The script is run on server startup and every hour via a cron job to keep stats up to date.
 
@@ -63,7 +63,7 @@ This is the frontend for the Project Website, built with React and TypeScript, a
 ## Deployment
 
 - The app is ready to be deployed as a static site after running `npm run build`.
-- Ensure the backend script is configured to update `public/code_stats.json` regularly for live code stats.
+- Ensure the backend script is configured to update `src/assets/data/code_stats.json` regularly for live code stats.
 
 ## Key Technologies
 - React 18

@@ -241,7 +241,7 @@ const Card = styled(motion.div)<{ $expanded: boolean }>`
   box-shadow: 0 4px 16px rgba(0,0,0,0.12);
   border: 1px solid ${({ theme }) => theme?.colors?.border || 'rgba(255,255,255,0.1)'};
   overflow: hidden;
-  transition: box-shadow 0.3s, border 0.3s;
+  transition: box-shadow 0.3s, border 0.3s, transform 0.3s ease;
   outline: none;
   position: relative;
   display: flex;
@@ -252,12 +252,11 @@ const Card = styled(motion.div)<{ $expanded: boolean }>`
   z-index: ${({ $expanded }) => $expanded ? '999' : '1'};
   contain: layout style;
   
-  ${({ $expanded }) => $expanded && `
+  ${({ $expanded, theme }) => $expanded && `
     overflow: visible;
     box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-    border-color: var(--primary-color, #007bff);
+    border: 2px solid ${theme?.colors?.primary || '#007bff'};
   `}
-  
   
   @media (max-width: 768px) {
     border-radius: 12px;
@@ -269,7 +268,6 @@ const Card = styled(motion.div)<{ $expanded: boolean }>`
   
   &:hover, &:focus {
     box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-    border-color: ${({ theme }) => theme?.colors?.primary || '#007bff'};
     transform: ${({ $expanded }) => $expanded ? 'none' : 'translateY(-5px)'};
     
     @media (max-width: 768px) {
@@ -279,6 +277,10 @@ const Card = styled(motion.div)<{ $expanded: boolean }>`
     @media (max-width: 480px) {
       transform: none;
     }
+  }
+  
+  &:hover:not([data-expanded="true"]) {
+    border-color: ${({ theme }) => theme?.colors?.primary || '#007bff'};
   }
   
   &::before {
@@ -293,15 +295,16 @@ const Card = styled(motion.div)<{ $expanded: boolean }>`
       ${({ theme }) => theme?.colors?.primary || '#007bff'}, 
       ${({ theme }) => theme?.colors?.secondary || '#6c757d'}
     );
-    opacity: 0;
-    transition: opacity 0.3s;
+    opacity: ${({ $expanded }) => $expanded ? '0' : '0'};
+    transition: opacity 0.3s ease;
+    z-index: 2;
     
     @media (max-width: 480px) {
       height: 3px;
     }
   }
   
-  &:hover::before {
+  &:hover:not([data-expanded="true"])::before {
     opacity: 1;
   }
 `;
@@ -530,6 +533,10 @@ const MediaWrapper = styled(motion.div)`
   border-top: 1px solid ${({ theme }) => theme?.colors?.border || 'rgba(255,255,255,0.1)'};
   background: ${({ theme }) => theme?.colors?.surface || 'rgba(255,255,255,0.08)'};
   contain: layout style;
+  margin: 0;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
   
   /* Fixed height to prevent grid disruption */
   height: 300px;
@@ -639,6 +646,7 @@ const ProjectCard: React.FC<ProjectCardProps> = React.memo(({
     <Card
       ref={cardRef}
       $expanded={expanded}
+      data-expanded={expanded}
       aria-expanded={expanded}
       initial="hidden"
       variants={cardVariants}
@@ -937,16 +945,9 @@ const Projects: React.FC = () => {
       setErrorLines(null);
       
       try {
-        // Try API endpoint first, fallback to static JSON
-        let response: Response;
-        try {
-          // Use the API URL from environment or default to localhost
-          const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:8080';
-          response = await fetch(`${apiUrl}/api/v1/code/stats`);
-        } catch {
-          // Fallback to static JSON file
-          response = await fetch('/code_stats.json');
-        }
+        // Always get fresh data from API endpoint
+        const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:8080';
+        const response = await fetch(`${apiUrl}/api/v1/code/stats`);
         
         if (!response.ok) {
           throw new Error(`Failed to fetch code stats: ${response.status} ${response.statusText}`);
@@ -958,7 +959,7 @@ const Projects: React.FC = () => {
           throw new Error(`Error in code stats: ${data.error}`);
         }
 
-        // API now returns totalLines directly
+        // API returns totalLines directly with fresh calculation
         const totalLines = data.totalLines;
         if (typeof totalLines === 'number') {
           setTotalLinesOfCode(totalLines);
@@ -977,7 +978,7 @@ const Projects: React.FC = () => {
     };
 
     fetchLinesOfCode();
-    // The script is responsible for updates; frontend fetches once on load.
+    // Fresh stats are calculated every time this page loads
   }, []);
 
   return (

@@ -373,8 +373,7 @@ func main() {
 	// Start health checks
 	serviceManager.StartHealthChecks()
 	
-	// Start code stats periodic update
-	codeStatsService.StartPeriodicUpdate(1 * time.Hour)
+	// Code stats are now updated on-demand when API endpoint is called
 
 	// Configure server with proper timeouts and limits
 	srv := &http.Server{

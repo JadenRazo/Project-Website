@@ -28,24 +28,7 @@ func NewScheduledTasks(db *gorm.DB) *ScheduledTasks {
 func (st *ScheduledTasks) Start(ctx context.Context) error {
 	logger.Info("Starting scheduled tasks")
 
-	// Update code stats every hour
-	_, err := st.cron.AddFunc("0 0 * * * *", func() {
-		logger.Info("Running scheduled code stats update")
-		if err := st.codeStatsService.UpdateStats(); err != nil {
-			logger.Error("Failed to update code stats", "error", err)
-		}
-	})
-	if err != nil {
-		return err
-	}
-
-	// Run immediately on startup
-	go func() {
-		logger.Info("Running initial code stats update")
-		if err := st.codeStatsService.UpdateStats(); err != nil {
-			logger.Error("Failed to update code stats on startup", "error", err)
-		}
-	}()
+	// Code stats are now updated on-demand when API is called
 
 	st.cron.Start()
 
