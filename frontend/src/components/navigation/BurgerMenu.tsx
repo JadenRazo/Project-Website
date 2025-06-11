@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef, memo } from 'react';
 import styled, { css, keyframes } from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useTheme } from '../../contexts/ThemeContext';
+import { useTheme } from '../../hooks/useTheme';
 import type { ThemeMode } from '../../styles/theme.types';
 
 // Types and Interfaces

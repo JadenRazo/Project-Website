@@ -1,7 +1,7 @@
 // /Project-Website/frontend/src/App.tsx
 import React, { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider, useTheme } from './contexts/ThemeContext';
+import { ThemeProvider as StyledThemeProvider } from 'styled-components';
 import { GlobalStyles } from './styles/GlobalStyles';
 import NavigationBar from './components/NavigationBar/NavigationBar';
 import Footer from './components/Footer/Footer';
@@ -11,11 +11,12 @@ import { Layout } from './components/layout/Layout';
 import SmartSkeleton from './components/skeletons/SmartSkeleton';
 import { usePreloader } from './hooks/usePreloader';
 import { devCacheManager } from './utils/devCacheManager';
+import { StoreInitializer } from './components/StoreInitializer';
+import { useTheme } from './hooks/useTheme';
 
 // Lazy load pages and sections for better performance
 const Hero = lazy(() => import('./components/sections/Hero').then(module => ({ default: module.Hero })));
 const About = lazy(() => import('./components/sections/About').then(module => ({ default: module.About })));
-const ProjectsSection = lazy(() => import('./components/sections/Projects').then(module => ({ default: module.Projects })));
 const SkillsSection = lazy(() => import('./components/sections/SkillsSection').then(module => ({ default: module.SkillsSection })));
 const Contact = lazy(() => import('./pages/Contact/Contact'));
 const DevPanel = lazy(() => import('./pages/devpanel/DevPanel'));
@@ -51,13 +52,6 @@ const HomePage = () => (
     <Suspense fallback={<SmartSkeleton type="skills" />}>
       <SkillsSection />
     </Suspense>
-    <Suspense fallback={<SmartSkeleton type="projects" />}>
-      <ProjectsSection 
-        title="Featured Projects"
-        subtitle="A selection of my most recent and impactful work."
-        languages={['All', 'React', 'TypeScript', 'Node.js', 'WebSocket']}
-      />
-    </Suspense>
     <Suspense fallback={<SmartSkeleton type="about" />}>
       <About />
     </Suspense>
@@ -91,53 +85,55 @@ function AppContent() {
   }, []);
   
   return (
-    <Layout>
-      <AppContainer>
-        <GlobalStyles theme={theme} />
-        <NavigationBar 
-          themeMode={themeMode} 
-          toggleTheme={toggleTheme} 
-        />
-        
-        <div className="content">
-          <Suspense fallback={<SmartSkeleton />}>
-            <Routes>
-              {/* Main routes */}
-              <Route path="/" element={<HomePage />} />
-              <Route path="/about" element={<AboutPage />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/projects" element={<ProjectsPage />} />
-              <Route path="/portfolio" element={<ProjectsPage />} />
-              <Route path="/skills" element={<SkillsSection />} />
-              <Route path="/home" element={<Home />} />
+    <StyledThemeProvider theme={theme}>
+      <Layout>
+        <AppContainer>
+          <GlobalStyles theme={theme} />
+          <NavigationBar 
+            themeMode={themeMode} 
+            toggleTheme={toggleTheme} 
+          />
+          
+          <div className="content">
+            <Suspense fallback={<SmartSkeleton />}>
+              <Routes>
+                {/* Main routes */}
+                <Route path="/" element={<HomePage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/projects" element={<ProjectsPage />} />
+                <Route path="/portfolio" element={<ProjectsPage />} />
+                <Route path="/skills" element={<SkillsSection />} />
+                <Route path="/home" element={<Home />} />
 
-              {/* Application routes */}
-              <Route path="/devpanel" element={<DevPanel />} />
-              <Route path="/urlshortener" element={<UrlShortener />} />
-              <Route path="/messaging" element={<Messaging />} />
-              <Route path="/status" element={<Status />} />
-              
-              {/* 404 route */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </div>
-        
-        <Footer />
-      </AppContainer>
-    </Layout>
+                {/* Application routes */}
+                <Route path="/devpanel" element={<DevPanel />} />
+                <Route path="/urlshortener" element={<UrlShortener />} />
+                <Route path="/messaging" element={<Messaging />} />
+                <Route path="/status" element={<Status />} />
+                
+                {/* 404 route */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </div>
+          
+          <Footer />
+        </AppContainer>
+      </Layout>
+    </StyledThemeProvider>
   );
 }
 
 // Root App component with provider
 function App() {
   return (
-    <ThemeProvider>
+    <StoreInitializer>
       <Router>
         <ScrollToTop />
         <AppContent />
       </Router>
-    </ThemeProvider>
+    </StoreInitializer>
   );
 }
 

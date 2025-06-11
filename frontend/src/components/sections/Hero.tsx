@@ -1,7 +1,8 @@
 import React, { memo, useMemo, useState, useCallback, useRef, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { motion, AnimatePresence, HTMLMotionProps } from 'framer-motion';
-import { useTheme } from '../../contexts/ThemeContext';
+import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../../hooks/useTheme';
 import useDeviceCapabilities from '../../hooks/useDeviceCapabilities';
 import usePerformanceOptimizations from '../../hooks/usePerformanceOptimizations';
 
@@ -109,13 +110,13 @@ interface StyledMotionProps extends HTMLMotionProps<"div"> {
   $enableAnimations?: boolean;
 }
 
-// Enhanced styled components with responsive and performance optimizations
+// Enhanced styled components with optimized spacing and smooth scroll
 const HeroContainer = styled.div`
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: ${({ theme }) => theme.spacing.xl};
+  padding: 60px 40px 40px;
   position: relative;
   overflow: hidden;
   margin-top: 60px;
@@ -123,11 +124,12 @@ const HeroContainer = styled.div`
   background: ${({ theme }) => theme.colors.background};
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    padding: ${({ theme }) => theme.spacing.lg};
+    padding: 40px 32px 32px;
     min-height: calc(100vh - 60px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  }
+  
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    padding: 32px 20px 24px;
   }
 `;
 
@@ -136,14 +138,19 @@ const ContentWrapper = styled(motion.div)<StyledMotionProps>`
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.xl};
+  gap: 32px;
   z-index: 1;
   align-items: center;
   text-align: center;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    gap: 28px;
     align-items: center;
     justify-content: center;
+  }
+  
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    gap: 24px;
   }
 `;
 
@@ -167,115 +174,242 @@ const Name = styled(motion.h2)<StyledMotionProps>`
 
 
 
-// Enhanced skill detail container with more visual feedback
+// Professional dropdown container with optimized spacing
 const SkillDetailContainer = styled(motion.div)`
   width: 100%;
-  background: ${({ theme }) => theme.colors.surface};
-  border-radius: 12px;
-  padding: 20px;
-  margin-top: 10px;
-  margin-bottom: 20px;
+  max-width: 700px;
+  background: linear-gradient(135deg, 
+    ${({ theme }) => theme.colors.surface}f5 0%, 
+    ${({ theme }) => theme.colors.surface}e8 100%);
+  border-radius: 20px;
+  padding: 28px;
+  margin: 20px auto 0;
   color: ${({ theme }) => theme.colors.text};
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  border: 1px solid ${({ theme }) => theme.colors.primary}20;
-  overflow: hidden;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   position: relative;
+  overflow: hidden;
   
-  &:before {
+  /* Animated gradient border */
+  &::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 4px;
-    height: 100%;
-    background: ${({ theme }) => theme.colors.primary};
-    border-radius: 4px 0 0 4px;
+    inset: 0;
+    padding: 2px;
+    background: linear-gradient(
+      45deg,
+      ${({ theme }) => theme.colors.primary}80,
+      transparent 30%,
+      transparent 70%,
+      ${({ theme }) => theme.colors.primary}80
+    );
+    border-radius: inherit;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: xor;
+    animation: borderGlow 3s ease-in-out infinite;
+  }
+  
+  /* Floating particles effect */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 20%;
+    left: 10%;
+    width: 6px;
+    height: 6px;
+    background: ${({ theme }) => theme.colors.primary}60;
+    border-radius: 50%;
+    animation: float 6s ease-in-out infinite;
+    box-shadow: 
+      40px 20px 0 -2px ${({ theme }) => theme.colors.primary}40,
+      80px -10px 0 -3px ${({ theme }) => theme.colors.primary}30,
+      120px 30px 0 -1px ${({ theme }) => theme.colors.primary}50;
+  }
+  
+  @keyframes borderGlow {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    33% { transform: translateY(-20px) rotate(120deg); }
+    66% { transform: translateY(10px) rotate(240deg); }
   }
   
   ${media.touch} {
-    padding: 15px 15px 15px 20px;
-    text-align: left;
+    padding: 22px;
+    margin: 16px auto 0;
+    border-radius: 16px;
   }
   
   ${media.mobileSm} {
-    padding: 12px 12px 12px 16px;
-    margin-top: 5px;
-    margin-bottom: 15px;
+    padding: 18px;
+    margin: 12px auto 0;
+    border-radius: 14px;
   }
 `;
 
-// Enhanced skill title with icon animation
-const SkillTitle = styled.h3`
-  font-size: clamp(18px, 4vw, 24px);
-  color: ${({ theme }) => theme.colors.primary};
-  margin: 0 0 15px 0;
+// Enhanced skill title with sophisticated animations
+const SkillTitle = styled(motion.h3)`
+  font-size: clamp(20px, 4vw, 28px);
+  font-weight: 700;
+  background: linear-gradient(
+    135deg,
+    ${({ theme }) => theme.colors.primary} 0%,
+    ${({ theme }) => theme.colors.primary}cc 50%,
+    ${({ theme }) => theme.colors.primary}80 100%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0 0 20px 0;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  position: relative;
+  
+  /* Animated underline */
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    height: 3px;
+    width: 60px;
+    background: linear-gradient(
+      90deg,
+      ${({ theme }) => theme.colors.primary},
+      transparent
+    );
+    border-radius: 2px;
+    animation: expandLine 0.8s ease-out 0.2s both;
+  }
+  
+  @keyframes expandLine {
+    from { width: 0; opacity: 0; }
+    to { width: 60px; opacity: 1; }
+  }
   
   svg {
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+    animation: iconBounce 0.6s ease-out 0.4s both;
+  }
+  
+  @keyframes iconBounce {
+    0% { transform: scale(0) rotate(-180deg); }
+    50% { transform: scale(1.1) rotate(-10deg); }
+    100% { transform: scale(1) rotate(0deg); }
   }
   
   ${media.mobileLg} {
-    margin: 0 0 10px 0;
-    font-size: clamp(16px, 3.5vw, 20px);
+    margin: 0 0 16px 0;
+    font-size: clamp(18px, 3.5vw, 24px);
+    gap: 10px;
+    
+    &::after {
+      width: 50px;
+    }
     
     svg {
-      width: 20px;
-      height: 20px;
+      width: 24px;
+      height: 24px;
     }
   }
 `;
 
-const SkillDescription = styled.p`
+const SkillDescription = styled(motion.p)`
   font-size: 16px;
-  line-height: 1.6;
-  margin-bottom: 15px;
+  line-height: 1.7;
+  margin-bottom: 20px;
+  color: ${({ theme }) => theme.colors.text}dd;
+  text-align: left;
+  position: relative;
   
   ${media.mobileLg} {
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+  
+  ${media.mobileSm} {
     font-size: 14px;
-    line-height: 1.5;
-    margin-bottom: 10px;
+    margin-bottom: 14px;
   }
 `;
 
-// Enhanced project list with improved mobile styling
-const ProjectList = styled.ul`
+// Enhanced project list with staggered animations
+const ProjectList = styled(motion.ul)`
   list-style-type: none;
   padding: 0;
-  margin: 15px 0 0 0;
+  margin: 20px 0 0 0;
   
   li {
     position: relative;
-    padding-left: 20px;
-    margin-bottom: 8px;
-    line-height: 1.4;
-    transition: transform 0.2s ease;
+    padding: 8px 0 8px 28px;
+    margin-bottom: 10px;
+    line-height: 1.5;
+    font-size: 15px;
+    color: ${({ theme }) => theme.colors.text}cc;
+    border-radius: 8px;
+    transition: all 0.3s ease;
     
-    &:before {
-      content: '→';
-      color: ${({ theme }) => theme.colors.primary};
+    &::before {
+      content: '';
       position: absolute;
-      left: 0;
-      transition: transform 0.2s ease;
+      left: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 8px;
+      height: 8px;
+      background: ${({ theme }) => theme.colors.primary};
+      border-radius: 50%;
+      box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary}20;
+      transition: all 0.3s ease;
+    }
+    
+    &:hover {
+      color: ${({ theme }) => theme.colors.text};
+      background: rgba(255, 255, 255, 0.05);
+      transform: translateX(4px);
+      
+      &::before {
+        background: ${({ theme }) => theme.colors.primary};
+        box-shadow: 0 0 0 6px ${({ theme }) => theme.colors.primary}30;
+        transform: translateY(-50%) scale(1.2);
+      }
     }
   }
   
   ${media.mobileLg} {
-    margin: 10px 0 0 0;
+    margin: 16px 0 0 0;
     
     li {
+      font-size: 14px;
+      padding: 6px 0 6px 24px;
+      margin-bottom: 8px;
+      
+      &::before {
+        width: 6px;
+        height: 6px;
+        left: 6px;
+      }
+    }
+  }
+  
+  ${media.mobileSm} {
+    li {
       font-size: 13px;
-      padding-left: 15px;
+      padding: 5px 0 5px 20px;
       margin-bottom: 6px;
     }
   }
 `;
 
 // Enhanced CTA button with animated gradient border on hover
-const CTAButton = styled(motion.a)`
+const CTAButton = styled(motion.button)`
   display: inline-block;
   background-color: ${({ theme }) => theme.colors.primary};
   border: 1px solid ${({ theme }) => theme.colors.primary};
@@ -293,6 +427,7 @@ const CTAButton = styled(motion.a)`
   text-align: center;
   margin: 0 auto;
   font-weight: 500;
+  cursor: pointer;
   
   &:after {
     content: '';
@@ -342,21 +477,21 @@ const SKILLS: Record<string, Skill> = {
     name: 'UI Designer',
     description: 'Creating intuitive and visually appealing user interfaces that prioritize user experience and accessibility. Proficient in design principles, color theory, and responsive layouts.',
     icon: 'design',
-    projects: ['Portfolio Website Redesign', 'E-commerce Mobile App UI', 'Dashboard Interface for Analytics Platform']
+    projects: ['Portfolio Website Redesign', 'Discord Bot styling', 'Dashboard Interface for Analytics Platform']
   },
   'api': {
     id: 'api',
     name: 'API Coding',
     description: 'Building robust and secure APIs that connect front-end applications to back-end services. Experience with RESTful design principles, authentication, and data handling.',
     icon: 'code',
-    projects: ['Weather Data API Integration', 'Payment Gateway API Implementation', 'Social Media Platform API Development']
+    projects: ['Developing Microservices Architecture', 'Discord Python Bot API', 'ChatGPT, Claude, Gemini API Integration']
   },
   'db': {
     id: 'db',
     name: 'Database Management',
     description: 'Designing efficient database structures and managing data storage solutions. Skilled in SQL and NoSQL databases, query optimization, and data security practices.',
     icon: 'database',
-    projects: ['Customer Information System', 'Inventory Management Database', 'Analytics Data Warehouse']
+    projects: ['Diverse SQL Querys', 'Asyncpg in Python', 'Turning Data into Insights']
   }
 };
 
@@ -440,100 +575,319 @@ const AnimatedBioItem = memo(({
 });
 AnimatedBioItem.displayName = 'AnimatedBioItem';
 
-// Optimized SkillDetail component with performance considerations
+// Professional SkillDetail component with sophisticated animations
 const SkillDetail = memo(({ 
   skill, 
   performanceSettings, 
-  animationVariants 
+  animationVariants,
+  visibleProjects,
+  projectRefs 
 }: { 
   skill: Skill; 
   performanceSettings: any;
   animationVariants: any;
+  visibleProjects: Set<number>;
+  projectRefs: React.MutableRefObject<(HTMLLIElement | null)[]>;
 }) => (
   <SkillDetailContainer
-    variants={animationVariants.skillDetail}
-    initial="initial"
-    animate="animate"
-    exit="exit"
+    initial={{
+      opacity: 0,
+      y: 30,
+      scale: 0.95,
+      rotateX: -15
+    }}
+    animate={{
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      rotateX: 0
+    }}
+    exit={{
+      opacity: 0,
+      y: -20,
+      scale: 0.98,
+      rotateX: 10
+    }}
+    transition={{
+      duration: 0.6,
+      ease: [0.25, 0.46, 0.45, 0.94],
+      opacity: { duration: 0.4 },
+      scale: { duration: 0.5, delay: 0.1 }
+    }}
     layout
   >
-    <SkillTitle>
+    <SkillTitle
+      initial={{ opacity: 0, x: -30 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: 0.2, duration: 0.5, ease: "easeOut" }}
+    >
       {skill.icon && <SkillIcon type={skill.icon} />}
       {skill.name}
     </SkillTitle>
-    <SkillDescription>{skill.description}</SkillDescription>
+    
+    <SkillDescription
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.4, duration: 0.5, ease: "easeOut" }}
+    >
+      {skill.description}
+    </SkillDescription>
+    
     {skill.projects && skill.projects.length > 0 && (
-      <>
-        <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--colors-primary)' }}>Related Projects:</div>
-        <ProjectList>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.6, duration: 0.4 }}
+      >
+        <motion.div 
+          style={{ 
+            fontSize: '16px', 
+            fontWeight: '600', 
+            color: 'var(--colors-primary)', 
+            marginBottom: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.7, duration: 0.4 }}
+        >
+          <motion.span
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.8, duration: 0.3, type: "spring" }}
+          >
+            ✨
+          </motion.span>
+          Related Projects:
+        </motion.div>
+        
+        <ProjectList
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8, duration: 0.3 }}
+        >
           {skill.projects.map((project, index) => (
             <motion.li 
               key={index}
-              initial={{ opacity: 0, x: -5 }}
-              animate={{ opacity: 1, x: 0 }}
+              ref={(el) => {
+                projectRefs.current[index] = el;
+              }}
+              data-index={index}
+              initial={{ 
+                opacity: 0, 
+                x: -50, 
+                y: 20,
+                scale: 0.9,
+                filter: 'blur(6px)',
+                rotateX: -15
+              }}
+              animate={visibleProjects.has(index) ? {
+                opacity: 1,
+                x: 0,
+                y: 0,
+                scale: 1,
+                filter: 'blur(0px)',
+                rotateX: 0
+              } : {
+                opacity: 0,
+                x: -50,
+                y: 20,
+                scale: 0.9,
+                filter: 'blur(6px)',
+                rotateX: -15
+              }}
               transition={{
-                delay: index * 0.1,
-                duration: 0.3
+                duration: 0.7,
+                ease: [0.165, 0.84, 0.44, 1], // Enhanced easing for smoother animation
+                delay: index * 0.1, // Reduced stagger for faster sequence
+                type: "tween",
+                // Individual property transitions for more control
+                opacity: { duration: 0.5, delay: index * 0.1 },
+                x: { duration: 0.7, delay: index * 0.1 },
+                y: { duration: 0.6, delay: index * 0.1 + 0.05 },
+                scale: { duration: 0.6, delay: index * 0.1 + 0.1 },
+                filter: { duration: 0.4, delay: index * 0.1 + 0.15 },
+                rotateX: { duration: 0.5, delay: index * 0.1 + 0.05 }
+              }}
+              whileHover={{
+                scale: 1.03,
+                x: 12,
+                y: -2,
+                transition: { 
+                  duration: 0.2,
+                  ease: "easeOut"
+                }
+              }}
+              style={{
+                // Add subtle transform origin for better hover effects
+                transformOrigin: "left center"
               }}
             >
               {project}
             </motion.li>
           ))}
         </ProjectList>
-      </>
+      </motion.div>
     )}
   </SkillDetailContainer>
 ));
 SkillDetail.displayName = 'SkillDetail';
 
-// Add these styled components before the AnimatedBioItem component
+// 2+1 button layout with optimized spacing
 const Bio = styled(motion.div)<StyledMotionProps>`
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin: 20px 0 30px;
-  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  align-items: center;
+  width: 100%;
+  max-width: 700px;
   
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    justify-content: center;
-    gap: 8px;
-    width: 100%;
+    gap: 14px;
+    max-width: 600px;
+  }
+  
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    gap: 12px;
+    max-width: 100%;
+    padding: 0 16px;
   }
 `;
 
+// Container for the top two buttons
+const TopButtonRow = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  width: 100%;
+  
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    gap: 14px;
+  }
+  
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+`;
+
+// Container for the bottom single button
+const BottomButtonRow = styled.div`
+  display: flex;
+  justify-content: center;
+  width: 100%;
+`;
+
 const BioItem = styled(motion.button)<BioItemProps>`
-  font-size: clamp(16px, 3vw, 20px);
-  color: ${({ theme, $active }) => $active ? theme.colors.backgroundAlt : theme.colors.text};
-  padding: 8px 16px;
-  border-radius: 8px;
+  /* Responsive sizing for different positions */
+  width: 100%;
+  min-height: 64px;
+  padding: 18px 20px;
+  
+  /* Typography - responsive but consistent */
+  font-size: clamp(13px, 2vw, 15px);
+  font-weight: 500;
+  font-family: inherit;
+  line-height: 1.3;
+  text-align: center;
+  
+  /* Perfect text centering and handling */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: normal;
+  word-break: break-word;
+  hyphens: auto;
+  
+  /* Visual design */
+  color: ${({ theme, $active }) => $active ? '#fff' : theme.colors.text};
   background-color: ${({ theme, $active }) => $active 
     ? theme.colors.primary 
-    : theme.colors.primaryLight};
-  position: relative;
+    : 'rgba(255, 255, 255, 0.08)'};
+  border: 2px solid ${({ theme, $active }) => $active 
+    ? theme.colors.primary 
+    : 'rgba(255, 255, 255, 0.12)'};
+  border-radius: 14px;
+  backdrop-filter: blur(10px);
+  
+  /* Sleek interactions */
   cursor: pointer;
   pointer-events: auto;
-  border: none;
-  font-family: inherit;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  position: relative;
   overflow: hidden;
-  transition: all 0.3s ease;
-  width: auto;
-  min-width: 140px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Subtle gradient overlay */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
+    transition: left 0.6s ease;
+    z-index: 0;
+  }
+  
+  /* Text stays above overlay */
+  & > * {
+    position: relative;
+    z-index: 1;
+  }
 
   &:hover {
     background-color: ${({ theme, $active }) => $active 
       ? theme.colors.primary 
-      : `${theme.colors.primary}30`};
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      : 'rgba(255, 255, 255, 0.12)'};
+    border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     transform: translateY(-2px);
+    
+    &::before {
+      left: 100%;
+    }
   }
 
+  &:active {
+    transform: translateY(0) scale(0.98);
+    transition: all 0.15s ease;
+  }
+
+  /* Special styling for bottom button */
+  &.bottom-button {
+    max-width: 340px;
+  }
+
+  /* Responsive adjustments */
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    font-size: clamp(14px, 2.5vw, 18px);
-    padding: 6px 14px;
-    width: ${props => props.$active ? '100%' : 'auto'};
-    max-width: ${props => props.$active ? '100%' : '160px'};
-    margin: 0 auto;
+    min-height: 60px;
+    padding: 16px 18px;
+    border-radius: 12px;
+    font-size: clamp(12px, 2.2vw, 14px);
+    
+    &.bottom-button {
+      max-width: 320px;
+    }
+  }
+  
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    min-height: 56px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    font-size: clamp(12px, 3vw, 14px);
+    
+    &.bottom-button {
+      max-width: 100%;
+    }
   }
 `;
 
@@ -592,22 +946,136 @@ const TypewriterCursor = styled(motion.div)`
   border-radius: 1px;
 `;
 
+// Global smooth scroll enhancement
+const GlobalSmoothScrollStyles = styled.div`
+  /* Enhanced smooth scrolling for the entire page */
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 80px;
+  }
+  
+  /* Force smooth scrolling for all scroll operations */
+  * {
+    scroll-behavior: smooth;
+  }
+  
+  /* Custom scroll timing for enhanced smoothness */
+  html, body {
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+  }
+  
+  /* Webkit browsers smooth scroll enhancement */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.1);
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.3);
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0,0,0,0.5);
+  }
+`;
+
 // Main Hero component refactored to use the new hooks
 export const Hero: React.FC = () => {
   // Get theme from context
   const { theme } = useTheme();
   
+  // Initialize navigation
+  const navigate = useNavigate();
+  
   // Initialize component state
   const [isNameHovered, setIsNameHovered] = useState(false);
   const [activeSkill, setActiveSkill] = useState<string | null>(null);
+  const [visibleProjects, setVisibleProjects] = useState<Set<number>>(new Set());
+  const [initialScrollPosition, setInitialScrollPosition] = useState<number>(0);
   
   // Create refs for touch interactions and section visibility
   const bioRef = useRef<HTMLDivElement>(null);
+  const skillDetailRef = useRef<HTMLDivElement>(null);
+  const projectRefs = useRef<(HTMLLIElement | null)[]>([]);
   
   
   // Use our new hooks for device optimization
   const deviceCapabilities = useDeviceCapabilities();
   const { performanceSettings } = usePerformanceOptimizations();
+  
+  // Enhanced intersection observer for seamless project animations
+  useEffect(() => {
+    if (!activeSkill) {
+      setVisibleProjects(new Set());
+      return;
+    }
+
+    // Capture refs at the beginning of the effect to avoid stale closure
+    const currentRefs = projectRefs.current;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const index = parseInt(entry.target.getAttribute('data-index') || '0');
+            setVisibleProjects(prev => new Set([...prev, index]));
+          } else {
+            // Optional: Remove from visible set when out of view for re-animation
+            const index = parseInt(entry.target.getAttribute('data-index') || '0');
+            setVisibleProjects(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(index);
+              return newSet;
+            });
+          }
+        });
+      },
+      {
+        threshold: 0.1, // Trigger when 10% of the project is visible (earlier)
+        rootMargin: '0px 0px -20px 0px' // Start animation earlier
+      }
+    );
+
+    // Small delay to ensure refs are set
+    const setupObserver = () => {
+      currentRefs.forEach((ref) => {
+        if (ref) observer.observe(ref);
+      });
+    };
+
+    // Setup observer after dropdown animation starts
+    const timeoutId = setTimeout(setupObserver, 100);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      currentRefs.forEach((ref) => {
+        if (ref) observer.unobserve(ref);
+      });
+    };
+  }, [activeSkill]); // Re-run when activeSkill changes
+
+  // Auto-trigger animation for projects if they're already in view
+  useEffect(() => {
+    if (activeSkill) {
+      // Trigger animations for projects in view after a delay
+      setTimeout(() => {
+        projectRefs.current.forEach((ref, index) => {
+          if (ref) {
+            const rect = ref.getBoundingClientRect();
+            const isInView = rect.top < window.innerHeight && rect.bottom > 0;
+            if (isInView) {
+              setVisibleProjects(prev => new Set([...prev, index]));
+            }
+          }
+        });
+      }, 300); // Wait for dropdown to be visible
+    }
+  }, [activeSkill]);
   
   
   // Memoize animation settings based on performance
@@ -662,14 +1130,13 @@ export const Hero: React.FC = () => {
   
   
   
-  // Memoize bio items
+  // Clean bio items with skill mapping
   const bioItems = useMemo(() => [
-    'UI Designer',
-    'API Coding',
-    'Database Management'
+    { label: 'UI Designer', skillId: 'ui' },
+    { label: 'API Development & Integration', skillId: 'api' },
+    { label: 'Database Management', skillId: 'db' }
   ], []);
 
-  // Split name into characters for typing animation
   const nameText = "Hi there, I'm Jaden Razo/";
   const nameCharacters = nameText.split('');
   const [typedCount, setTypedCount] = useState(0);
@@ -710,37 +1177,154 @@ export const Hero: React.FC = () => {
     setIsNameHovered(false);
   }, []);
 
-  // Handler for skill button click with improved mobile experience
-  const handleSkillClick = useCallback((skill: string) => {
-    const skillId = skill === 'UI Designer' ? 'ui' : skill === 'API Coding' ? 'api' : 'db';
+  // FIXED: Simple and clear scroll logic
+  const handleSkillClick = useCallback((skillId: string) => {
+    const isClosing = activeSkill === skillId;
+    const isSwitching = activeSkill && activeSkill !== skillId; 
+    const isFirstOpen = !activeSkill && initialScrollPosition === 0;
     
-    // Toggle skill display
-    setActiveSkill(prev => prev === skillId ? null : skillId);
     
-    // Scroll to bio section if skill is activated, with special handling for mobile
-    if (activeSkill !== skillId && bioRef.current) {
-      const scrollDelay = isTouchDevice ? 300 : 100; // Longer delay on touch for better UX
+    if (isClosing) {
+      // CLOSING: Scroll back up to buttons area and RESET state
+      setActiveSkill(null);
+      setVisibleProjects(new Set());
       
-      setTimeout(() => {
-        const yOffset = isTouchDevice ? -20 : 0; // Add offset on mobile to improve visibility
-        if (bioRef.current) {
-          const y = bioRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      // RESTORE WORKING SCROLL METHODS FOR UPWARD SCROLL
+      if (initialScrollPosition !== undefined && initialScrollPosition !== 0) {
+        const scrollBackPosition = initialScrollPosition; // Save before reset
+        
+        try {
+          // Ensure smooth scroll CSS is applied
+          document.documentElement.style.scrollBehavior = 'smooth';
+          document.body.style.scrollBehavior = 'smooth';
+          
+          // Method 1: Standard scrollTo (WORKING VERSION)
           window.scrollTo({
-            top: y,
-            behavior: performanceSettings.reduceMotion ? 'auto' : 'smooth'
+            top: scrollBackPosition,
+            left: 0,
+            behavior: 'smooth'
           });
+          
+          // Method 2: Backup with document.documentElement (WORKING VERSION)
+          setTimeout(() => {
+            document.documentElement.scrollTo({
+              top: scrollBackPosition,
+              left: 0,
+              behavior: 'smooth'
+            });
+          }, 100);
+          
+          // Method 3: Force with document.body as fallback (WORKING VERSION)
+          setTimeout(() => {
+            if (Math.abs(window.pageYOffset - scrollBackPosition) > 30) {
+              document.body.scrollTop = scrollBackPosition;
+              document.documentElement.scrollTop = scrollBackPosition;
+            }
+          }, 200);
+          
+        } catch (error) {
+          console.error('Upward scroll failed:', error);
+          // Emergency fallback
+          document.body.scrollTop = scrollBackPosition;
+          document.documentElement.scrollTop = scrollBackPosition;
         }
-      }, scrollDelay);
+        
+        // CRITICAL: Reset scroll position after closing so next button is treated as fresh open
+        setTimeout(() => {
+          setInitialScrollPosition(0);
+        }, 500); // Wait for scroll to complete
+      }
+      return;
     }
-  }, [activeSkill, isTouchDevice, performanceSettings.reduceMotion]);
+    
+    if (isSwitching) {
+      // SWITCHING: Just change content, NO SCROLLING
+      setActiveSkill(skillId);
+      setVisibleProjects(new Set());
+      return;
+    }
+    
+    if (isFirstOpen) {
+      // FIRST OPEN: Save position and scroll down
+      const currentScrollY = window.pageYOffset || document.documentElement.scrollTop;
+      setInitialScrollPosition(currentScrollY);
+      
+      setActiveSkill(skillId);
+      setVisibleProjects(new Set());
+      
+      // RESTORE WORKING SCROLL METHODS
+      setTimeout(() => {
+        const scrollToDropdown = () => {
+          const bioElement = bioRef.current;
+          if (!bioElement) return;
+          
+          const bioRect = bioElement.getBoundingClientRect();
+          const currentScrollY = window.pageYOffset || document.documentElement.scrollTop;
+          const bioBottom = bioRect.bottom + currentScrollY;
+          const dropdownHeight = 200;
+          const targetY = bioBottom + dropdownHeight - (window.innerHeight * 0.6);
+          
+          
+          // RESTORE THE PROVEN WORKING METHODS
+          try {
+            // Ensure smooth scroll CSS is applied
+            document.documentElement.style.scrollBehavior = 'smooth';
+            document.body.style.scrollBehavior = 'smooth';
+            
+            // Method 1: Standard scrollTo (WORKING VERSION)
+            window.scrollTo({
+              top: targetY,
+              left: 0,
+              behavior: 'smooth'
+            });
+            
+            // Method 2: Backup with document.documentElement (WORKING VERSION)
+            setTimeout(() => {
+              document.documentElement.scrollTo({
+                top: targetY,
+                left: 0,
+                behavior: 'smooth'
+              });
+            }, 100);
+            
+            // Method 3: Force with document.body as fallback (WORKING VERSION)
+            setTimeout(() => {
+              if (Math.abs(window.pageYOffset - targetY) > 30) {
+                document.body.scrollTop = targetY;
+                document.documentElement.scrollTop = targetY;
+              }
+            }, 200);
+            
+          } catch (error) {
+            console.error('Scroll failed:', error);
+            // Emergency fallback
+            document.body.scrollTop = targetY;
+            document.documentElement.scrollTop = targetY;
+          }
+        };
+        
+        scrollToDropdown();
+      }, 100);
+      
+      return;
+    }
+    
+  }, [activeSkill, initialScrollPosition]);
+
+  // Handler for portfolio navigation
+  const handlePortfolioClick = useCallback(() => {
+    navigate('/projects');
+  }, [navigate]);
 
   return (
-    <HeroContainer>
-      <ContentWrapper
-        variants={animationVariants.container}
-        initial="hidden"
-        animate="visible"
-      >
+    <>
+      <GlobalSmoothScrollStyles />
+      <HeroContainer>
+        <ContentWrapper
+          variants={animationVariants.container}
+          initial="hidden"
+          animate="visible"
+        >
         <Name
           variants={animationVariants.item}
           $isHovered={isNameHovered}
@@ -787,49 +1371,104 @@ export const Hero: React.FC = () => {
           ref={bioRef}
           variants={animationVariants.container}
         >
-          {bioItems.map((item) => {
-            const skillId = item === 'UI Designer' ? 'ui' : item === 'API Coding' ? 'api' : 'db';
-            return (
-              <BioItem
-                key={item}
-                onClick={() => handleSkillClick(item)}
-                $active={activeSkill === skillId}
-                $enablePulse={!performanceSettings?.reduceMotion}
-                animate={{
-                  scale: activeSkill === skillId ? 1.05 : 1,
-                  backgroundColor: activeSkill === skillId ? theme.colors.primary : theme.colors.primaryLight,
-                  color: activeSkill === skillId ? '#fff' : 'var(--colors-text)',
-                  boxShadow: activeSkill === skillId ? '0 4px 16px rgba(0,0,0,0.15)' : '0 2px 8px rgba(0,0,0,0.1)',
-                }}
-                transition={{ duration: 0.2 }}
-              >
-                {item}
-              </BioItem>
-            );
-          })}
+          {/* Top row: First two buttons side by side */}
+          <TopButtonRow>
+            {bioItems.slice(0, 2).map((item) => {
+              const isActive = activeSkill === item.skillId;
+              return (
+                <BioItem
+                  key={item.skillId}
+                  onClick={() => handleSkillClick(item.skillId)}
+                  $active={isActive}
+                  $enablePulse={!performanceSettings?.reduceMotion}
+                  animate={isActive ? {
+                    scale: 1.02,
+                    backgroundColor: theme.colors.primary,
+                    color: '#fff',
+                    boxShadow: '0 12px 40px rgba(0,0,0,0.3)',
+                    borderColor: theme.colors.primary,
+                  } : {
+                    scale: 1,
+                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                    color: theme.colors.text,
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+                    borderColor: 'rgba(255, 255, 255, 0.12)',
+                  }}
+                  transition={{ 
+                    duration: 0.4, 
+                    ease: [0.4, 0, 0.2, 1],
+                    type: "tween"
+                  }}
+                >
+                  {item.label}
+                </BioItem>
+              );
+            })}
+          </TopButtonRow>
+
+          {/* Bottom row: Third button centered */}
+          <BottomButtonRow>
+            {bioItems.slice(2).map((item) => {
+              const isActive = activeSkill === item.skillId;
+              return (
+                <BioItem
+                  key={item.skillId}
+                  className="bottom-button"
+                  onClick={() => handleSkillClick(item.skillId)}
+                  $active={isActive}
+                  $enablePulse={!performanceSettings?.reduceMotion}
+                  animate={isActive ? {
+                    scale: 1.02,
+                    backgroundColor: theme.colors.primary,
+                    color: '#fff',
+                    boxShadow: '0 12px 40px rgba(0,0,0,0.3)',
+                    borderColor: theme.colors.primary,
+                  } : {
+                    scale: 1,
+                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                    color: theme.colors.text,
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+                    borderColor: 'rgba(255, 255, 255, 0.12)',
+                  }}
+                  transition={{ 
+                    duration: 0.4, 
+                    ease: [0.4, 0, 0.2, 1],
+                    type: "tween"
+                  }}
+                >
+                  {item.label}
+                </BioItem>
+              );
+            })}
+          </BottomButtonRow>
         </Bio>
 
         {/* Animated skill details */}
         <AnimatePresence mode="wait">
           {activeSkill && SKILLS[activeSkill] && (
-            <SkillDetail 
-              skill={SKILLS[activeSkill]} 
-              performanceSettings={performanceSettings}
-              animationVariants={animationVariants}
-            />
+            <div ref={skillDetailRef}>
+              <SkillDetail 
+                skill={SKILLS[activeSkill]} 
+                performanceSettings={performanceSettings}
+                animationVariants={animationVariants}
+                visibleProjects={visibleProjects}
+                projectRefs={projectRefs}
+              />
+            </div>
           )}
         </AnimatePresence>
 
         <CTAButton
-          href="#projects"
+          onClick={handlePortfolioClick}
           variants={animationVariants.item}
           whileHover={!isTouchDevice ? animationObjects.hover : undefined}
           whileTap={!isTouchDevice ? animationObjects.tap : undefined}
         >
-          Check out my work
+          View My Portfolio
         </CTAButton>
-      </ContentWrapper>
-    </HeroContainer>
+        </ContentWrapper>
+      </HeroContainer>
+    </>
   );
 };
 

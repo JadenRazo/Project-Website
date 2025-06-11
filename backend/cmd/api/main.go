@@ -180,9 +180,9 @@ func main() {
 	// projectService := project.NewService(projectRepository)
 	projectService := projectMemoryService.NewMemoryProjectService()
 
-	// Initialize metrics manager
+	// Initialize metrics manager with database support
 	metricsConfig := metrics.DefaultConfig()
-	metricsManager, err := metrics.NewManager(metricsConfig)
+	metricsManager, err := metrics.NewManagerWithDB(metricsConfig, database)
 	if err != nil {
 		logger.Warn("Failed to initialize metrics manager", "error", err)
 		metricsManager = nil

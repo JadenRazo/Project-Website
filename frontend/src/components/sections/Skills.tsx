@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect, useMemo } from 'react';
 import styled from 'styled-components';
 import { motion, useAnimation } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
-import { useTheme } from '../../contexts/ThemeContext';
+import { useTheme } from '../../hooks/useTheme';
 import { useZIndex } from '../../hooks/useZIndex';
 import SkillBar from '../ui/SkillBar';
 import CreativeShaderBackground from '../animations/CreativeShaderBackground';
