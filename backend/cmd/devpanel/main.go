@@ -11,11 +11,10 @@ import (
 	"time"
 
 	"github.com/JadenRazo/Project-Website/backend/internal/common/auth"
-	"github.com/JadenRazo/Project-Website/backend/internal/common/database"
 	"github.com/JadenRazo/Project-Website/backend/internal/core"
 	"github.com/JadenRazo/Project-Website/backend/internal/core/config"
+	"github.com/JadenRazo/Project-Website/backend/internal/core/db"
 	"github.com/JadenRazo/Project-Website/backend/internal/devpanel"
-	"github.com/JadenRazo/Project-Website/backend/internal/domain/entity"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-contrib/cors"
 )
@@ -34,18 +33,17 @@ func main() {
 	fmt.Println("Starting DevPanel service...")
 
 	// Initialize database
-	db, err := database.NewConnection()
+	database, err := db.GetDB()
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
-	// Auto-migrate User table
-	if err := db.AutoMigrate(&entity.User{}); err != nil {
-		log.Fatalf("Failed to migrate database: %v", err)
-	}
+	// Skip auto-migration - User table is managed by the main API service
+	// DevPanel only needs to read from existing schema
+	log.Println("Skipping User table auto-migration - using existing schema")
 
 	// Initialize auth handlers
-	authHandlers := auth.NewAdminAuthHandlers(db)
+	authHandlers := auth.NewAdminAuthHandlers(database)
 
 	// Create service manager for devpanel to manage
 	serviceManager := core.NewServiceManager()

@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react';
 import * as THREE from 'three';
 import styled from 'styled-components';
-import { useTheme } from '../../contexts/ThemeContext';
+import { useTheme } from '../../hooks/useTheme';
 import usePerformanceOptimizations from '../../hooks/usePerformanceOptimizations';
 
 const AnimationContainer = styled.div<{ visible: boolean }>`

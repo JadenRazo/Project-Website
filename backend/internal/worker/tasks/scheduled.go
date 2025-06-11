@@ -19,7 +19,13 @@ func NewScheduledTasks(db *gorm.DB) *ScheduledTasks {
 	return &ScheduledTasks{
 		cron: cron.New(cron.WithSeconds()),
 		codeStatsService: codestats.NewService(db, codestats.Config{
-			ProjectDir:     "/main/Project-Website",
+			Projects: []codestats.ProjectConfig{
+				{
+					Name: "Project Website",
+					Path: "/main/Project-Website",
+					Exclude: []string{"build", "node_modules", "logs", "bin"},
+				},
+			},
 			UpdateInterval: 1 * time.Hour,
 		}),
 	}

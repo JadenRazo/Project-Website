@@ -268,7 +268,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ themeMode, toggleTheme })
   // Function to check backend service status
   const checkServices = React.useCallback(async () => {
     try {
-      const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:8080';
+      const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || 'https://jadenrazo.dev';
       const response = await fetch(`${apiUrl}/api/v1/status/`, {
         method: 'GET',
         headers: { 'Cache-Control': 'no-cache' }
@@ -345,6 +345,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ themeMode, toggleTheme })
   const handleLinkClick = () => {
     window.scrollTo(0, 0);
     setIsMenuOpen(false); // Close mobile menu if open
+    setIsServicesOpen(false); // Close services dropdown if open
   };
 
   // Check if a path is active
@@ -360,7 +361,10 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ themeMode, toggleTheme })
           Jaden Razo
         </Logo>
 
-        <HamburgerButton onClick={() => setIsMenuOpen(!isMenuOpen)}>
+        <HamburgerButton onClick={() => {
+          setIsMenuOpen(!isMenuOpen);
+          setIsServicesOpen(false); // Close services dropdown when toggling mobile menu
+        }}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             {isMenuOpen ? (
               <path d="M18 6L6 18M6 6l12 12" />

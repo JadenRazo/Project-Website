@@ -54,9 +54,6 @@ func main() {
 	// Register URL shortener routes
 	urlShortenerService.RegisterRoutes(routerGroup)
 
-	// Add redirect handler at root level
-	router.GET("/:shortCode", urlShortenerService.RedirectHandler)
-
 	// Configure server with timeouts
 	srv := &http.Server{
 		Addr:         ":8083", // Match the expected port in the service report

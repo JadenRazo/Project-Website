@@ -3,7 +3,6 @@ package messaging
 import (
     "fmt"
     "net/http"
-    "strconv"
     "strings"
     "time"
     
@@ -61,12 +60,9 @@ func NewService(db *gorm.DB, config Config) *Service {
 }
 
 // RegisterRoutes registers the service's HTTP routes
-func (s *Service) RegisterRoutes(router *gin.RouterGroup, authMiddleware gin.HandlerFunc) {
+func (s *Service) RegisterRoutes(router *gin.RouterGroup) {
     messaging := router.Group("/messaging")
     {
-        // All messaging endpoints require authentication
-        messaging.Use(authMiddleware)
-        
         // Channel management
         messaging.POST("/channels", s.CreateChannel)
         messaging.GET("/channels", s.GetChannels)
@@ -80,7 +76,7 @@ func (s *Service) RegisterRoutes(router *gin.RouterGroup, authMiddleware gin.Han
         messaging.POST("/channels/:id/messages/:messageId/reactions", s.AddReaction)
         messaging.DELETE("/channels/:id/messages/:messageId/reactions", s.RemoveReaction)
         
-        // WebSocket endpoint (authentication will be handled during upgrade)
+        // WebSocket endpoint
         messaging.GET("/ws", s.HandleWebSocket)
     }
 }
