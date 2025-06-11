@@ -1,11 +1,8 @@
 package auth
 
 import (
-	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -375,13 +372,13 @@ func (a *Auth) RegisterUserRoutes(router *gin.RouterGroup) {
 		auth.POST("/refresh", a.RefreshTokenHandler)
 		auth.POST("/logout", a.LogoutHandler)
 		auth.GET("/validate", a.ValidateTokenHandler)
-		auth.GET("/profile", a.AuthMiddleware(), a.GetProfileHandler)
-		auth.PUT("/password", a.AuthMiddleware(), a.ChangePasswordHandler)
+		auth.GET("/profile", a.GinAuthMiddleware(), a.GetProfileHandler)
+		auth.PUT("/password", a.GinAuthMiddleware(), a.ChangePasswordHandler)
 	}
 }
 
-// AuthMiddleware returns a Gin middleware function that validates JWT tokens
-func (a *Auth) AuthMiddleware() gin.HandlerFunc {
+// GinAuthMiddleware returns a Gin middleware function that validates JWT tokens
+func (a *Auth) GinAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Skip auth for certain paths
 		if a.isPublicPath(c.Request.URL.Path) {

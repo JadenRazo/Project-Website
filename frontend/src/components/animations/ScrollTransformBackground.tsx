@@ -1,11 +1,11 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, useScroll, useTransform, useSpring, useMotionValueEvent, useAnimation, MotionValue } from 'framer-motion';
-import { useTheme } from '../../contexts/ThemeContext';
+import { useTheme } from '../../hooks/useTheme';
 import { useZIndex } from '../../contexts/ZIndexContext';
 import styled from 'styled-components';
 import { useInView } from 'react-intersection-observer';
 import { debounce } from 'lodash';
-import { useMemoryManager, withMemoryOptimization } from '../../utils/MemoryManager';
+import { useMemoryManager } from '../../hooks/useMemoryManager';
 import { cleanupWebGLContext, useDebounce } from '../../utils/performance';
 
 // Interface for explosion particles that would be used later in the component

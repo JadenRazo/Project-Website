@@ -2,9 +2,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
-import { ThemeProvider } from './contexts/ThemeContext';
 import { ZIndexProvider } from './hooks/useZIndex';
-import { MemoryManagerProvider } from './utils/MemoryManager';
 import { StyleSheetManager } from 'styled-components';
 import './index.css';
 
@@ -35,18 +33,11 @@ const shouldForwardProp = (prop: string): boolean => {
 /** gang gang gang */
 const AppWithProviders: React.FC = () => (
   <React.StrictMode>
-    <MemoryManagerProvider 
-      monitoringInterval={30000}
-      memoryThreshold={75}
-    >
-      <ThemeProvider defaultTheme="dark">
-        <ZIndexProvider>
-          <StyleSheetManager shouldForwardProp={shouldForwardProp}>
-            <App />
-          </StyleSheetManager>
-        </ZIndexProvider>
-      </ThemeProvider>
-    </MemoryManagerProvider>
+    <ZIndexProvider>
+      <StyleSheetManager shouldForwardProp={shouldForwardProp}>
+        <App />
+      </StyleSheetManager>
+    </ZIndexProvider>
   </React.StrictMode>
 );
 

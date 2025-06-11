@@ -7,7 +7,6 @@ import (
     "net"
     "net/http"
     "net/url"
-    "strings"
     "time"
     
     "github.com/gin-gonic/gin"
@@ -42,20 +41,14 @@ func NewService(db *gorm.DB, config Config) *Service {
 }
 
 // RegisterRoutes registers the service's HTTP routes
-func (s *Service) RegisterRoutes(router *gin.RouterGroup, authMiddleware gin.HandlerFunc) {
+func (s *Service) RegisterRoutes(router *gin.RouterGroup) {
     urlshortener := router.Group("/urls")
     {
         // Public endpoints
         urlshortener.POST("/shorten", s.ShortenURL) // Allow anonymous shortening
-        
-        // Protected endpoints (require authentication)
-        protected := urlshortener.Group("/")
-        protected.Use(authMiddleware)
-        {
-            protected.GET("/", s.GetUserURLs)
-            protected.GET("/:shortCode/stats", s.GetURLStats)
-            protected.DELETE("/:shortCode", s.DeleteURL)
-        }
+        urlshortener.GET("/", s.GetUserURLs)
+        urlshortener.GET("/:shortCode/stats", s.GetURLStats)
+        urlshortener.DELETE("/:shortCode", s.DeleteURL)
     }
     
     // Redirect endpoint (public, different route pattern)

@@ -12,7 +12,6 @@ import (
 
 	"github.com/JadenRazo/Project-Website/backend/internal/domain/entity"
 	"github.com/golang-jwt/jwt"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 

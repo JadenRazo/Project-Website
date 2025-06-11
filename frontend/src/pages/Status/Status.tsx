@@ -414,7 +414,7 @@ const Status: React.FC = () => {
 
   const fetchStatus = async () => {
     try {
-      const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:8080';
+      const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || 'https://jadenrazo.dev';
       const response = await fetch(`${apiUrl}/api/v1/status/`);
       if (!response.ok) {
         throw new Error(`Failed to fetch status: ${response.status}`);

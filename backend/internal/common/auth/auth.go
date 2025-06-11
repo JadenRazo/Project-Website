@@ -388,7 +388,6 @@ func (a *Auth) DeactivateUser(userID uuid.UUID) error {
 func (a *Auth) InvalidateUserTokens(userID uuid.UUID) error {
     // This is a simple implementation - in production you might want to maintain
     // a more sophisticated token blacklist
-    pattern := fmt.Sprintf("refresh_token:*")
     // Note: This is a simplified approach. In production, you'd want to
     // store user_id -> tokens mapping for efficient invalidation
     return nil

@@ -88,9 +88,12 @@ func NewService(db *gorm.DB, checkInterval time.Duration, metricsManager *metric
 	// Start monitoring
 	go service.startMonitoring()
 
-	// Start periodic latency collection (every 30 seconds for more granular data)
+	// Start periodic latency collection (every 5 minutes to reduce data volume)
 	if metricsManager != nil {
-		metricsManager.StartPeriodicLatencyCollector(30*time.Second, "http://localhost:8080/api/v1/status/")
+		go service.startPeriodicLatencyCollection()
+		
+		// Start periodic cleanup
+		metricsManager.StartPeriodicCleanup()
 	}
 
 	return service
@@ -464,4 +467,41 @@ func (s *Service) handleLatestMetrics(c *gin.Context) {
 		return
 	}
 	s.metricsHandler.HandleLatestMetrics(c.Writer, c.Request)
+}
+
+// startPeriodicLatencyCollection starts collecting latency metrics every 5 minutes
+func (s *Service) startPeriodicLatencyCollection() {
+	ticker := time.NewTicker(5 * time.Minute)
+	defer ticker.Stop()
+	
+	for range ticker.C {
+		s.collectLatencyMetrics()
+	}
+}
+
+// collectLatencyMetrics performs a latency check and records the result
+func (s *Service) collectLatencyMetrics() {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	
+	start := time.Now()
+	
+	// Perform a simple API health check
+	err := s.performAPIHealthCheck(ctx)
+	latency := time.Since(start).Seconds() * 1000 // Convert to milliseconds
+	
+	if err == nil && s.metricsManager != nil {
+		// Only record successful latency measurements
+		s.metricsManager.RecordLatency(latency, "api_health_check")
+	}
+}
+
+// performAPIHealthCheck performs a simple health check
+func (s *Service) performAPIHealthCheck(ctx context.Context) error {
+	// Check database connectivity as a proxy for API health
+	db, err := s.db.DB()
+	if err != nil {
+		return err
+	}
+	return db.PingContext(ctx)
 }

@@ -4,6 +4,7 @@ import (
 	"sort"
 	"sync"
 	"time"
+	"gorm.io/gorm"
 )
 
 // LatencyMetric represents a latency measurement at a specific time
@@ -18,6 +19,18 @@ type LatencyTracker struct {
 	mu      sync.RWMutex
 	metrics []LatencyMetric
 	maxSize int
+	db      *gorm.DB
+	flushBuffer []LatencyMetric
+	bufferMu    sync.Mutex
+}
+
+// MetricData represents the database model for metrics
+type MetricData struct {
+	ID        uint      `gorm:"primaryKey"`
+	Timestamp time.Time `gorm:"index;not null"`
+	Latency   float64   `gorm:"not null"`
+	Endpoint  string    `gorm:"size:255"`
+	CreatedAt time.Time
 }
 
 // NewLatencyTracker creates a new latency tracker
@@ -29,6 +42,23 @@ func NewLatencyTracker(maxSize int) *LatencyTracker {
 	tracker := &LatencyTracker{
 		metrics: make([]LatencyMetric, 0, maxSize),
 		maxSize: maxSize,
+		flushBuffer: make([]LatencyMetric, 0, 10), // Buffer up to 10 metrics before flush
+	}
+	
+	return tracker
+}
+
+// NewLatencyTrackerWithDB creates a new latency tracker with database support
+func NewLatencyTrackerWithDB(maxSize int, db *gorm.DB) *LatencyTracker {
+	tracker := NewLatencyTracker(maxSize)
+	tracker.db = db
+	
+	// Auto-migrate the metrics table
+	if db != nil {
+		db.AutoMigrate(&MetricData{})
+		
+		// Load recent metrics from database on startup
+		tracker.loadRecentMetrics()
 	}
 	
 	return tracker
@@ -47,6 +77,18 @@ func (lt *LatencyTracker) AddMetric(latency float64, endpoint string) {
 	
 	lt.metrics = append(lt.metrics, metric)
 	
+	// Add to flush buffer for database persistence
+	if lt.db != nil {
+		lt.bufferMu.Lock()
+		lt.flushBuffer = append(lt.flushBuffer, metric)
+		
+		// Flush buffer if it's getting full (every 10 metrics)
+		if len(lt.flushBuffer) >= 10 {
+			go lt.flushToDB()
+		}
+		lt.bufferMu.Unlock()
+	}
+	
 	// Remove old metrics if we exceed max size
 	if len(lt.metrics) > lt.maxSize {
 		// Remove oldest 10% to avoid frequent array copies
@@ -60,6 +102,11 @@ func (lt *LatencyTracker) AddMetric(latency float64, endpoint string) {
 
 // GetMetrics returns metrics for the specified time period
 func (lt *LatencyTracker) GetMetrics(period TimePeriod) []LatencyMetric {
+	// For longer periods (week, month), prefer database if available
+	if lt.db != nil && (period == TimePeriodWeek || period == TimePeriodMonth) {
+		return lt.GetMetricsFromDB(period)
+	}
+	
 	lt.mu.RLock()
 	defer lt.mu.RUnlock()
 	
@@ -261,5 +308,139 @@ func (lt *LatencyTracker) GetLatencyStats(period TimePeriod) LatencyStats {
 	stats.Max = max
 	
 	return stats
+}
+
+// flushToDB flushes buffered metrics to the database
+func (lt *LatencyTracker) flushToDB() {
+	if lt.db == nil {
+		return
+	}
+	
+	lt.bufferMu.Lock()
+	defer lt.bufferMu.Unlock()
+	
+	if len(lt.flushBuffer) == 0 {
+		return
+	}
+	
+	// Convert LatencyMetrics to MetricData for database storage
+	var dbMetrics []MetricData
+	for _, metric := range lt.flushBuffer {
+		dbMetrics = append(dbMetrics, MetricData{
+			Timestamp: metric.Timestamp,
+			Latency:   metric.Latency,
+			Endpoint:  metric.Endpoint,
+			CreatedAt: time.Now(),
+		})
+	}
+	
+	// Batch insert to database
+	if err := lt.db.CreateInBatches(dbMetrics, 100).Error; err != nil {
+		// Log error but don't fail - metrics collection should be resilient
+		// TODO: Add proper logging here
+		return
+	}
+	
+	// Clear the buffer after successful flush
+	lt.flushBuffer = lt.flushBuffer[:0]
+}
+
+// loadRecentMetrics loads recent metrics from database on startup
+func (lt *LatencyTracker) loadRecentMetrics() {
+	if lt.db == nil {
+		return
+	}
+	
+	// Load last 24 hours of metrics to populate in-memory cache
+	var dbMetrics []MetricData
+	twentyFourHoursAgo := time.Now().Add(-24 * time.Hour)
+	
+	err := lt.db.Where("timestamp > ?", twentyFourHoursAgo).
+		Order("timestamp ASC").
+		Find(&dbMetrics).Error
+	
+	if err != nil {
+		// Log error but continue - we can work without historical data
+		return
+	}
+	
+	// Convert database metrics to in-memory format
+	lt.mu.Lock()
+	defer lt.mu.Unlock()
+	
+	for _, dbMetric := range dbMetrics {
+		lt.metrics = append(lt.metrics, LatencyMetric{
+			Timestamp: dbMetric.Timestamp,
+			Latency:   dbMetric.Latency,
+			Endpoint:  dbMetric.Endpoint,
+		})
+	}
+}
+
+// GetMetricsFromDB retrieves metrics from database for longer periods
+func (lt *LatencyTracker) GetMetricsFromDB(period TimePeriod) []LatencyMetric {
+	if lt.db == nil {
+		return []LatencyMetric{}
+	}
+	
+	now := time.Now()
+	var cutoff time.Time
+	var aggregationInterval time.Duration
+	
+	switch period {
+	case TimePeriodDay:
+		cutoff = now.Add(-24 * time.Hour)
+		aggregationInterval = 5 * time.Minute // 5-minute intervals for day view
+	case TimePeriodWeek:
+		cutoff = now.Add(-7 * 24 * time.Hour)
+		aggregationInterval = 30 * time.Minute // 30-minute intervals for week view
+	case TimePeriodMonth:
+		cutoff = now.Add(-30 * 24 * time.Hour)
+		aggregationInterval = 2 * time.Hour // 2-hour intervals for month view
+	default:
+		cutoff = now.Add(-24 * time.Hour)
+		aggregationInterval = 5 * time.Minute
+	}
+	
+	// Query aggregated data from database
+	var dbMetrics []MetricData
+	err := lt.db.Where("timestamp > ?", cutoff).
+		Order("timestamp ASC").
+		Find(&dbMetrics).Error
+	
+	if err != nil {
+		return []LatencyMetric{}
+	}
+	
+	// Convert to LatencyMetric format
+	var metrics []LatencyMetric
+	for _, dbMetric := range dbMetrics {
+		metrics = append(metrics, LatencyMetric{
+			Timestamp: dbMetric.Timestamp,
+			Latency:   dbMetric.Latency,
+			Endpoint:  dbMetric.Endpoint,
+		})
+	}
+	
+	// Aggregate by interval
+	return lt.aggregateByInterval(metrics, aggregationInterval)
+}
+
+// ForceFlush forces a flush of all buffered metrics to database
+func (lt *LatencyTracker) ForceFlush() {
+	lt.flushToDB()
+}
+
+// Cleanup removes old metrics from database
+func (lt *LatencyTracker) Cleanup() {
+	if lt.db == nil {
+		return
+	}
+	
+	// Keep last 45 days of raw data (configurable retention)
+	retentionPeriod := 45 * 24 * time.Hour
+	cutoff := time.Now().Add(-retentionPeriod)
+	
+	lt.db.Where("timestamp < ?", cutoff).Delete(&MetricData{})
 }
 

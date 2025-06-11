@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
+	"gorm.io/gorm"
 )
 
 // DefaultConfig returns the default metrics configuration
@@ -31,6 +33,30 @@ func NewManager(config Config) (*Manager, error) {
 		config:         config,
 		providers:      make([]Provider, 0),
 		latencyTracker: NewLatencyTracker(10080), // Store 1 week of 1-minute intervals
+	}
+
+	// Initialize Grafana provider if enabled
+	if config.Grafana.Enabled {
+		grafanaProvider, err := NewGrafanaProvider(config.Grafana)
+		if err != nil {
+			return nil, fmt.Errorf("failed to initialize Grafana metrics: %w", err)
+		}
+		manager.providers = append(manager.providers, grafanaProvider)
+	}
+
+	return manager, nil
+}
+
+// NewManagerWithDB creates a new metrics manager with database support
+func NewManagerWithDB(config Config, db *gorm.DB) (*Manager, error) {
+	if !config.Enabled {
+		return &Manager{config: config}, nil
+	}
+
+	manager := &Manager{
+		config:         config,
+		providers:      make([]Provider, 0),
+		latencyTracker: NewLatencyTrackerWithDB(1440, db), // Store 1 day in memory + unlimited in DB
 	}
 
 	// Initialize Grafana provider if enabled
@@ -161,6 +187,11 @@ func (m *Manager) Shutdown(ctx context.Context) error {
 		return nil
 	}
 
+	// Force flush any remaining metrics to database
+	if m.latencyTracker != nil {
+		m.latencyTracker.ForceFlush()
+	}
+
 	var lastErr error
 	for _, provider := range m.providers {
 		if err := provider.Shutdown(ctx); err != nil {
@@ -169,4 +200,21 @@ func (m *Manager) Shutdown(ctx context.Context) error {
 	}
 
 	return lastErr
+}
+
+// StartPeriodicCleanup starts a background goroutine to clean up old metrics
+func (m *Manager) StartPeriodicCleanup() {
+	if !m.config.Enabled || m.latencyTracker == nil {
+		return
+	}
+	
+	go func() {
+		// Clean up old metrics every 24 hours
+		ticker := time.NewTicker(24 * time.Hour)
+		defer ticker.Stop()
+		
+		for range ticker.C {
+			m.latencyTracker.Cleanup()
+		}
+	}()
 }
