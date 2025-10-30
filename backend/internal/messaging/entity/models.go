@@ -20,8 +20,8 @@ type Channel struct {
 	DeletedAt   gorm.DeletedAt `json:"-" gorm:"index"`
 
 	// Associations
-	Members  []ChannelMember  `json:"members,omitempty" gorm:"foreignKey:ChannelID"`
-	Messages []Message        `json:"messages,omitempty" gorm:"foreignKey:ChannelID"`
+	Members  []ChannelMember `json:"members,omitempty" gorm:"foreignKey:ChannelID"`
+	Messages []Message       `json:"messages,omitempty" gorm:"foreignKey:ChannelID"`
 }
 
 // ChannelMember represents a user's membership in a channel
@@ -51,11 +51,11 @@ type Message struct {
 	DeletedAt   gorm.DeletedAt `json:"-" gorm:"index"`
 
 	// Associations
-	Channel     *Channel             `json:"channel,omitempty" gorm:"foreignKey:ChannelID"`
-	Parent      *Message             `json:"parent,omitempty" gorm:"foreignKey:ParentID"`
-	Replies     []Message            `json:"replies,omitempty" gorm:"foreignKey:ParentID"`
-	Attachments []MessageAttachment  `json:"attachments,omitempty" gorm:"foreignKey:MessageID"`
-	Reactions   []MessageReaction    `json:"reactions,omitempty" gorm:"foreignKey:MessageID"`
+	Channel      *Channel            `json:"channel,omitempty" gorm:"foreignKey:ChannelID"`
+	Parent       *Message            `json:"parent,omitempty" gorm:"foreignKey:ParentID"`
+	Replies      []Message           `json:"replies,omitempty" gorm:"foreignKey:ParentID"`
+	Attachments  []MessageAttachment `json:"attachments,omitempty" gorm:"foreignKey:MessageID"`
+	Reactions    []MessageReaction   `json:"reactions,omitempty" gorm:"foreignKey:MessageID"`
 	ReadReceipts []ReadReceipt       `json:"read_receipts,omitempty" gorm:"foreignKey:MessageID"`
 }
 
@@ -156,8 +156,8 @@ type PaginationResponse struct {
 
 // MessageListResponse represents a paginated list of messages
 type MessageListResponse struct {
-	Messages   []MessageResponse   `json:"messages"`
-	Pagination PaginationResponse  `json:"pagination"`
+	Messages   []MessageResponse  `json:"messages"`
+	Pagination PaginationResponse `json:"pagination"`
 }
 
 // ChannelListResponse represents a paginated list of channels

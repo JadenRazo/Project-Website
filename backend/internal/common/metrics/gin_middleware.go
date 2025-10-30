@@ -15,12 +15,12 @@ func (m *Manager) GinLatencyMiddleware() gin.HandlerFunc {
 		}
 
 		start := time.Now()
-		
+
 		c.Next()
-		
+
 		// Calculate latency in milliseconds
 		latency := float64(time.Since(start).Nanoseconds()) / 1e6
-		
+
 		// Record latency for successful requests only
 		if c.Writer.Status() < 400 {
 			m.RecordLatency(latency, c.Request.URL.Path)

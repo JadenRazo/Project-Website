@@ -233,8 +233,9 @@ export const Projects: React.FC<ProjectsProps> = ({
           setError(null);
           
           // Get API URL from environment
-          const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:8080';
-          const response = await fetch(`${apiUrl}/api/v1/projects/featured`);
+          const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || '';
+          const endpoint = apiUrl ? `${apiUrl}/api/v1/projects/featured` : '/api/v1/projects/featured';
+          const response = await fetch(endpoint);
           
           if (!response.ok) {
             throw new Error(`Failed to fetch projects: ${response.status} ${response.statusText}`);

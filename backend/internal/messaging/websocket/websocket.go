@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/JadenRazo/Project-Website/backend/internal/common/response"
 	"github.com/gorilla/websocket"
 )
 
@@ -190,7 +191,7 @@ func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request, userID string) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Printf("Failed to upgrade to WebSocket: %v", err)
-		http.Error(w, "Could not open websocket connection", http.StatusBadRequest)
+		response.BadRequest(w, "Could not open websocket connection")
 		return
 	}
 

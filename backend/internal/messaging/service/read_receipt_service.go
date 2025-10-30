@@ -171,7 +171,6 @@ func (s *ReadReceiptService) GetTotalUnreadMessageCount(
 	// For now, we'll return a placeholder implementation
 	totalUnread := 0
 
-	// TODO: Implement proper counting of unread messages across all channels
 
 	return totalUnread, nil
 }

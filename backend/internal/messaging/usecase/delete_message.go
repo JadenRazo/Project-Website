@@ -49,7 +49,6 @@ func (uc *DeleteMessageUseCase) Execute(ctx context.Context, input DeleteMessage
 
 	// Check if user has permission to delete the message
 	if message.SenderID != input.UserID {
-		// TODO: Check if user has admin/mod permissions
 		return errors.ErrUnauthorized
 	}
 

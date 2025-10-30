@@ -13,6 +13,8 @@ export interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  authModalOpen: boolean;
+  authModalMode: 'login' | 'register';
 }
 
 export interface ThemeState {

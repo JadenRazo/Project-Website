@@ -40,6 +40,7 @@ cp .env.example .env
 ```
 
 This will:
+- ✅ Automatically detect and clean up any existing tmux sessions
 - ✅ Check all dependencies (tmux, Node.js, Go, PostgreSQL)
 - ✅ Test database connectivity
 - ✅ Clear frontend caches
@@ -106,19 +107,18 @@ Once started, access your services at:
 
 Options:
   -f, --fresh         Force fresh start with cache clearing
-  -k, --kill-existing Kill existing processes on required ports
   -s, --skip-deps     Skip dependency installation/updates
   -v, --verbose       Enable verbose output
   -h, --help          Show help message
+
+Note: The script now automatically detects and cleans up existing tmux sessions,
+eliminating the need for the --kill-existing flag.
 ```
 
 ### Examples
 ```bash
 # Fresh start with cache clearing
 ./start-dev.sh --fresh
-
-# Kill existing processes and start fresh
-./start-dev.sh --fresh --kill-existing
 
 # Skip dependency updates (faster startup)
 ./start-dev.sh --skip-deps
@@ -130,9 +130,9 @@ Options:
 ## Troubleshooting
 
 ### Port Conflicts
-If you get port conflicts:
+The `./start-dev.sh` script now automatically detects and cleans up existing tmux sessions, preventing most port conflicts. If you still encounter issues, the script will handle them automatically when you run:
 ```bash
-./start-dev.sh --kill-existing
+./start-dev.sh
 ```
 
 ### Database Connection Issues

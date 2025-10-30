@@ -1,0 +1,54 @@
+# Production configuration
+port: "8080"
+jwtSecret: "${JWT_SECRET}"
+environment: "production"
+baseURL: "https://www.example.com"
+logLevel: "info"
+metricsEnabled: true
+tracingEnabled: false
+enablePprof: false
+
+# Server timeouts (can be tighter or adjusted based on needs)
+readTimeout: "10s"
+writeTimeout: "15s"
+idleTimeout: "60s"
+shutdownTimeout: "15s"
+
+# TLS settings (disabled since nginx handles TLS termination)
+tlsEnabled: false
+tlsCert: "/etc/letsencrypt/live/example.com/fullchain.pem" # Path to your TLS certificate
+tlsKey: "/etc/letsencrypt/live/example.com/privkey.pem"    # Path to your TLS private key
+
+# CORS allowed origins
+allowedOrigins:
+  - "https://example.com"
+  - "https://www.example.com"
+
+# Rate limiting (adjust based on expected traffic and capacity)
+apiRateLimit: 200       # requests per minute
+redirectRateLimit: 1000 # requests per minute
+
+# Database configuration for PostgreSQL
+database:
+  driver: "postgres"
+  host: "${DB_HOST}"    # Database host - set in .env
+  port: 5432
+  user: "${DB_USER}"    # Database username - set in .env
+  password: "${DB_PASSWORD}" # Database password - set in .env
+  dbName: "project_website"   # Production database name
+  sslMode: "require" # Or "verify-full", "verify-ca". CRITICAL for production security
+
+# URL Shortener Configuration
+urlShortener:
+  baseURL: "https://www.example.com"
+  shortCodeLength: 7
+
+# Messaging Configuration
+messaging:
+  maxMessageSize: 8192 # 8KB, adjust based on production needs
+
+# DevPanel Configuration
+devPanel:
+  metricsInterval: "60s"
+  maxLogLines: 5000
+  logRetention: "720h" # 30 days

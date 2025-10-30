@@ -68,6 +68,11 @@ export const GlobalStyles = createGlobalStyle<{ theme: Theme }>`
   html {
     font-size: 16px;
     scroll-behavior: smooth;
+    scroll-padding-top: 80px;
+    
+    @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+      scroll-padding-top: 60px;
+    }
   }
 
   body {

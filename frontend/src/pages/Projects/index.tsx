@@ -763,9 +763,9 @@ const ProjectCard: React.FC<ProjectCardProps> = React.memo(({
                       backgroundColor: 'rgba(0, 0, 0, 0.05)' // Subtle background for letterboxing
                     }}
                     aria-label={project.title + ' demo video'}
-                    onError={(e) => console.error('Video load error:', e)}
-                    onLoadStart={() => console.log('Video loading started for:', project.title)}
-                    onCanPlay={() => console.log('Video can play:', project.title)}
+                    onError={(e) => {
+                      // Video failed to load, could show fallback UI
+                    }}
                     onClick={(e) => {
                       // On mobile, let video controls handle interaction
                       if (window.innerWidth <= 768) {
@@ -785,7 +785,9 @@ const ProjectCard: React.FC<ProjectCardProps> = React.memo(({
                       cursor: 'pointer'
                     }}
                     loading="lazy"
-                    onError={(e) => console.error('Image load error:', e)}
+                    onError={(e) => {
+                      // Image failed to load, could show fallback UI
+                    }}
                   />
                 )
               ) : (
@@ -821,7 +823,6 @@ const Projects: React.FC = () => {
   // Projects state
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectsLoading, setProjectsLoading] = useState<boolean>(true);
-  const [projectsError, setProjectsError] = useState<string | null>(null);
 
 
   // Handler for card click
@@ -861,11 +862,11 @@ const Projects: React.FC = () => {
   useEffect(() => {
     const fetchProjects = async (): Promise<void> => {
       setProjectsLoading(true);
-      setProjectsError(null);
       
       try {
-        const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:8080';
-        const response = await fetch(`${apiUrl}/api/v1/projects?status=active`);
+        const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || '';
+        const endpoint = apiUrl ? `${apiUrl}/api/v1/projects?status=active` : '/api/v1/projects?status=active';
+        const response = await fetch(endpoint);
         
         if (!response.ok) {
           throw new Error(`Failed to fetch projects: ${response.status} ${response.statusText}`);
@@ -911,9 +912,7 @@ const Projects: React.FC = () => {
           setProjects(transformedProjects);
         }
       } catch (err) {
-        console.error("Error fetching projects:", err);
-        const errorMessage = err instanceof Error ? err.message : "Failed to load projects";
-        setProjectsError(errorMessage);
+        // Error fetching projects - fallback to mock data
         
         // Fallback to mock data
         const transformedMockProjects: Project[] = mockProjects.map((proj): Project => ({
@@ -930,7 +929,6 @@ const Projects: React.FC = () => {
         }));
         
         setProjects(transformedMockProjects);
-        setProjectsError(null); // Clear error since we have fallback data
       } finally {
         setProjectsLoading(false);
       }
@@ -946,8 +944,9 @@ const Projects: React.FC = () => {
       
       try {
         // Always get fresh data from API endpoint
-        const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:8080';
-        const response = await fetch(`${apiUrl}/api/v1/code/stats`);
+        const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || '';
+        const endpoint = apiUrl ? `${apiUrl}/api/v1/code/stats` : '/api/v1/code/stats';
+        const response = await fetch(endpoint);
         
         if (!response.ok) {
           throw new Error(`Failed to fetch code stats: ${response.status} ${response.statusText}`);
@@ -965,10 +964,10 @@ const Projects: React.FC = () => {
           setTotalLinesOfCode(totalLines);
         } else {
           setTotalLinesOfCode(null);
-          console.warn("Warning: Total lines of code was not a number or was missing.");
+          // Total lines was not a valid number
         }
       } catch (err) {
-        console.error("Error fetching or processing lines of code:", err);
+        // Error fetching code stats
         const errorMessage = err instanceof Error ? err.message : "An unknown error occurred while loading code stats.";
         setErrorLines(errorMessage);
         setTotalLinesOfCode(null); // Clear any previous data
@@ -998,7 +997,7 @@ const Projects: React.FC = () => {
       >
         <FaCodeIcon />
         {isLoadingLines && <span>Loading project stats...</span>}
-        {errorLines && <span>Error loading stats: {errorLines}</span>}
+        {errorLines && <span>Unable to load code statistics at this time</span>}
         {!isLoadingLines && !errorLines && totalLinesOfCode !== null && (
           <>
             <span>Total Lines of Code Across Projects:</span>
@@ -1006,7 +1005,7 @@ const Projects: React.FC = () => {
           </>
         )}
         {!isLoadingLines && !errorLines && totalLinesOfCode === null && (
-            <span>Lines of code data not available.</span>
+            <span>Code statistics temporarily unavailable</span>
         )}
       </CodeStatsDisplayContainer>
       
@@ -1018,15 +1017,6 @@ const Projects: React.FC = () => {
         >
           <FaCodeIcon />
           <span>Loading projects...</span>
-        </CodeStatsDisplayContainer>
-      ) : projectsError ? (
-        <CodeStatsDisplayContainer
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <FaCodeIcon />
-          <span>Error loading projects: {projectsError}</span>
         </CodeStatsDisplayContainer>
       ) : (
         <ProjectsGrid data-projects-grid>

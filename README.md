@@ -2,7 +2,7 @@
 
 ## Overview
 
-This repository contains a full-stack portfolio website with integrated microservices. The system includes a modern React frontend and a Go-based backend with multiple microservices for URL shortening, messaging, and developer panel functionality.
+My full-stack portfolio website with 5 independent Go microservices. It includes a modern React frontend and a Go-based backend architecture with separate microservice processes for URL shortening, messaging, developer panel, visitor analytics, and background workers.
 
 ## System Requirements
 
@@ -52,34 +52,35 @@ Project-Website/
 │   │   │   └── env-config.js
 │   │   ├── components/   # UI components
 │   │   │   ├── animations/  # Animation components
-│   │   │   │   ├── CreativeShaderBackground.tsx
-│   │   │   │   ├── FloatingElement.tsx  # Floating animations
-│   │   │   │   ├── LoadingScreen.tsx  # Loading UI
-│   │   │   │   ├── PixelGridAnimation.tsx  # Grid animations
-│   │   │   │   ├── ScrollIndicator.tsx  # Scroll indicator
-│   │   │   │   └── SpaceAnimation.tsx  # Space animations
-│   │   │   ├── Footer/     # Footer components
+│   │   │   ├── auth/        # Authentication components
+│   │   │   ├── common/      # Shared common components
+│   │   │   ├── devpanel/    # Developer panel components
+│   │   │   │   ├── AdminLogin.tsx
+│   │   │   │   ├── ProjectManager.tsx
+│   │   │   │   ├── CertificationsManager.tsx
+│   │   │   │   ├── SkillsManager.tsx
+│   │   │   │   ├── PromptsManager.tsx
+│   │   │   │   ├── ProjectPathsManager.tsx
+│   │   │   │   └── VisitorAnalytics.tsx
+│   │   │   ├── Footer/      # Footer components
 │   │   │   │   └── Footer.tsx
-│   │   │   ├── layout/     # Layout components
-│   │   │   │   └── Layout.tsx  # Main layout wrapper
-│   │   │   ├── NavigationBar/  # Navigation
-│   │   │   │   └── NavigationBar.tsx  # Nav bar
+│   │   │   ├── layout/      # Layout components
+│   │   │   │   └── Layout.tsx
+│   │   │   ├── metrics/     # System metrics components
+│   │   │   │   └── SystemMetrics.tsx
+│   │   │   ├── NavigationBar/  # Navigation bar
+│   │   │   │   └── NavigationBar.tsx
 │   │   │   ├── navigation/  # Navigation utilities
-│   │   │   │   └── ScrollToTop.tsx  # Auto-scroll
+│   │   │   │   ├── ScrollToTop.tsx
+│   │   │   │   ├── PageTop.tsx
+│   │   │   │   └── PageTransition.tsx
+│   │   │   ├── notifications/  # Notification system
 │   │   │   ├── sections/    # Page sections
-│   │   │   │   ├── About.tsx  # About section
-│   │   │   │   ├── Hero.tsx  # Hero section
-│   │   │   │   ├── ParallaxHero.tsx  # Parallax effects
-│   │   │   │   ├── Projects.tsx  # Projects section
-│   │   │   │   ├── Skills.tsx  # Skills section
-│   │   │   │   └── SkillsSection.tsx  # Skills wrapper
+│   │   │   │   ├── Hero.tsx
+│   │   │   │   └── Projects.tsx
+│   │   │   ├── skeletons/   # Loading skeletons
+│   │   │   ├── ThemeToggle/ # Theme switching
 │   │   │   └── ui/          # UI elements
-│   │   │       ├── LanguageFilter.tsx  # Language filter
-│   │   │       ├── OptimizedImage.tsx  # Optimized images
-│   │   │       ├── ProjectCard.tsx  # Project cards
-│   │   │       ├── SkillBar.tsx  # Skill visualization
-│   │   │       ├── Timeline.tsx  # Timeline component
-│   │   │       └── VirtualizedList.tsx  # Virtual lists
 │   │   ├── contexts/        # React contexts
 │   │   │   ├── ThemeContext.tsx  # Theme management
 │   │   │   └── ZIndexContext.tsx  # Z-index management
@@ -87,10 +88,24 @@ Project-Website/
 │   │   │   ├── useAnimationController.ts  # Animation control
 │   │   │   ├── useAuth.tsx  # Authentication
 │   │   │   ├── useClickOutside.ts  # Click detection
+│   │   │   ├── useCrudOperations.ts  # CRUD operations
+│   │   │   ├── useDebounce.ts  # Debouncing utility
 │   │   │   ├── useDeviceCapabilities.ts  # Device features
+│   │   │   ├── useInlineFormScroll.ts  # Form scroll management
+│   │   │   ├── useLazyLoad.ts  # Lazy loading
+│   │   │   ├── useLoadingState.ts  # Loading state management
+│   │   │   ├── useMemoryManager.ts  # Memory optimization
+│   │   │   ├── useMobileOptimizations.ts  # Mobile performance
+│   │   │   ├── useModalScroll.ts  # Modal scroll handling
+│   │   │   ├── useOptimizedScrollHandler.ts  # Optimized scrolling
 │   │   │   ├── usePerformanceOptimizations.ts  # Performance
+│   │   │   ├── usePreloader.ts  # Resource preloading
+│   │   │   ├── useScrollTo.ts  # Scroll navigation
+│   │   │   ├── useScrollToForm.ts  # Form scroll utilities
+│   │   │   ├── useTheme.ts  # Theme access
 │   │   │   ├── useThemeToggle.ts  # Theme switching
 │   │   │   ├── useTouchInteractions.ts  # Touch gestures
+│   │   │   ├── useWebSocketConnection.ts  # WebSocket management
 │   │   │   └── useZIndex.ts  # Z-index utilities
 │   │   ├── pages/           # App pages
 │   │   │   ├── About/       # About page
@@ -105,28 +120,57 @@ Project-Website/
 │   │   │   │   └── Messaging.tsx
 │   │   │   ├── NotFound/    # 404 page
 │   │   │   │   └── NotFound.tsx
+│   │   │   ├── Projects/    # Projects page
+│   │   │   │   └── index.tsx
+│   │   │   ├── Status/      # Status page
+│   │   │   │   └── Status.tsx
 │   │   │   └── urlshortener/ # URL Shortener
 │   │   │       └── UrlShortener.tsx
+│   │   ├── stores/          # Zustand state stores
+│   │   │   ├── authStore.ts  # Authentication state
+│   │   │   ├── performanceStore.ts  # Performance metrics
+│   │   │   └── themeStore.ts  # Theme state
 │   │   ├── styles/          # Styling
 │   │   │   ├── GlobalStyles.ts  # Global styles
 │   │   │   ├── theme.types.ts  # Theme types
 │   │   │   └── themes.ts  # Theme configs
 │   │   ├── utils/           # Utilities
+│   │   │   ├── apiConfig.ts  # API configuration
 │   │   │   ├── debugHelpers.ts  # Debugging tools
+│   │   │   ├── devCacheManager.ts  # Development cache
+│   │   │   ├── devPanelApi.ts  # DevPanel API client
+│   │   │   ├── errorHandler.ts  # Error handling
+│   │   │   ├── lazyWithPreload.ts  # Lazy loading with preload
 │   │   │   ├── MemoryManager.tsx  # Memory management
-│   │   │   └── performance.ts  # Performance tools
+│   │   │   ├── performance.ts  # Performance tools
+│   │   │   ├── performanceConfig.ts  # Performance configuration
+│   │   │   ├── performanceMonitor.ts  # Performance monitoring
+│   │   │   ├── preloader.ts  # Resource preloader
+│   │   │   ├── promptApi.ts  # Prompts API client
+│   │   │   ├── scrollConfig.ts  # Scroll configuration
+│   │   │   ├── scrollTestUtils.ts  # Scroll testing utilities
+│   │   │   └── validation.ts  # Input validation
 │   │   ├── App.tsx          # Main App component
 │   │   └── index.tsx        # Entry point
 │   └── package.json         # Dependencies
 │
 ├── backend/                  # Go backend
 │   ├── cmd/                  # Entry points
-│   │   ├── api/              # API service
+│   │   ├── admin/            # Admin CLI tools
+│   │   ├── admin-create/     # Create admin user
+│   │   ├── api/              # Main API service
 │   │   │   └── main.go
+│   │   ├── check-db/         # Database health check
 │   │   ├── devpanel/         # Developer panel
 │   │   │   └── main.go
-│   │   ├── migration/        # DB migrations
+│   │   ├── init-admin/       # Initialize admin
+│   │   ├── messaging/        # Messaging service
 │   │   │   └── main.go
+│   │   ├── server/           # Server utilities
+│   │   ├── simple-api/       # Simple API variant
+│   │   ├── urlshortener/     # URL shortener service
+│   │   │   └── main.go
+│   │   ├── verify-admin/     # Verify admin credentials
 │   │   └── worker/           # Background worker
 │   │       └── main.go
 │   ├── config/               # Configuration
@@ -143,73 +187,104 @@ Project-Website/
 │   │       └── api.service
 │   ├── internal/             # Packages
 │   │   ├── app/              # Bootstrap
-│   │   │   ├── bootstrap.go
 │   │   │   └── server/       # HTTP server
-│   │   │       ├── middleware/
-│   │   │       │   ├── auth.go
-│   │   │       │   └── cors.go
-│   │   │       └── server.go
-│   │   ├── common/           # Shared utils
-│   │   │   ├── auth/         # Authentication
-│   │   │   │   ├── jwt.go
-│   │   │   │   └── password.go
-│   │   │   ├── cache/        # Caching
-│   │   │   │   └── redis.go
-│   │   │   ├── database/     # DB access
-│   │   │   │   └── db.go
-│   │   │   └── utils/        # Utilities
-│   │   │       └── url_validator.go
+│   │   │       └── middleware/
+│   │   ├── codestats/        # Code statistics
+│   │   │   ├── delivery/http/
+│   │   │   ├── projectpath/  # Project path management
+│   │   │   └── service.go
+│   │   ├── common/           # Shared utilities
+│   │   │   ├── auth/         # Authentication (JWT, password, admin)
+│   │   │   ├── cache/        # Caching (Redis with TLS)
+│   │   │   ├── circuitbreaker/  # Circuit breaker pattern
+│   │   │   ├── compression/  # Response compression
+│   │   │   ├── metrics/      # Prometheus metrics
+│   │   │   ├── middleware/   # HTTP middleware
+│   │   │   ├── ratelimit/    # Rate limiting
+│   │   │   ├── repository/   # Base repository patterns
+│   │   │   ├── response/     # Standard API responses
+│   │   │   ├── security/     # Security utilities
+│   │   │   ├── testutil/     # Testing utilities
+│   │   │   ├── utils/        # General utilities
+│   │   │   └── validator/    # Input validation
+│   │   ├── core/             # Core services
+│   │   │   ├── config/       # Configuration management
+│   │   │   ├── db/           # Database access
+│   │   │   └── service_manager.go
+│   │   ├── devpanel/         # Developer panel
+│   │   │   ├── certification/  # Certifications management
+│   │   │   ├── prompt/       # AI prompts management
+│   │   │   ├── server/       # DevPanel server
+│   │   │   ├── skill/        # Skills management
+│   │   │   └── service.go
 │   │   ├── domain/           # Business domain
 │   │   │   ├── entity/       # Core entities
-│   │   │   │   ├── user.go
-│   │   │   │   └── audit.go
 │   │   │   └── errors/       # Domain errors
-│   │   │       └── errors.go
-│   │   ├── messaging/        # Messaging
-│   │   │   ├── delivery/     # HTTP/WS delivery
-│   │   │   │   ├── http/     # HTTP handlers
-│   │   │   │   │   └── handlers.go
-│   │   │   │   └── websocket/ # WS handlers
-│   │   │   │       ├── client.go
-│   │   │   │       └── hub.go
-│   │   │   ├── domain/       # Models
-│   │   │   │   ├── channel.go
-│   │   │   │   └── message.go
-│   │   │   ├── repository/   # Data access
-│   │   │   │   └── postgres/
-│   │   │   │       ├── channel_repository.go
-│   │   │   │       └── message_repository.go
-│   │   │   └── service/      # Business logic
-│   │   │       ├── messaging_service.go
-│   │   │       └── service.go
-│   │   └── urlshortener/     # URL shortener
-│   │       ├── delivery/     # HTTP delivery
-│   │       │   └── http/
-│   │       │       ├── handlers.go
-│   │       │       └── routes.go
-│   │       ├── domain/       # Models
-│   │       │   ├── url.go
-│   │       │   └── stats.go
-│   │       ├── repository/   # Data access
-│   │       │   └── postgres/
-│   │       │       ├── url.go
-│   │       │       └── stats.go
-│   │       └── service/      # Business logic
-│   │           ├── url.go
-│   │           └── stats.go
-│   ├── migrations/           # DB migrations
-│   │   ├── common/           # Shared migrations
-│   │   │   └── 000001_create_users_table.up.sql
-│   │   ├── messaging/        # Messaging migrations
-│   │   │   └── 000001_create_channels_table.up.sql
-│   │   └── urlshortener/     # URL shortener migrations
-│   │       └── 000001_create_urls_table.up.sql
+│   │   ├── gateway/          # API gateway
+│   │   ├── messaging/        # Messaging service
+│   │   │   ├── api/          # API handlers
+│   │   │   ├── delivery/     # HTTP/WebSocket delivery
+│   │   │   ├── entity/       # Message entities
+│   │   │   ├── events/       # Event types
+│   │   │   ├── service/      # Business logic
+│   │   │   ├── usecase/      # Use cases
+│   │   │   └── websocket/    # WebSocket management
+│   │   ├── projects/         # Projects service
+│   │   │   ├── delivery/http/
+│   │   │   ├── repository/
+│   │   │   └── service/
+│   │   ├── status/           # Status monitoring
+│   │   │   └── service.go
+│   │   ├── urlshortener/     # URL shortener
+│   │   │   ├── entity/       # URL entities
+│   │   │   └── service.go
+│   │   ├── visitor/          # Visitor analytics
+│   │   │   └── service.go
+│   │   └── worker/           # Background workers
+│   │       └── tasks/        # Task definitions
+│   ├── schema.sql            # Complete database schema
 │   ├── scripts/              # Scripts
 │   │   ├── run.sh            # Run app
-│   │   └── setup.sh          # Setup env
+│   │   ├── seed.sh           # Seed database
+│   │   ├── seed_projects.go  # Seed projects data
+│   │   └── setup.sh          # Setup environment
 │   ├── go.mod                # Go dependencies
 │   └── go.sum                # Go checksums
-└── README.md                # Documentation
+├── scripts/                  # Root scripts directory
+│   ├── database/             # Database management
+│   │   ├── backup_db.sh      # Database backup
+│   │   ├── check-db-status.sh  # Check DB status
+│   │   ├── restore_db.sh     # Database restore
+│   │   ├── seed.sh           # Seed data
+│   │   ├── update-database.sh  # Update schema
+│   │   └── update-db.sh      # Safe schema updates
+│   ├── development/          # Development tools
+│   │   ├── lint.sh           # Backend linting
+│   │   ├── optimize-images.sh  # Image optimization
+│   │   ├── setup.sh          # Development setup
+│   │   ├── start-prod.sh     # Production start
+│   │   ├── stop-dev.sh       # Stop development
+│   │   └── stop-prod.sh      # Stop production
+│   ├── monitoring/           # Monitoring tools
+│   │   ├── setup_code_stats_cron.sh  # Code stats cron
+│   │   └── update_code_stats.sh  # Update code stats
+│   ├── ssl/                  # SSL management
+│   │   ├── fix-ssl-now.sh    # SSL fix
+│   │   ├── setup-ssl-automation.sh  # SSL automation
+│   │   ├── ssl-auto-renew.sh  # Auto renewal
+│   │   └── ssl-monitor.sh    # SSL monitoring
+│   ├── setup-admin.sh        # Initialize admin user
+│   └── setup-redis-security.sh  # Configure Redis TLS/ACL
+├── deploy/                   # Deployment files
+│   ├── grafana/              # Grafana dashboards
+│   ├── nginx/                # Nginx configurations
+│   ├── prometheus/           # Prometheus configs
+│   ├── redis/                # Redis secure configs
+│   ├── start-backend.sh      # Start backend services
+│   └── start-services.sh     # Start all services
+├── docker-compose.yml        # Docker deployment
+├── Makefile                  # Development commands
+└── README.md                 # Documentation
 ```
 
 ## Local Development Setup
@@ -229,12 +304,15 @@ cd Project-Website
 ```
 
 The `start-dev.sh` script will:
+- Automatically detect and clean up any existing tmux sessions
 - Check all required dependencies
 - Set up PostgreSQL database connections
-- Run database migrations
-- Start all backend microservices
-- Start the frontend development server
-- Create organized tmux sessions for easy monitoring
+- Initialize the database schema
+- Start all 5 backend microservices in separate tmux windows (api, devpanel, messaging, urlshortener, worker)
+- Start the frontend development server in a separate tmux session
+- Create organized tmux sessions for easy monitoring (portfolio-frontend, portfolio-backend)
+
+**Note:** The script now includes automatic session cleanup, eliminating the need to manually kill existing processes or use the `--kill-existing` flag.
 
 ### Windows Setup
 
@@ -320,10 +398,13 @@ The `start-dev.sh` script will:
 ## Key Features
 
 - **Status Monitoring**: Real-time service health monitoring at http://localhost:3000/status
+- **Visitor Analytics**: Real-time visitor tracking with geographic data and behavior metrics
 - **Code Statistics**: Automatic code line counting with tokei (updates hourly)
-- **URL Shortener**: Create and track short URLs
-- **Messaging System**: Real-time messaging with WebSocket support
-- **Developer Panel**: Admin interface for system management
+- **URL Shortener**: Create and track short URLs with analytics
+- **Messaging System**: Real-time messaging with WebSocket support and presence tracking
+- **Developer Panel**: Comprehensive admin interface with project management, certifications, skills, prompts, and visitor analytics
+- **Performance Monitoring**: Prometheus metrics and Grafana dashboards
+- **Secure Infrastructure**: Redis with TLS/ACL, rate limiting, circuit breakers
 
 ## Available Scripts
 
@@ -336,16 +417,15 @@ The `start-dev.sh` script will:
 ./start-dev.sh
 
 # Start with additional options
-./start-dev.sh --kill-existing  # Kill processes on required ports
 ./start-dev.sh --skip-deps       # Skip dependency installation
 ./start-dev.sh --verbose         # Enable verbose output
 ./start-dev.sh --help           # Show help message
 
-# Start with fresh cache clearing (recommended for cache issues)
-./start-dev.sh --fresh
-
 # Stop all services
-./stop-dev.sh
+./scripts/development/stop-dev.sh
+
+# Production mode
+./start-prod.sh                  # Start production services with automatic cleanup
 
 # Legacy commands (still available)
 npm run dev                              # Start all services
@@ -367,29 +447,41 @@ npm run start
 ### Individual Service Management
 ```bash
 # Using the start-services script
-./scripts/start-services.sh
+./deploy/start-services.sh
 ```
 
 ## Database Setup
 
-### Development
-```bash
-# Run migrations
-cd backend
-go run cmd/migration/main.go up
+The project uses PostgreSQL with a comprehensive schema including URL shortener, messaging, and monitoring tables.
 
-# Seed development data
-./scripts/seed.sh
+### Initial Setup
+```bash
+# For new installations - applies complete schema
+./scripts/database/update-db.sh
+
+# For existing databases - safe migration that preserves data
+./scripts/database/update-db.sh --safe
+
+# Check database status
+./scripts/database/check-db-status.sh
 ```
 
-### Production
+### Manual Setup
 ```bash
-# Create production database
+# Create database if it doesn't exist
 createdb project_website
 
-# Run migrations
-go run cmd/migration/main.go up -env production
+# Apply schema
+psql -d project_website -f backend/schema.sql
 ```
+
+### What's Included
+The database schema includes tables for:
+- URL shortener (shortened_urls, url_clicks, url_tags)
+- Status monitoring (incidents, status_history)
+- Messaging (channels, messages, word_filters)
+- User management and authentication
+- Audit logging and metrics
 
 ## Environment Configuration
 
@@ -431,7 +523,10 @@ docker-compose up --build
    go build -o bin/devpanel cmd/devpanel/main.go
    go build -o bin/messaging cmd/messaging/main.go
    go build -o bin/urlshortener cmd/urlshortener/main.go
+   go build -o bin/worker cmd/worker/main.go
    ```
+
+   Note: Each service is an independent binary that runs as a separate process.
 
 3. Configure Nginx:
    ```nginx
@@ -458,10 +553,12 @@ docker-compose up --build
 ## Monitoring and Maintenance
 
 ### Health Checks
+Each microservice runs independently on its own port:
 - API: http://localhost:8080/health
 - DevPanel: http://localhost:8081/health
 - Messaging: http://localhost:8082/health
 - URL Shortener: http://localhost:8083/health
+- Worker: http://localhost:8084/health (background tasks)
 
 ### Logs
 ```bash
@@ -475,23 +572,28 @@ tail -f logs/api.log
 ### Backup
 ```bash
 # Backup database
-./scripts/backup_db.sh
+./scripts/database/backup_db.sh
 
 # Restore database
-./scripts/restore_db.sh
+./scripts/database/restore_db.sh
 ```
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. Port Conflicts
+1. Port Conflicts and Tmux Sessions
+   **Note:** The `./start-dev.sh` and `./start-prod.sh` scripts now automatically detect and clean up existing tmux sessions, preventing most port conflicts.
+
+   If you still encounter issues:
    ```bash
-   # Check for processes using ports
-   sudo lsof -i :8080
-   sudo lsof -i :8081
-   sudo lsof -i :8082
-   sudo lsof -i :8083
+   # Check for processes using ports (5 microservices + frontend)
+   sudo lsof -i :3000  # Frontend
+   sudo lsof -i :8080  # API
+   sudo lsof -i :8081  # DevPanel
+   sudo lsof -i :8082  # Messaging
+   sudo lsof -i :8083  # URL Shortener
+   sudo lsof -i :8084  # Worker
    ```
 
 2. Database Connection

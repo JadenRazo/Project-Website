@@ -170,23 +170,6 @@ export const useParallaxEffect = (
   });
 };
 
-/**
- * Optimized scroll-to-top functionality
- */
-export const useScrollToTop = () => {
-  const scrollToTop = useCallback((smooth: boolean = true) => {
-    if (smooth) {
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      });
-    } else {
-      window.scrollTo(0, 0);
-    }
-  }, []);
-  
-  return scrollToTop;
-};
 
 /**
  * Intersection Observer based visibility detection

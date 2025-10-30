@@ -2,7 +2,22 @@ import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import Collapsible from 'react-collapsible';
 import ProjectManager from '../../components/devpanel/ProjectManager';
+import ProjectPathsManager from '../../components/devpanel/ProjectPathsManager';
+import CertificationsManager from '../../components/devpanel/CertificationsManager';
+import PromptsManager from '../../components/devpanel/PromptsManager';
+import VisitorAnalytics from '../../components/devpanel/VisitorAnalytics';
 import AdminLogin from '../../components/devpanel/AdminLogin';
+import DevPanelLoadingState from '../../components/devpanel/DevPanelLoadingState';
+import { api } from '../../utils/apiConfig';
+import { handleError } from '../../utils/errorHandler';
+import { useAuthStore } from '../../stores/authStore';
+import { 
+  AnimatedContainer, 
+  useReducedMotion 
+} from '../../components/animations/AnimatedComponents';
+import { useScrollTo } from '../../hooks/useScrollTo';
+
+import ScrollToTopButton from '../../components/common/ScrollToTopButton';
 import {
   LineChart,
   Line,
@@ -49,11 +64,20 @@ interface ServiceControlResponse {
 // Styled Components
 const PageContainer = styled.div`
   padding: 2rem;
+  padding-top: calc(80px + 2rem);
   max-width: 1200px;
   margin: 0 auto;
+  min-height: 100vh;
+  position: relative;
+  
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    padding: 1.5rem;
+    padding-top: calc(70px + 1.5rem);
+  }
   
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     padding: 1rem;
+    padding-top: calc(60px + 1rem);
   }
 `;
 
@@ -88,13 +112,18 @@ const Subtitle = styled.p`
 
 const MetricsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
   
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 0.75rem;
   }
 `;
 
@@ -145,10 +174,22 @@ const ChartContainer = styled.div`
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   border: 1px solid ${({ theme }) => theme.colors.border};
   height: 400px;
+  overflow: hidden;
+  
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    height: 350px;
+    padding: 1.25rem;
+  }
   
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    height: 300px;
+    height: 280px;
     padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  @media (max-width: 480px) {
+    height: 250px;
+    padding: 0.75rem;
   }
 `;
 
@@ -167,23 +208,26 @@ const ErrorMessage = styled.div`
   border-left: 4px solid ${({ theme }) => theme.colors.error};
 `;
 
-const LoadingSpinner = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 200px;
-`;
 
 // Service-specific styled components
 const ServiceGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
+  
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
   
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     grid-template-columns: 1fr;
     gap: 1rem;
+  }
+  
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    gap: 0.75rem;
   }
 `;
 
@@ -263,8 +307,29 @@ const ServiceControls = styled.div`
   gap: 0.5rem;
   margin-top: auto;
   
-  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    
+    button:nth-child(4),
+    button:nth-child(5) {
+      grid-column: span 1.5;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    grid-template-columns: repeat(2, 1fr);
+    
+    button:nth-child(4),
+    button:nth-child(5) {
+      grid-column: span 1;
+    }
   }
 `;
 
@@ -328,6 +393,19 @@ const ServiceMetricLabel = styled.div`
   letter-spacing: 0.05em;
 `;
 
+// Styled wrapper for collapsible sections with scroll margin
+const CollapsibleSection = styled.div`
+  scroll-margin-top: 100px;
+  
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    scroll-margin-top: 80px;
+  }
+  
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    scroll-margin-top: 70px;
+  }
+`;
+
 // New styled components for collapsible sections
 const SectionHeader = styled.div`
   display: flex;
@@ -368,6 +446,12 @@ const SectionIcon = styled.span<{ isOpen: boolean }>`
   transition: transform 0.3s ease;
   font-size: 1.5rem;
   color: ${({ theme }) => theme.colors.textSecondary};
+  display: inline-block;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 const SectionContent = styled.div`
@@ -398,7 +482,10 @@ const RefreshButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 50;
+  font-size: 1.25rem;
+  width: 56px;
+  height: 56px;
   
   &:hover {
     transform: translateY(-2px);
@@ -409,10 +496,26 @@ const RefreshButton = styled.button`
     transform: translateY(0);
   }
   
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 48px;
+    height: 48px;
+    font-size: 1.1rem;
+  }
+  
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     bottom: 1rem;
     right: 1rem;
-    padding: 0.75rem;
+    width: 40px;
+    height: 40px;
+    padding: 0.5rem;
+    font-size: 1rem;
   }
 `;
 
@@ -426,7 +529,7 @@ const LoadingOverlay = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: ${({ theme }) => theme.zIndex.modal};
 `;
 
 const LoadingContent = styled.div`
@@ -437,27 +540,91 @@ const LoadingContent = styled.div`
   color: ${({ theme }) => theme.colors.text};
 `;
 
+const LoadingSpinner = styled.div`
+  text-align: center;
+  padding: 2rem;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: 1.1rem;
+`;
+
+const GlobalStyle = `
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+
+// Inject global styles
+if (typeof document !== 'undefined') {
+  const style = document.createElement('style');
+  style.textContent = GlobalStyle;
+  document.head.appendChild(style);
+}
+
+const HeaderContent = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+`;
+
+const HeaderActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    width: 100%;
+    justify-content: space-between;
+  }
+`;
+
+const WelcomeText = styled.span`
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: 0.9rem;
+  
+  @media (max-width: 480px) {
+    display: none;
+  }
+`;
+
 // Main Component
 const DevPanel: React.FC = () => {
-  const [adminUser, setAdminUser] = useState<any>(null);
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
-  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  
+  const reducedMotion = useReducedMotion();
+  const { user: adminUser, isAuthenticated: isAdminAuthenticated, isLoading: checkingAuth } = useAuthStore();
+  const { scrollToTop, scrollToElement, scrollToId } = useScrollTo();
   const [systemMetrics, setSystemMetrics] = useState<SystemMetrics | null>(null);
   const [serviceMetrics, setServiceMetrics] = useState<ServiceMetricsData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [controlError, setControlError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [lastUpdateTime, setLastUpdateTime] = useState<string>('');
   const [openSections, setOpenSections] = useState<{
     system: boolean;
     charts: boolean;
     services: boolean;
     projects: boolean;
+    projectPaths: boolean;
+    certifications: boolean;
+    prompts: boolean;
+    visitorAnalytics: boolean;
   }>({
     system: true,
     charts: true,
     services: true,
     projects: true,
+    projectPaths: true,
+    certifications: true,
+    prompts: true,
+    visitorAnalytics: true,
   });
 
   const toggleSection = (section: keyof typeof openSections) => {
@@ -465,73 +632,69 @@ const DevPanel: React.FC = () => {
       ...prev,
       [section]: !prev[section],
     }));
+    
+    // Scroll to the section when opening
+    if (!openSections[section]) {
+      // Small delay to allow the section to start opening
+      setTimeout(() => {
+        scrollToId(`section-${section}`, { 
+          behavior: 'smooth',
+          offset: 80
+        });
+      }, 150);
+    }
   };
 
-  const fetchData = useCallback(async () => {
-    const token = localStorage.getItem('auth_token');
-    if (!token) {
-      setError('Authentication required');
-      return;
-    }
-    
-      try {
+  const fetchData = useCallback(async (showRefresh = true) => {
+    try {
+      if (!systemMetrics && !serviceMetrics.length) {
         setLoading(true);
-      setIsRefreshing(true);
-      const headers = {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      };
+      }
+      if (showRefresh) {
+        setIsRefreshing(true);
+      }
+      setError(null);
 
-      // Fetch system metrics
-      const systemResponse = await fetch('/api/v1/devpanel/system', { headers });
-      if (!systemResponse.ok) throw new Error('Failed to fetch system metrics');
-      const systemData = await systemResponse.json();
+      // Fetch system metrics and service metrics in parallel
+      const [systemData, servicesData] = await Promise.all([
+        api.get<SystemMetrics>('/api/v1/devpanel/system'),
+        api.get<ServiceMetricsData[]>('/api/v1/devpanel/services'),
+      ]);
+
       setSystemMetrics(systemData);
-
-      // Fetch service metrics
-      const servicesResponse = await fetch('/api/v1/devpanel/services', { headers });
-      if (!servicesResponse.ok) throw new Error('Failed to fetch service metrics');
-      const servicesData = await servicesResponse.json();
       setServiceMetrics(servicesData);
-
-
+      setLastUpdateTime(new Date().toLocaleTimeString());
     } catch (err) {
-      console.error('Error fetching data:', err);
+      handleError(err, { context: 'DevPanel.fetchData' });
       setError('Failed to load data. Please try again later.');
     } finally {
       setLoading(false);
-      setIsRefreshing(false);
+      if (showRefresh) {
+        setIsRefreshing(false);
+      }
     }
-  }, []);
+  }, [systemMetrics, serviceMetrics]);
 
   const controlService = async (serviceName: string, action: 'start' | 'stop' | 'restart') => {
-    const token = localStorage.getItem('auth_token');
-    if (!token) {
-      setControlError('Authentication required');
-      return;
-    }
-        
     try {
       setControlError(null);
-      const headers = {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      };
-
-      const response = await fetch(`/api/v1/devpanel/services/${serviceName}/${action}`, {
-        method: 'POST',
-        headers,
-      });
-
-      if (!response.ok) throw new Error(`Failed to ${action} service`);
       
-      const data: ServiceControlResponse = await response.json();
-      if (!data.success) throw new Error(data.message);
+      const data = await api.post<ServiceControlResponse>(
+        `/api/v1/devpanel/services/${serviceName}/${action}`
+      );
+      
+      if (!data.success) {
+        throw new Error(data.message);
+      }
 
       // Refresh data after successful control action
-      await fetchData();
+      await fetchData(false);
     } catch (error: unknown) {
-      console.error(`Error controlling service:`, error);
+      handleError(error, { 
+        context: 'DevPanel.controlService',
+        service: serviceName,
+        action 
+      });
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       setControlError(`Failed to ${action} service: ${errorMessage}`);
     }
@@ -543,58 +706,34 @@ const DevPanel: React.FC = () => {
 
   useEffect(() => {
     if (isAdminAuthenticated && adminUser) {
-      fetchData();
-      const interval = setInterval(fetchData, 30000);
+      fetchData(false);
+      const interval = setInterval(() => fetchData(false), 60000); // Update every 60 seconds instead of 30
       return () => clearInterval(interval);
     }
   }, [isAdminAuthenticated, adminUser, fetchData]);
 
   const checkAdminAuth = async () => {
     const token = localStorage.getItem('auth_token');
-    if (!token) {
-      setCheckingAuth(false);
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/v1/auth/admin/validate', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        const userData = await response.json();
-        setAdminUser(userData);
-        setIsAdminAuthenticated(true);
-      } else {
-        localStorage.removeItem('auth_token');
-      }
-    } catch (error) {
-      console.error('Auth check failed:', error);
-      localStorage.removeItem('auth_token');
-    } finally {
-      setCheckingAuth(false);
+    if (token) {
+      useAuthStore.getState().validateToken(token);
+    } else {
+      useAuthStore.getState().setLoading(false);
     }
   };
 
   const handleLoginSuccess = (userData: any) => {
-    setAdminUser(userData);
-    setIsAdminAuthenticated(true);
+    useAuthStore.getState().setUser(userData);
+    useAuthStore.getState().setAuthenticated(true);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('auth_token');
-    setAdminUser(null);
-    setIsAdminAuthenticated(false);
+    useAuthStore.getState().logout();
   };
 
   if (checkingAuth) {
     return (
       <PageContainer>
-        <LoadingSpinner>Checking authentication...</LoadingSpinner>
+        <DevPanelLoadingState />
       </PageContainer>
     );
   }
@@ -620,15 +759,15 @@ const DevPanel: React.FC = () => {
   return (
     <PageContainer>
       <Header>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <HeaderContent>
           <div>
             <Title>Developer Panel</Title>
             <Subtitle>System monitoring and service management</Subtitle>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.9rem' }}>
+          <HeaderActions>
+            <WelcomeText>
               Welcome, {adminUser?.email}
-            </span>
+            </WelcomeText>
             <ControlButton 
               variant="config" 
               onClick={handleLogout}
@@ -636,8 +775,8 @@ const DevPanel: React.FC = () => {
             >
               Logout
             </ControlButton>
-          </div>
-        </div>
+          </HeaderActions>
+        </HeaderContent>
       </Header>
 
       {error && <ErrorMessage>{error}</ErrorMessage>}
@@ -647,15 +786,18 @@ const DevPanel: React.FC = () => {
         <LoadingSpinner>Loading...</LoadingSpinner>
       ) : (
         <>
-          <Collapsible
-            trigger={
-              <SectionHeader>
-                <h2>System Overview</h2>
-                <SectionIcon isOpen={openSections.system}>▼</SectionIcon>
-              </SectionHeader>
-            }
-            open={openSections.system}
-            onOpen={() => toggleSection('system')}
+          <CollapsibleSection>
+            <Collapsible
+              id="section-system"
+              trigger={
+                <SectionHeader onClick={() => toggleSection('system')}>
+                  <h2>System Overview</h2>
+                  <SectionIcon isOpen={openSections.system}>▼</SectionIcon>
+                </SectionHeader>
+              }
+              open={openSections.system}
+              onTriggerOpening={() => {}}
+            onTriggerClosing={() => {}}
             transitionTime={200}
           >
             <SectionContent>
@@ -664,17 +806,17 @@ const DevPanel: React.FC = () => {
                   <>
                     <MetricCard>
                       <MetricTitle>System Memory Usage</MetricTitle>
-                      <SystemMetricValue>{systemMetrics.memoryUsage.toFixed(2)}%</SystemMetricValue>
+                      <SystemMetricValue>{systemMetrics.memoryUsage?.toFixed(2) ?? '0.00'}%</SystemMetricValue>
                       <SystemMetricLabel>Total system memory utilization</SystemMetricLabel>
                     </MetricCard>
                     <MetricCard>
                       <MetricTitle>CPU Usage</MetricTitle>
-                      <SystemMetricValue>{systemMetrics.cpuUsage.toFixed(2)}%</SystemMetricValue>
+                      <SystemMetricValue>{systemMetrics.cpuUsage?.toFixed(2) ?? '0.00'}%</SystemMetricValue>
                       <SystemMetricLabel>Total CPU utilization</SystemMetricLabel>
                     </MetricCard>
                     <MetricCard>
                       <MetricTitle>Disk Usage</MetricTitle>
-                      <SystemMetricValue>{systemMetrics.diskUsage.toFixed(2)}%</SystemMetricValue>
+                      <SystemMetricValue>{systemMetrics.diskUsage?.toFixed(2) ?? '0.00'}%</SystemMetricValue>
                       <SystemMetricLabel>Total disk space utilization</SystemMetricLabel>
                     </MetricCard>
                     <MetricCard>
@@ -687,16 +829,20 @@ const DevPanel: React.FC = () => {
               </MetricsGrid>
             </SectionContent>
           </Collapsible>
+          </CollapsibleSection>
 
-          <Collapsible
+          <CollapsibleSection>
+            <Collapsible
+              id="section-charts"
             trigger={
-              <SectionHeader>
+              <SectionHeader onClick={() => toggleSection('charts')}>
                 <h2>Service Analytics</h2>
                 <SectionIcon isOpen={openSections.charts}>▼</SectionIcon>
               </SectionHeader>
             }
             open={openSections.charts}
-            onOpen={() => toggleSection('charts')}
+            onTriggerOpening={() => {}}
+            onTriggerClosing={() => {}}
             transitionTime={200}
           >
             <SectionContent>
@@ -785,22 +931,27 @@ const DevPanel: React.FC = () => {
               </ChartContainer>
             </SectionContent>
           </Collapsible>
+          </CollapsibleSection>
 
-          <Collapsible
+          <CollapsibleSection>
+            <Collapsible
+              id="section-services"
             trigger={
-              <SectionHeader>
+              <SectionHeader onClick={() => toggleSection('services')}>
                 <h2>Service Management</h2>
                 <SectionIcon isOpen={openSections.services}>▼</SectionIcon>
               </SectionHeader>
             }
             open={openSections.services}
-            onOpen={() => toggleSection('services')}
+            onTriggerOpening={() => {}}
+            onTriggerClosing={() => {}}
             transitionTime={200}
           >
             <SectionContent>
-              <ServiceGrid>
-                {serviceMetrics.map(service => (
-                  <ServiceCard key={service.name}>
+              <AnimatedContainer staggerDelay={reducedMotion ? 0 : 75}>
+                <ServiceGrid>
+                  {serviceMetrics.map((service, index) => (
+                    <ServiceCard key={service.name}>
                     <ServiceHeader>
                       <ServiceTitle>{service.name}</ServiceTitle>
                       <ServiceStatus status={service.status.toLowerCase()}>
@@ -810,15 +961,15 @@ const DevPanel: React.FC = () => {
                     
                     <ServiceMetrics>
                       <MetricItem>
-                        <ServiceMetricValue>{service.memoryUsage.toFixed(2)}%</ServiceMetricValue>
+                        <ServiceMetricValue>{service.memoryUsage?.toFixed(2) ?? '0.00'}%</ServiceMetricValue>
                         <ServiceMetricLabel>Memory</ServiceMetricLabel>
                       </MetricItem>
                       <MetricItem>
-                        <ServiceMetricValue>{service.cpuUsage.toFixed(2)}%</ServiceMetricValue>
+                        <ServiceMetricValue>{service.cpuUsage?.toFixed(2) ?? '0.00'}%</ServiceMetricValue>
                         <ServiceMetricLabel>CPU</ServiceMetricLabel>
                       </MetricItem>
                       <MetricItem>
-                        <ServiceMetricValue>{service.averageResponseTime.toFixed(2)}ms</ServiceMetricValue>
+                        <ServiceMetricValue>{service.averageResponseTime?.toFixed(2) ?? '0.00'}ms</ServiceMetricValue>
                         <ServiceMetricLabel>Response Time</ServiceMetricLabel>
                       </MetricItem>
                       <MetricItem>
@@ -863,31 +1014,117 @@ const DevPanel: React.FC = () => {
                       </ControlButton>
                     </ServiceControls>
                   </ServiceCard>
-                ))}
-              </ServiceGrid>
+                  ))}
+                </ServiceGrid>
+              </AnimatedContainer>
             </SectionContent>
           </Collapsible>
+          </CollapsibleSection>
 
-          <Collapsible
+          <CollapsibleSection>
+            <Collapsible
+              id="section-visitorAnalytics"
             trigger={
-              <SectionHeader>
+              <SectionHeader onClick={() => toggleSection('visitorAnalytics')}>
+                <h2>Visitor Analytics</h2>
+                <SectionIcon isOpen={openSections.visitorAnalytics}>▼</SectionIcon>
+              </SectionHeader>
+            }
+            open={openSections.visitorAnalytics}
+            onTriggerOpening={() => {}}
+            onTriggerClosing={() => {}}
+            transitionTime={200}
+          >
+            <SectionContent>
+              <VisitorAnalytics />
+            </SectionContent>
+          </Collapsible>
+          </CollapsibleSection>
+
+          <CollapsibleSection>
+            <Collapsible
+              id="section-projects"
+            trigger={
+              <SectionHeader onClick={() => toggleSection('projects')}>
                 <h2>Project Management</h2>
                 <SectionIcon isOpen={openSections.projects}>▼</SectionIcon>
               </SectionHeader>
             }
             open={openSections.projects}
-            onOpen={() => toggleSection('projects')}
+            onTriggerOpening={() => {}}
+            onTriggerClosing={() => {}}
             transitionTime={200}
           >
             <SectionContent>
               <ProjectManager />
             </SectionContent>
           </Collapsible>
+          </CollapsibleSection>
+
+          <CollapsibleSection>
+            <Collapsible
+              id="section-projectPaths"
+            trigger={
+              <SectionHeader onClick={() => toggleSection('projectPaths')}>
+                <h2>Lines of Code Project Paths</h2>
+                <SectionIcon isOpen={openSections.projectPaths}>▼</SectionIcon>
+              </SectionHeader>
+            }
+            open={openSections.projectPaths}
+            onTriggerOpening={() => {}}
+            onTriggerClosing={() => {}}
+            transitionTime={200}
+          >
+            <SectionContent>
+              <ProjectPathsManager />
+            </SectionContent>
+          </Collapsible>
+          </CollapsibleSection>
+
+          <CollapsibleSection>
+            <Collapsible
+              id="section-certifications"
+            trigger={
+              <SectionHeader onClick={() => toggleSection('certifications')}>
+                <h2>Certifications Management</h2>
+                <SectionIcon isOpen={openSections.certifications}>▼</SectionIcon>
+              </SectionHeader>
+            }
+            open={openSections.certifications}
+            onTriggerOpening={() => {}}
+            onTriggerClosing={() => {}}
+            transitionTime={200}
+          >
+            <SectionContent>
+              <CertificationsManager />
+            </SectionContent>
+          </Collapsible>
+          </CollapsibleSection>
+
+          <CollapsibleSection>
+            <Collapsible
+              id="section-prompts"
+            trigger={
+              <SectionHeader onClick={() => toggleSection('prompts')}>
+                <h2>Prompts Management</h2>
+                <SectionIcon isOpen={openSections.prompts}>▼</SectionIcon>
+              </SectionHeader>
+            }
+            open={openSections.prompts}
+            onTriggerOpening={() => {}}
+            onTriggerClosing={() => {}}
+            transitionTime={200}
+          >
+            <SectionContent>
+              <PromptsManager />
+            </SectionContent>
+          </Collapsible>
+          </CollapsibleSection>
 
           <RefreshButton
-            onClick={fetchData}
+            onClick={() => fetchData(true)}
             disabled={isRefreshing}
-            title="Refresh data"
+            title={`Refresh data (Last updated: ${lastUpdateTime})`}
           >
             {isRefreshing ? '⟳' : '↻'}
           </RefreshButton>
@@ -895,12 +1132,23 @@ const DevPanel: React.FC = () => {
           {isRefreshing && (
             <LoadingOverlay>
               <LoadingContent>
-                Refreshing data...
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div style={{ 
+                    width: '24px', 
+                    height: '24px', 
+                    border: '2px solid #ccc', 
+                    borderTop: '2px solid #007bff', 
+                    borderRadius: '50%', 
+                    animation: 'spin 1s linear infinite' 
+                  }}></div>
+                  Refreshing data...
+                </div>
               </LoadingContent>
             </LoadingOverlay>
           )}
         </>
       )}
+      <ScrollToTopButton />
     </PageContainer>
   );
 };

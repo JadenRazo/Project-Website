@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/JadenRazo/Project-Website/backend/internal/common/response"
 	"github.com/JadenRazo/Project-Website/backend/internal/domain"
 	"github.com/JadenRazo/Project-Website/backend/internal/messaging/service"
 	"github.com/JadenRazo/Project-Website/backend/internal/messaging/websocket"
@@ -433,7 +434,6 @@ func (h *MessagingHandler) GetUserChannels(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Users can only view their own channels
-	// TODO: Add admin override if needed
 	requestorIDStr := fmt.Sprintf("%d", requestorID)
 	if requestorIDStr != targetUserID {
 		h.respondWithError(w, http.StatusForbidden, "You can only view your own channels")
@@ -875,7 +875,7 @@ func (h *MessagingHandler) respond(w http.ResponseWriter, status int, data inter
 
 	if data != nil {
 		if err := json.NewEncoder(w).Encode(data); err != nil {
-			http.Error(w, "Error encoding response", http.StatusInternalServerError)
+			response.InternalError(w, "Error encoding response")
 		}
 	}
 }

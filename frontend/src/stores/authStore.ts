@@ -3,12 +3,15 @@ import { devtools, persist } from 'zustand/middleware';
 import type { AuthState, User } from './types';
 
 interface AuthActions {
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string) => Promise<void>;
   logout: () => void;
   validateToken: (token: string) => Promise<void>;
   setLoading: (loading: boolean) => void;
   setUser: (user: User | null) => void;
   setAuthenticated: (authenticated: boolean) => void;
+  setAuthModalOpen: (open: boolean) => void;
+  setAuthModalMode: (mode: 'login' | 'register') => void;
 }
 
 type AuthStore = AuthState & AuthActions;
@@ -20,6 +23,8 @@ export const useAuthStore = create<AuthStore>()(
         user: null,
         isAuthenticated: false,
         isLoading: true,
+        authModalOpen: false,
+        authModalMode: 'login',
 
         setLoading: (loading: boolean) =>
           set({ isLoading: loading }, false, 'setLoading'),
@@ -30,9 +35,15 @@ export const useAuthStore = create<AuthStore>()(
         setAuthenticated: (authenticated: boolean) =>
           set({ isAuthenticated: authenticated }, false, 'setAuthenticated'),
 
+        setAuthModalOpen: (open: boolean) =>
+          set({ authModalOpen: open }, false, 'setAuthModalOpen'),
+
+        setAuthModalMode: (mode: 'login' | 'register') =>
+          set({ authModalMode: mode }, false, 'setAuthModalMode'),
+
         validateToken: async (token: string) => {
           try {
-            const response = await fetch('/api/v1/auth/validate', {
+            const response = await fetch('/api/v1/auth/admin/validate', {
               headers: {
                 'Authorization': `Bearer ${token}`,
               },
@@ -65,16 +76,17 @@ export const useAuthStore = create<AuthStore>()(
 
         login: async (email: string, password: string) => {
           try {
-            const response = await fetch('/api/v1/auth/login', {
+            const response = await fetch('/api/auth/login', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
               },
-              body: JSON.stringify({ email, password }),
+              body: JSON.stringify({ email_or_username: email, password }),
             });
 
             if (!response.ok) {
-              throw new Error('Login failed');
+              const errorData = await response.json().catch(() => ({}));
+              throw new Error(errorData.error || 'Invalid email or password');
             }
 
             const userData = await response.json();
@@ -84,12 +96,39 @@ export const useAuthStore = create<AuthStore>()(
               user: userData,
               isAuthenticated: true,
               isLoading: false,
+              authModalOpen: false,
             }, false, 'login/success');
-
-            return true;
           } catch (error) {
-            console.error('Login error:', error);
-            return false;
+            throw error;
+          }
+        },
+
+        register: async (email: string, password: string) => {
+          try {
+            const response = await fetch('/api/auth/register', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ email, password }),
+            });
+
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => ({}));
+              throw new Error(errorData.error || 'Failed to create account');
+            }
+
+            const userData = await response.json();
+            localStorage.setItem('auth_token', userData.token);
+            
+            set({
+              user: userData,
+              isAuthenticated: true,
+              isLoading: false,
+              authModalOpen: false,
+            }, false, 'register/success');
+          } catch (error) {
+            throw error;
           }
         },
 

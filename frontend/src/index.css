@@ -11,13 +11,17 @@
   padding: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
   width: 100vw;  /* Force viewport width */
   max-width: 100vw;
-  overflow-x: hidden !important;  /* Force no horizontal scroll */
+  overflow-x: hidden;
   position: relative;
   overscroll-behavior: none;  /* Prevent bounce effects */
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -25,9 +29,6 @@ html, body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  scroll-behavior: auto; /* Force instant scrolling */
-  overflow-x: hidden;
-  max-width: 100%;
 }
 
 /* Ensure root container stays within viewport */
@@ -75,17 +76,6 @@ code {
 }
 
 /* Hide scrollbar if desired */
-/* Uncomment if you want to hide scrollbars while maintaining scroll functionality
-html::-webkit-scrollbar,
-body::-webkit-scrollbar {
-  display: none;
-}
-
-html, body {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-*/
 
 /* Prevent scroll anchoring which can interfere with manual scroll positioning */
 @supports (overflow-anchor: none) {

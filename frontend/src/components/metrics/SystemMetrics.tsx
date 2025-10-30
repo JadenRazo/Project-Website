@@ -599,6 +599,7 @@ const SystemMetrics: React.FC = () => {
   };
 
   const formatLatency = (latency: number) => {
+    if (latency == null || isNaN(latency)) return '0.0ms';
     return latency < 1000 ? `${latency.toFixed(1)}ms` : `${(latency / 1000).toFixed(2)}s`;
   };
 

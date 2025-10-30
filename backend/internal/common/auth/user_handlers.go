@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/JadenRazo/Project-Website/backend/internal/common/middleware"
 )
 
 // LoginRequest represents a login request payload
@@ -56,6 +57,15 @@ func (a *Auth) RegisterHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "validation_error",
 			Message: err.Error(),
+		})
+		return
+	}
+
+	// Validate email doesn't contain special characters like +
+	if strings.ContainsAny(req.Email, "+") {
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error:   "invalid_email",
+			Message: "Email address contains invalid characters",
 		})
 		return
 	}
@@ -123,6 +133,15 @@ func (a *Auth) LoginHandler(c *gin.Context) {
 		return
 	}
 
+	// If login is with email, validate it doesn't contain special characters
+	if strings.Contains(req.EmailOrUsername, "@") && strings.ContainsAny(req.EmailOrUsername, "+") {
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error:   "invalid_email",
+			Message: "Email address contains invalid characters",
+		})
+		return
+	}
+
 	// Authenticate user
 	user, err := a.AuthenticateUser(req.EmailOrUsername, req.Password)
 	if err != nil {
@@ -172,7 +191,7 @@ func (a *Auth) RefreshTokenHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"tokens": tokens,
+		"tokens":  tokens,
 		"message": "Token refreshed successfully",
 	})
 }
@@ -252,8 +271,8 @@ func (a *Auth) ValidateTokenHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"valid": true,
-		"user":  user.Sanitize(),
+		"valid":  true,
+		"user":   user.Sanitize(),
 		"claims": claims,
 	})
 }
@@ -367,13 +386,14 @@ func (a *Auth) GetProfileHandler(c *gin.Context) {
 func (a *Auth) RegisterUserRoutes(router *gin.RouterGroup) {
 	auth := router.Group("/auth")
 	{
-		auth.POST("/register", a.RegisterHandler)
-		auth.POST("/login", a.LoginHandler)
-		auth.POST("/refresh", a.RefreshTokenHandler)
+		// Apply strict rate limiting to sensitive auth endpoints
+		auth.POST("/register", middleware.StrictRateLimiter(), a.RegisterHandler)
+		auth.POST("/login", middleware.StrictRateLimiter(), a.LoginHandler)
+		auth.POST("/refresh", middleware.StrictRateLimiter(), a.RefreshTokenHandler)
 		auth.POST("/logout", a.LogoutHandler)
 		auth.GET("/validate", a.ValidateTokenHandler)
 		auth.GET("/profile", a.GinAuthMiddleware(), a.GetProfileHandler)
-		auth.PUT("/password", a.GinAuthMiddleware(), a.ChangePasswordHandler)
+		auth.PUT("/password", a.GinAuthMiddleware(), middleware.StrictRateLimiter(), a.ChangePasswordHandler)
 	}
 }
 

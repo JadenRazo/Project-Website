@@ -1,10 +1,10 @@
 # Metrics System
 
-This package provides a metrics collection and reporting system for the backend application.
+I've created this package to provide a metrics collection and reporting system for the backend application.
 
 ## Overview
 
-The metrics system is designed to be extensible, supporting multiple metric providers. Currently, it includes:
+I designed the metrics system to be extensible, supporting multiple metric providers. Currently, it includes:
 
 - **Grafana/Prometheus Integration**: Collects and exposes metrics in Prometheus format that can be visualized in Grafana dashboards.
 

@@ -24,17 +24,22 @@ const (
 
 // User represents a user in the system
 type User struct {
-	ID             uuid.UUID  `json:"id" db:"id"`
-	Email          string     `json:"email" db:"email"`
-	Username       string     `json:"username" db:"username"`
-	HashedPassword string     `json:"-" db:"password_hash"`
-	FullName       string     `json:"full_name" db:"full_name"`
-	Role           Role       `json:"role" db:"role"`
-	IsActive       bool       `json:"is_active" db:"is_active"`
-	IsVerified     bool       `json:"is_verified" db:"is_verified"`
-	LastLogin      *time.Time `json:"last_login,omitempty" db:"last_login"`
-	CreatedAt      time.Time  `json:"created_at" db:"created_at"`
-	UpdatedAt      time.Time  `json:"updated_at" db:"updated_at"`
+	ID             uuid.UUID  `json:"id" db:"id" gorm:"column:id;type:uuid;primaryKey"`
+	Email          string     `json:"email" db:"email" gorm:"column:email;type:citext;uniqueIndex"`
+	Username       string     `json:"username" db:"username" gorm:"column:username;type:citext;uniqueIndex"`
+	HashedPassword string     `json:"-" db:"password_hash" gorm:"column:password_hash"`
+	FullName       string     `json:"full_name" db:"full_name" gorm:"column:full_name"`
+	Role           Role       `json:"role" db:"role" gorm:"column:role"`
+	IsActive       bool       `json:"is_active" db:"is_active" gorm:"column:is_active"`
+	IsVerified     bool       `json:"is_verified" db:"is_verified" gorm:"column:is_verified"`
+	LastLogin      *time.Time `json:"last_login,omitempty" db:"last_login" gorm:"column:last_login_at"`
+	CreatedAt      time.Time  `json:"created_at" db:"created_at" gorm:"column:created_at"`
+	UpdatedAt      time.Time  `json:"updated_at" db:"updated_at" gorm:"column:updated_at"`
+}
+
+// TableName specifies the table name for GORM
+func (User) TableName() string {
+	return "users"
 }
 
 // NewUser creates a new user with the given information

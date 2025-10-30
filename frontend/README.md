@@ -1,6 +1,6 @@
 # Project Website Frontend
 
-This is the frontend for the Project Website, built with React and TypeScript, and styled using styled-components and TailwindCSS. It is designed to be modern, responsive, and highly interactive, showcasing a portfolio of projects, developer tools, and real-time statistics.
+My portfolio website frontend, built with React and TypeScript, and styled using styled-components and TailwindCSS. I designed it to be modern, responsive, and highly interactive, showcasing my portfolio of projects, developer tools, and real-time statistics.
 
 ## Features
 
@@ -62,7 +62,7 @@ This is the frontend for the Project Website, built with React and TypeScript, a
 
 ## Deployment
 
-- The app is ready to be deployed as a static site after running `npm run build`.
+- I've configured the app ready for deployment as a static site after running `npm run build`.
 - Ensure the backend script is configured to update `src/assets/data/code_stats.json` regularly for live code stats.
 
 ## Key Technologies

@@ -11,35 +11,52 @@ import (
 
 // ShortenedURL represents a shortened URL in the database
 type ShortenedURL struct {
-	ID          uuid.UUID      `json:"id" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	ShortCode   string         `json:"short_code" gorm:"size:10;uniqueIndex;not null"`
-	OriginalURL string         `json:"original_url" gorm:"type:text;not null"`
-	UserID      *uuid.UUID     `json:"user_id,omitempty" gorm:"type:uuid"`
-	Title       string         `json:"title,omitempty" gorm:"size:255"`
-	Description string         `json:"description,omitempty" gorm:"type:text"`
-	IsActive    bool           `json:"is_active" gorm:"default:true"`
-	ExpiresAt   *time.Time     `json:"expires_at,omitempty"`
-	CreatedAt   time.Time      `json:"created_at" gorm:"autoCreateTime"`
-	UpdatedAt   time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
-	DeletedAt   gorm.DeletedAt `json:"-" gorm:"index"`
+	ID           uuid.UUID      `json:"id" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	ShortCode    string         `json:"short_code" gorm:"column:short_code;size:20;uniqueIndex;not null"`
+	OriginalURL  string         `json:"original_url" gorm:"column:original_url;type:text;not null"`
+	UserID       *uuid.UUID     `json:"user_id,omitempty" gorm:"column:user_id;type:uuid"`
+	Title        string         `json:"title,omitempty" gorm:"column:title;size:255"`
+	Description  string         `json:"description,omitempty" gorm:"column:description;type:text"`
+	IsActive     bool           `json:"is_active" gorm:"column:is_active;default:true"`
+	IsPrivate    bool           `json:"is_private" gorm:"column:is_private;default:false"`
+	PasswordHash string         `json:"-" gorm:"column:password_hash;size:255"`
+	ExpiresAt    *time.Time     `json:"expires_at,omitempty" gorm:"column:expires_at"`
+	MaxClicks    *int           `json:"max_clicks,omitempty" gorm:"column:max_clicks"`
+	CreatedAt    time.Time      `json:"created_at" gorm:"column:created_at;autoCreateTime"`
+	UpdatedAt    time.Time      `json:"updated_at" gorm:"column:updated_at;autoUpdateTime"`
+	DeletedAt    gorm.DeletedAt `json:"-" gorm:"index"`
 
 	// Associations
-	Clicks []URLClick `json:"clicks,omitempty" gorm:"foreignKey:URLID"`
+	Clicks []URLClick `json:"clicks,omitempty" gorm:"foreignKey:ShortURLID"`
+}
+
+// TableName specifies the table name for GORM
+func (ShortenedURL) TableName() string {
+	return "shortened_urls"
 }
 
 // URLClick represents a click analytics record
 type URLClick struct {
-	ID        uuid.UUID `json:"id" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	URLID     uuid.UUID `json:"url_id" gorm:"type:uuid;not null"`
-	IPAddress net.IP    `json:"ip_address,omitempty" gorm:"type:inet"`
-	UserAgent string    `json:"user_agent,omitempty" gorm:"type:text"`
-	Referer   string    `json:"referer,omitempty" gorm:"type:text"`
-	Country   string    `json:"country,omitempty" gorm:"size:2"`
-	City      string    `json:"city,omitempty" gorm:"size:100"`
-	ClickedAt time.Time `json:"clicked_at" gorm:"autoCreateTime"`
+	ID          uuid.UUID `json:"id" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	ShortURLID  uuid.UUID `json:"short_url_id" gorm:"column:short_url_id;type:uuid;not null"`
+	IPAddress   net.IP    `json:"ip_address,omitempty" gorm:"column:ip_address;type:inet"`
+	UserAgent   string    `json:"user_agent,omitempty" gorm:"column:user_agent;type:text"`
+	Referer     string    `json:"referer,omitempty" gorm:"column:referer;type:text"`
+	CountryCode string    `json:"country_code,omitempty" gorm:"column:country_code;size:2"`
+	City        string    `json:"city,omitempty" gorm:"column:city;size:100"`
+	DeviceType  string    `json:"device_type,omitempty" gorm:"column:device_type;size:50"`
+	Browser     string    `json:"browser,omitempty" gorm:"column:browser;size:50"`
+	OS          string    `json:"os,omitempty" gorm:"column:os;size:50"`
+	IsBot       bool      `json:"is_bot" gorm:"column:is_bot;default:false"`
+	ClickedAt   time.Time `json:"clicked_at" gorm:"column:clicked_at;autoCreateTime"`
 
 	// Associations
-	URL *ShortenedURL `json:"url,omitempty" gorm:"foreignKey:URLID"`
+	URL *ShortenedURL `json:"url,omitempty" gorm:"foreignKey:ShortURLID;references:ID"`
+}
+
+// TableName specifies the table name for GORM
+func (URLClick) TableName() string {
+	return "url_clicks"
 }
 
 // Request/Response DTOs
@@ -68,18 +85,18 @@ type ShortenURLResponse struct {
 // URLStatsResponse represents URL analytics data
 type URLStatsResponse struct {
 	*ShortenedURL
-	TotalClicks     int64                `json:"total_clicks"`
-	UniqueClicks    int64                `json:"unique_clicks"`
-	ClicksByCountry map[string]int64     `json:"clicks_by_country"`
-	ClicksByDate    map[string]int64     `json:"clicks_by_date"`
-	RecentClicks    []URLClick          `json:"recent_clicks"`
-	TopReferers     map[string]int64     `json:"top_referers"`
+	TotalClicks     int64            `json:"total_clicks"`
+	UniqueClicks    int64            `json:"unique_clicks"`
+	ClicksByCountry map[string]int64 `json:"clicks_by_country"`
+	ClicksByDate    map[string]int64 `json:"clicks_by_date"`
+	RecentClicks    []URLClick       `json:"recent_clicks"`
+	TopReferers     map[string]int64 `json:"top_referers"`
 }
 
 // UserURLsResponse represents a user's URLs with pagination
 type UserURLsResponse struct {
-	URLs       []URLWithStats      `json:"urls"`
-	Pagination PaginationResponse  `json:"pagination"`
+	URLs       []URLWithStats     `json:"urls"`
+	Pagination PaginationResponse `json:"pagination"`
 }
 
 // URLWithStats represents a URL with basic statistics
@@ -112,26 +129,26 @@ func IsValidShortCode(code string) bool {
 	if len(code) < 4 || len(code) > 10 {
 		return false
 	}
-	
+
 	// Only allow alphanumeric characters
 	for _, r := range code {
 		if !((r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9')) {
 			return false
 		}
 	}
-	
+
 	return true
 }
 
 // SanitizeURL cleans and validates a URL
 func SanitizeURL(url string) string {
 	url = strings.TrimSpace(url)
-	
+
 	// Add https:// if no protocol is specified
 	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
 		url = "https://" + url
 	}
-	
+
 	return url
 }
 

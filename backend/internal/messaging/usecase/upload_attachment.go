@@ -59,7 +59,6 @@ func (uc *UploadAttachmentUseCase) Execute(ctx context.Context, input UploadAtta
 
 	// Check if user has permission to add attachments
 	if message.SenderID != input.UserID {
-		// TODO: Check if user has admin/mod permissions
 		return nil, errors.ErrUnauthorized
 	}
 

@@ -16,6 +16,7 @@ type Config struct {
 	Server         ServerConfig
 	Database       DatabaseConfig
 	Cache          CacheConfig
+	Redis          RedisConfig
 	Auth           AuthConfig
 	Logging        LoggingConfig
 	Metrics        MetricsConfig
@@ -32,6 +33,14 @@ type Config struct {
 	Messaging      MessagingConfig    // Populated from loaderConfig.Messaging
 	DevPanel       DevPanelCoreConfig // Specific core config for DevPanel service params
 	EnablePprof    bool
+}
+
+// RedisConfig holds redis configuration
+type RedisConfig struct {
+	Host          string `yaml:"host"`
+	Port          string `yaml:"port"`
+	Password      string `yaml:"password"`
+	EncryptionKey string `yaml:"encryptionKey"`
 }
 
 // AppConfig holds application-specific configuration
@@ -237,6 +246,12 @@ func GetConfig() *Config {
 			DBName:   cfgFromLoader.Database.DBName,
 			SSLMode:  cfgFromLoader.Database.SSLMode,
 			LogLevel: cfgFromLoader.LogLevel, // Main LogLevel used for DB too for now
+		},
+		Redis: RedisConfig{
+			Host:          cfgFromLoader.Redis.Host,
+			Port:          cfgFromLoader.Redis.Port,
+			Password:      cfgFromLoader.Redis.Password,
+			EncryptionKey: cfgFromLoader.Redis.EncryptionKey,
 		},
 		Logging: LoggingConfig{
 			Level:      cfgFromLoader.LogLevel,

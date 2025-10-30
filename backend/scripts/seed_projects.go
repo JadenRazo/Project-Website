@@ -5,10 +5,10 @@ import (
 	"log"
 	"os"
 
-	"github.com/google/uuid"
 	"github.com/JadenRazo/Project-Website/backend/internal/core/db"
 	"github.com/JadenRazo/Project-Website/backend/internal/devpanel/project"
 	projectRepo "github.com/JadenRazo/Project-Website/backend/internal/projects/repository"
+	"github.com/google/uuid"
 )
 
 func main() {

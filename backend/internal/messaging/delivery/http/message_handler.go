@@ -446,7 +446,6 @@ func handleMessageErrors(w http.ResponseWriter, err error) {
 		RespondWithError(w, http.StatusConflict, err.Error())
 	default:
 		// Log unexpected errors
-		// logger.Error("Unexpected error", "error", err)
 		RespondWithError(w, http.StatusInternalServerError, "Internal server error")
 	}
 }

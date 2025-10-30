@@ -145,12 +145,6 @@ export const preloadRouteAssets = {
 
 // Critical resource preloading
 export const preloadCriticalAssets = (): void => {
-  // Preload critical fonts
-  preloader.preloadFonts([
-    { url: '/fonts/primary-font.woff2', type: 'font/woff2' },
-    { url: '/fonts/mono-font.woff2', type: 'font/woff2' }
-  ]).catch(console.warn);
-
   // DNS prefetch for external domains
   preloader.dns([
     'fonts.googleapis.com',

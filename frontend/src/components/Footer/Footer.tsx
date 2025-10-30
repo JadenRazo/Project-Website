@@ -1,7 +1,8 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
+import { useScrollTo } from '../../hooks/useScrollTo';
 
 const FooterContainer = styled.footer`
   background: ${({ theme }) => theme.colors.surface};
@@ -51,14 +52,27 @@ const FooterTitle = styled.h3`
   margin-bottom: ${({ theme }) => theme.spacing.sm};
 `;
 
-const FooterLink = styled(Link)`
+const FooterLink = styled(Link)<{ $isNavigating?: boolean }>`
   color: ${({ theme }) => theme.colors.text};
   text-decoration: none;
-  transition: color ${({ theme }) => theme.transitions.fast};
+  transition: all ${({ theme }) => theme.transitions.fast};
   font-size: 0.9rem;
+  position: relative;
+  opacity: ${({ $isNavigating }) => $isNavigating ? 0.7 : 1};
 
   &:hover {
     color: ${({ theme }) => theme.colors.primary};
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: ${({ $isNavigating }) => $isNavigating ? '100%' : '0'};
+    height: 2px;
+    background: ${({ theme }) => theme.colors.primary};
+    transition: width ${({ theme }) => theme.transitions.fast};
   }
 `;
 
@@ -128,6 +142,8 @@ const TechBadge = styled(motion.span)`
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
+  const navigate = useNavigate();
+  const [navigatingTo, setNavigatingTo] = useState<string | null>(null);
   
   const techStack = [
     'TypeScript',
@@ -145,9 +161,30 @@ const Footer: React.FC = () => {
     'TMUX'
   ];
 
-  // Handler to force scroll to top
-  const handleLinkClick = () => {
-    window.scrollTo(0, 0);
+  const { scrollToTop } = useScrollTo();
+
+  // Handler for footer link clicks
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    const href = e.currentTarget.getAttribute('href');
+    const currentPath = window.location.pathname;
+    
+    // If staying on the same page, just scroll to top
+    if (href === currentPath) {
+      scrollToTop({ behavior: 'smooth' });
+    } else if (href) {
+      // Set navigating state for visual feedback
+      setNavigatingTo(href);
+      
+      // Small delay for visual feedback before navigation
+      setTimeout(() => {
+        // Navigate with state to indicate footer navigation
+        navigate(href, { state: { fromFooter: true } });
+        
+        // Clear navigation state after a delay
+        setTimeout(() => setNavigatingTo(null), 500);
+      }, 100);
+    }
   };
 
   return (
@@ -172,10 +209,10 @@ const Footer: React.FC = () => {
 
         <FooterSection>
           <FooterTitle>Projects</FooterTitle>
-          <FooterLink to="/devpanel" onClick={handleLinkClick}>Developer Panel</FooterLink>
-          <FooterLink to="/urlshortener" onClick={handleLinkClick}>URL Shortener</FooterLink>
-          <FooterLink to="/messaging" onClick={handleLinkClick}>Real-time Messaging</FooterLink>
-          <FooterLink to="/home" onClick={handleLinkClick}>View All Projects</FooterLink>
+          <FooterLink to="/devpanel" onClick={handleLinkClick} $isNavigating={navigatingTo === '/devpanel'}>Developer Panel</FooterLink>
+          <FooterLink to="/urlshortener" onClick={handleLinkClick} $isNavigating={navigatingTo === '/urlshortener'}>URL Shortener</FooterLink>
+          <FooterLink to="/messaging" onClick={handleLinkClick} $isNavigating={navigatingTo === '/messaging'}>Real-time Messaging</FooterLink>
+          <FooterLink to="/home" onClick={handleLinkClick} $isNavigating={navigatingTo === '/home'}>View All Projects</FooterLink>
         </FooterSection>
 
         <FooterSection>

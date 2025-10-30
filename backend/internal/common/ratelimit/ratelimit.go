@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/JadenRazo/Project-Website/backend/internal/app/config"
+	"github.com/JadenRazo/Project-Website/backend/internal/common/response"
 	"github.com/go-redis/redis/v8"
 )
 
@@ -134,7 +135,7 @@ func (r *RedisRateLimiter) Limit(group string, next http.Handler) http.Handler {
 		// Check if request should be allowed
 		allowed, err := r.Allow(req.Context(), key)
 		if err != nil {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			response.InternalError(w, "Internal Server Error")
 			return
 		}
 
@@ -142,7 +143,7 @@ func (r *RedisRateLimiter) Limit(group string, next http.Handler) http.Handler {
 			w.Header().Set("X-RateLimit-Limit", fmt.Sprintf("%d", limit))
 			w.Header().Set("X-RateLimit-Remaining", "0")
 			w.Header().Set("X-RateLimit-Reset", fmt.Sprintf("%d", time.Now().Add(r.window).Unix()))
-			http.Error(w, "Too Many Requests", http.StatusTooManyRequests)
+			response.TooManyRequests(w, "Too Many Requests")
 			return
 		}
 
@@ -205,7 +206,7 @@ func (r *MemoryRateLimiter) Limit(group string, next http.Handler) http.Handler 
 		// Check if request should be allowed
 		allowed, err := r.Allow(req.Context(), key)
 		if err != nil {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			response.InternalError(w, "Internal Server Error")
 			return
 		}
 
@@ -213,7 +214,7 @@ func (r *MemoryRateLimiter) Limit(group string, next http.Handler) http.Handler 
 			w.Header().Set("X-RateLimit-Limit", fmt.Sprintf("%d", limit))
 			w.Header().Set("X-RateLimit-Remaining", "0")
 			w.Header().Set("X-RateLimit-Reset", fmt.Sprintf("%d", time.Now().Add(r.window).Unix()))
-			http.Error(w, "Too Many Requests", http.StatusTooManyRequests)
+			response.TooManyRequests(w, "Too Many Requests")
 			return
 		}
 

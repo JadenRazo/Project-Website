@@ -189,73 +189,59 @@ func renderError(w http.ResponseWriter, r *http.Request, httpStatus int, err err
 // Project handlers
 
 func (s *Server) handleListProjects(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement handler
 	renderError(w, r, http.StatusNotImplemented, nil, "Not implemented")
 }
 
 func (s *Server) handleCreateProject(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement handler
 	renderError(w, r, http.StatusNotImplemented, nil, "Not implemented")
 }
 
 func (s *Server) handleGetProject(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement handler
 	renderError(w, r, http.StatusNotImplemented, nil, "Not implemented")
 }
 
 func (s *Server) handleUpdateProject(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement handler
 	renderError(w, r, http.StatusNotImplemented, nil, "Not implemented")
 }
 
 func (s *Server) handleDeleteProject(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement handler
 	renderError(w, r, http.StatusNotImplemented, nil, "Not implemented")
 }
 
 func (s *Server) handleArchiveProject(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement handler
 	renderError(w, r, http.StatusNotImplemented, nil, "Not implemented")
 }
 
 func (s *Server) handleActivateProject(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement handler
 	renderError(w, r, http.StatusNotImplemented, nil, "Not implemented")
 }
 
 // Repository handlers
 
 func (s *Server) handleListRepositories(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement handler
 	renderError(w, r, http.StatusNotImplemented, nil, "Not implemented")
 }
 
 func (s *Server) handleListProjectRepositories(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement handler
 	renderError(w, r, http.StatusNotImplemented, nil, "Not implemented")
 }
 
 func (s *Server) handleCreateRepository(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement handler
 	renderError(w, r, http.StatusNotImplemented, nil, "Not implemented")
 }
 
 func (s *Server) handleGetRepository(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement handler
 	renderError(w, r, http.StatusNotImplemented, nil, "Not implemented")
 }
 
 func (s *Server) handleUpdateRepository(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement handler
 	renderError(w, r, http.StatusNotImplemented, nil, "Not implemented")
 }
 
 func (s *Server) handleDeleteRepository(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement handler
 	renderError(w, r, http.StatusNotImplemented, nil, "Not implemented")
 }
 
 func (s *Server) handleSyncRepository(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement handler
 	renderError(w, r, http.StatusNotImplemented, nil, "Not implemented")
 }

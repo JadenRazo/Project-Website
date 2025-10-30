@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 
+
 // Types
 interface Message {
   id: string;
@@ -399,6 +400,9 @@ const createMockWebSocketEvents = (setChannels: React.Dispatch<React.SetStateAct
 
 // Main Component
 const Messaging: React.FC = () => {
+  // Ensure page scrolls to top when navigated to
+  
+  
   const [channels, setChannels] = useState<Channel[]>([]);
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
   const [messages, setMessages] = useState<Record<string, Message[]>>({});
@@ -418,16 +422,8 @@ const Messaging: React.FC = () => {
       // Development environment
       wsUrl = 'ws://localhost:8082/ws';
     } else {
-      // Production environment - use environment config or fallback to demo mode
-      const envWsUrl = (window as any)._env_?.REACT_APP_WS_URL;
-      if (envWsUrl) {
-        wsUrl = `${envWsUrl}:8082/ws`;
-      } else {
-        // No WebSocket service available, use mock data only
-        console.log('No WebSocket service configured, using demo mode');
-        const cleanup = createMockWebSocketEvents(setChannels, setMessages, setUsers);
-        return cleanup;
-      }
+      // Production environment - use nginx proxy endpoint
+      wsUrl = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ws`;
     }
     
     try {
