@@ -3,9 +3,9 @@ package metrics
 import (
 	"context"
 	"fmt"
+	"gorm.io/gorm"
 	"net/http"
 	"time"
-	"gorm.io/gorm"
 )
 
 // DefaultConfig returns the default metrics configuration
@@ -207,12 +207,12 @@ func (m *Manager) StartPeriodicCleanup() {
 	if !m.config.Enabled || m.latencyTracker == nil {
 		return
 	}
-	
+
 	go func() {
 		// Clean up old metrics every 24 hours
 		ticker := time.NewTicker(24 * time.Hour)
 		defer ticker.Stop()
-		
+
 		for range ticker.C {
 			m.latencyTracker.Cleanup()
 		}

@@ -8,8 +8,8 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
-	"github.com/JadenRazo/Project-Website/backend/internal/projects/service"
 	projectHTTP "github.com/JadenRazo/Project-Website/backend/internal/projects/delivery/http"
+	"github.com/JadenRazo/Project-Website/backend/internal/projects/service"
 )
 
 func main() {
@@ -43,7 +43,7 @@ func main() {
 	// Health check
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
-			"status": "ok",
+			"status":  "ok",
 			"message": "Simple API server running",
 		})
 	})

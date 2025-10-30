@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ThemeMode } from '../../styles/theme.types';
+import { useScrollTo } from '../../hooks/useScrollTo';
 
 interface NavigationBarProps {
   themeMode: ThemeMode;
@@ -238,6 +239,7 @@ const HamburgerButton = styled.button`
   }
 `;
 
+
 const NavigationBar: React.FC<NavigationBarProps> = ({ themeMode, toggleTheme }) => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -260,16 +262,16 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ themeMode, toggleTheme })
     }
   ]);
 
-  // Close menu when route changes
+
   useEffect(() => {
     setIsMenuOpen(false);
   }, [location]);
 
-  // Function to check backend service status
   const checkServices = React.useCallback(async () => {
     try {
-      const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || 'https://jadenrazo.dev';
-      const response = await fetch(`${apiUrl}/api/v1/status/`, {
+      const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || '';
+      const endpoint = apiUrl ? `${apiUrl}/api/v1/status/` : '/api/v1/status/';
+      const response = await fetch(endpoint, {
         method: 'GET',
         headers: { 'Cache-Control': 'no-cache' }
       });
@@ -286,14 +288,12 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ themeMode, toggleTheme })
         }));
         setServicesStatus(mappedServices);
       } else {
-        // If status API is down, mark all services as down
         setServicesStatus(current => 
           current.map(service => ({ ...service, status: 'down' as const }))
         );
       }
     } catch (error) {
       console.error("Error checking services:", error);
-      // If request fails, mark all services as down
       setServicesStatus(current => 
         current.map(service => ({ ...service, status: 'down' as const }))
       );
@@ -329,26 +329,23 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ themeMode, toggleTheme })
     return 'down';
   };
   
-  // Check services on mount and every 30 seconds
   useEffect(() => {
-    // Initial check
     checkServices();
     
-    // Set up interval for periodic checks
     const interval = setInterval(checkServices, 30000);
     
-    // Cleanup interval on unmount
     return () => clearInterval(interval);
   }, [checkServices]);
 
-  // Force scroll to top when clicking any navigation link
+  const { scrollToTop } = useScrollTo();
+
   const handleLinkClick = () => {
-    window.scrollTo(0, 0);
-    setIsMenuOpen(false); // Close mobile menu if open
-    setIsServicesOpen(false); // Close services dropdown if open
+    scrollToTop();
+    setIsMenuOpen(false);
+    setIsServicesOpen(false);
   };
 
-  // Check if a path is active
+
   const isActive = (path: string) => location.pathname === path;
 
   return (
@@ -363,7 +360,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ themeMode, toggleTheme })
 
         <HamburgerButton onClick={() => {
           setIsMenuOpen(!isMenuOpen);
-          setIsServicesOpen(false); // Close services dropdown when toggling mobile menu
+          setIsServicesOpen(false);
         }}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             {isMenuOpen ? (
@@ -456,6 +453,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ themeMode, toggleTheme })
           <NavLink to="/portfolio" $isActive={isActive('/portfolio')} onClick={handleLinkClick}>
             Portfolio
           </NavLink>
+
         </NavLinks>
       </NavContent>
     </NavContainer>

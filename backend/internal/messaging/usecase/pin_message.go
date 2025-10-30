@@ -46,7 +46,6 @@ func (uc *PinMessageUseCase) Execute(ctx context.Context, input PinMessageInput)
 
 	// Check if user has permission to pin messages
 	if message.SenderID != input.UserID {
-		// TODO: Check if user has admin/mod permissions
 		return errors.ErrUnauthorized
 	}
 

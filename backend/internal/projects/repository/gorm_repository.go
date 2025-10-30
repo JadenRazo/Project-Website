@@ -5,10 +5,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/JadenRazo/Project-Website/backend/internal/devpanel/project"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 	"gorm.io/gorm"
-	"github.com/JadenRazo/Project-Website/backend/internal/devpanel/project"
 )
 
 type gormProjectRepository struct {
@@ -48,7 +48,7 @@ func (r *gormProjectRepository) Create(ctx context.Context, proj *project.Projec
 	if result.Error != nil {
 		return result.Error
 	}
-	
+
 	*proj = *modelToProject(&model)
 	return nil
 }
@@ -62,7 +62,7 @@ func (r *gormProjectRepository) Get(ctx context.Context, id uuid.UUID) (*project
 		}
 		return nil, result.Error
 	}
-	
+
 	return modelToProject(&model), nil
 }
 
@@ -72,12 +72,12 @@ func (r *gormProjectRepository) GetByOwner(ctx context.Context, ownerID uuid.UUI
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	
+
 	projects := make([]*project.Project, len(models))
 	for i, model := range models {
 		projects[i] = modelToProject(&model)
 	}
-	
+
 	return projects, nil
 }
 
@@ -87,11 +87,11 @@ func (r *gormProjectRepository) Update(ctx context.Context, proj *project.Projec
 	if result.Error != nil {
 		return result.Error
 	}
-	
+
 	if result.RowsAffected == 0 {
 		return gorm.ErrRecordNotFound
 	}
-	
+
 	return nil
 }
 
@@ -101,66 +101,66 @@ func (r *gormProjectRepository) Delete(ctx context.Context, id uuid.UUID) error 
 	if result.Error != nil {
 		return result.Error
 	}
-	
+
 	if result.RowsAffected == 0 {
 		return gorm.ErrRecordNotFound
 	}
-	
+
 	return nil
 }
 
 func (r *gormProjectRepository) List(ctx context.Context, filter *project.Filter, pagination *project.Pagination) ([]*project.Project, int, error) {
 	query := r.db.WithContext(ctx).Model(&ProjectModel{}).Where("deleted_at IS NULL")
-	
+
 	// Apply filters
 	if filter != nil {
 		if filter.Status != nil {
 			query = query.Where("status = ?", string(*filter.Status))
 		}
-		
+
 		if filter.OwnerID != uuid.Nil {
 			query = query.Where("owner_id = ?", filter.OwnerID)
 		}
-		
+
 		if filter.Tag != "" {
 			query = query.Where("? = ANY(tags)", filter.Tag)
 		}
-		
+
 		if filter.Search != "" {
 			searchTerm := "%" + strings.ToLower(filter.Search) + "%"
 			query = query.Where("LOWER(name) LIKE ? OR LOWER(description) LIKE ?", searchTerm, searchTerm)
 		}
-		
+
 		if !filter.FromDate.IsZero() {
 			query = query.Where("created_at >= ?", filter.FromDate)
 		}
-		
+
 		if !filter.ToDate.IsZero() {
 			query = query.Where("created_at <= ?", filter.ToDate)
 		}
 	}
-	
+
 	// Count total records
 	var total int64
 	countQuery := query
 	if err := countQuery.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
-	
+
 	// Apply pagination and ordering
 	offset := (pagination.Page - 1) * pagination.PageSize
 	query = query.Order("created_at DESC").Limit(pagination.PageSize).Offset(offset)
-	
+
 	var models []ProjectModel
 	if err := query.Find(&models).Error; err != nil {
 		return nil, 0, err
 	}
-	
+
 	projects := make([]*project.Project, len(models))
 	for i, model := range models {
 		projects[i] = modelToProject(&model)
 	}
-	
+
 	return projects, int(total), nil
 }
 

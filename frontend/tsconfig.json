@@ -23,7 +23,7 @@
     "typeRoots": ["./node_modules/@types", "./src/types"],
     "importsNotUsedAsValues": "remove",
     "removeComments": true,
-    "preserveConstEnums": false
+    "preserveConstEnums": true
   },
   "include": ["src"],
   "exclude": ["node_modules", "build", ".tsbuildinfo"]

@@ -1,0 +1,85 @@
+# Prometheus Configuration for Portfolio Website
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'portfolio-monitor'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+# Load rules once and periodically evaluate them
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Backend API metrics
+  - job_name: 'backend-api'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['backend:8080']
+        labels:
+          service: 'api'
+          environment: 'production'
+
+  # DevPanel metrics
+  - job_name: 'backend-devpanel'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['backend:8081']
+        labels:
+          service: 'devpanel'
+          environment: 'production'
+
+  # Messaging service metrics
+  - job_name: 'backend-messaging'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['backend:8082']
+        labels:
+          service: 'messaging'
+          environment: 'production'
+
+  # URL Shortener metrics
+  - job_name: 'backend-urlshortener'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['backend:8083']
+        labels:
+          service: 'urlshortener'
+          environment: 'production'
+
+  # Redis metrics (if Redis exporter is used)
+  # - job_name: 'redis'
+  #   static_configs:
+  #     - targets: ['redis-exporter:9121']
+
+  # PostgreSQL metrics (if postgres exporter is used)
+  # - job_name: 'postgres'
+  #   static_configs:
+  #     - targets: ['postgres-exporter:9187']
+
+  # Node exporter for system metrics
+  # - job_name: 'node'
+  #   static_configs:
+  #     - targets: ['node-exporter:9100']
+
+# Visitor Analytics specific configurations
+# These metrics are collected from the backend services
+# - visitor_current_active
+# - visitor_count_by_period
+# - page_views_by_period
+# - visitor_trend_percentage
+# - visitor_session_duration_seconds
+# - visitor_bounce_rate
+# - visitors_by_country

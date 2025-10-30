@@ -41,6 +41,27 @@ var (
 
 	// QueueProcessingTime tracks message processing time
 	QueueProcessingTime *prometheus.HistogramVec
+
+	// Visitor metrics
+	CurrentVisitors prometheus.Gauge
+
+	// VisitorsByPeriod tracks visitors by time period
+	VisitorsByPeriod *prometheus.GaugeVec
+
+	// PageViewsByPeriod tracks page views by time period
+	PageViewsByPeriod *prometheus.GaugeVec
+
+	// VisitorTrend tracks visitor trend percentages
+	VisitorTrend *prometheus.GaugeVec
+
+	// VisitorSessionDuration tracks visitor session durations
+	VisitorSessionDuration *prometheus.HistogramVec
+
+	// VisitorBounceRate tracks bounce rate
+	VisitorBounceRate prometheus.Gauge
+
+	// VisitorsByCountry tracks visitors by country
+	VisitorsByCountry *prometheus.GaugeVec
 )
 
 // InitMetrics initializes all Prometheus metrics
@@ -133,6 +154,62 @@ func InitMetrics(cfg *config.MetricsConfig) {
 			Buckets: prometheus.DefBuckets,
 		},
 		[]string{"queue", "message_type"},
+	)
+
+	// Visitor metrics
+	CurrentVisitors = promauto.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "visitor_current_active",
+			Help: "Current number of active visitors",
+		},
+	)
+
+	VisitorsByPeriod = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "visitor_count_by_period",
+			Help: "Number of visitors by time period",
+		},
+		[]string{"period"},
+	)
+
+	PageViewsByPeriod = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "page_views_by_period",
+			Help: "Number of page views by time period",
+		},
+		[]string{"period"},
+	)
+
+	VisitorTrend = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "visitor_trend_percentage",
+			Help: "Visitor trend percentage change",
+		},
+		[]string{"period", "direction"},
+	)
+
+	VisitorSessionDuration = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "visitor_session_duration_seconds",
+			Help:    "Duration of visitor sessions in seconds",
+			Buckets: []float64{30, 60, 120, 300, 600, 1200, 1800, 3600},
+		},
+		[]string{"service"},
+	)
+
+	VisitorBounceRate = promauto.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "visitor_bounce_rate",
+			Help: "Percentage of visitors who leave after viewing only one page",
+		},
+	)
+
+	VisitorsByCountry = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "visitors_by_country",
+			Help: "Number of visitors by country",
+		},
+		[]string{"country_code"},
 	)
 }
 

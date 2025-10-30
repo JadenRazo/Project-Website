@@ -1,45 +1,56 @@
-# Quick Start Guide for Jaden Razo Website Backend
+# Quick Start Guide for My Website Backend
 
-This guide provides quick instructions for getting the backend services up and running.
+I've written this guide to provide quick instructions for getting the backend services up and running.
 
 ## Development Environment
 
 ### 1. Build the Backend Services
 
 ```bash
-# Build all backend services at once
+# Navigate to backend directory
+cd backend
+
+# Build all backend services
+go build -o bin/api cmd/api/main.go
 go build -o bin/devpanel cmd/devpanel/main.go
 go build -o bin/urlshortener cmd/urlshortener/main.go
+go build -o bin/messaging cmd/messaging/main.go
+go build -o bin/worker cmd/worker/main.go
 
-# For messaging, use the simplified implementation if you encounter build errors:
-go build -o bin/messaging cmd/messaging/simple_main.go
-# Or use the full implementation if it's working:
-# go build -o bin/messaging cmd/messaging/main.go
+cd ..
 ```
 
 ### 2. Start Services (Development Mode)
 
-The easiest way to start all services in development mode is to use the provided script:
+The easiest way to start all services in development mode is to use the main development script:
 
 ```bash
 # Start all services with the integrated script
-./deploy/start-services.sh
+./start-dev.sh --fresh
 ```
 
 This will:
-- Start the Developer Panel on port 8080
-- Start the URL Shortener on port 8081
-- Start the Messaging Platform on port 8082 (if available)
-- Log all output to the `logs` directory
-- Allow you to stop all services with Ctrl+C
+- Automatically detect and clean up any existing tmux sessions
+- Start the Main API on port 8080
+- Start the Developer Panel on port 8081
+- Start the Messaging Service on port 8082
+- Start the URL Shortener on port 8083
+- Start the Worker service on port 8084
+- Start the Frontend on port 3000
+- Create tmux sessions for easy monitoring
+
+**Note:** The script now includes automatic session cleanup, so you don't need to manually kill existing processes.
 
 ### 3. Test the Services
 
 Once running, you can test the services:
 
-- Developer Panel: http://localhost:8080/devpanel
-- URL Shortener: http://localhost:8081/s
-- Messaging Platform: http://localhost:8082 (if available)
+- Frontend: http://localhost:3000
+- Main API: http://localhost:8080
+- Developer Panel: http://localhost:8081
+- Messaging: http://localhost:8082
+- URL Shortener: http://localhost:8083
+- Status Page: http://localhost:3000/status
 
 ## Production Deployment
 
@@ -139,13 +150,18 @@ ps aux | grep bin/
 
 ### Port Already in Use
 
-If you see "Error: Port XXXX is already in use", find and kill the process:
+**Note:** The `./start-dev.sh` and `./start-prod.sh` scripts now automatically detect and clean up existing tmux sessions, preventing most port conflicts. You typically won't need manual intervention.
+
+If you still encounter "Error: Port XXXX is already in use":
 
 ```bash
 # Find the process using the port
-sudo lsof -i :8080   # For Developer Panel
-sudo lsof -i :8081   # For URL Shortener
-sudo lsof -i :8082   # For Messaging Platform
+sudo lsof -i :3000   # For Frontend
+sudo lsof -i :8080   # For Main API
+sudo lsof -i :8081   # For Developer Panel
+sudo lsof -i :8082   # For Messaging
+sudo lsof -i :8083   # For URL Shortener
+sudo lsof -i :8084   # For Worker
 
 # Kill the process
 sudo kill -9 <PID>
@@ -165,9 +181,9 @@ cat logs/messaging.log
 ### WebSocket Issues
 
 If you encounter issues with the messaging platform's WebSocket functionality:
-1. Check if you're using the simplified implementation (recommended for now)
-2. Make sure your frontend is connecting to the correct WebSocket URL
-3. Check the logs for any connection errors
+1. Make sure your frontend is connecting to the correct WebSocket URL (ws://localhost:8082)
+2. Check the logs for any connection errors
+3. Verify CORS settings in the backend allow WebSocket upgrades
 
 ### Database Connection Issues
 
@@ -187,6 +203,6 @@ sudo systemctl start postgresql
 
 2. **Set Up Monitoring**: Consider setting up monitoring tools like Prometheus and Grafana
 
-3. **Configure Backups**: Set up regular database backups using the scripts in `scripts/backup_db.sh` 
+3. **Configure Backups**: Set up regular database backups using the scripts in `scripts/database/backup_db.sh` 
 
 4. **Resolve WebSocket Implementation**: If you're using the simplified messaging implementation, plan to resolve the duplicate declarations in the full implementation when time permits 

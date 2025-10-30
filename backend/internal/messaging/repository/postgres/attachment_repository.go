@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/JadenRazo/Project-Website/backend/internal/domain"
-	"github.com/JadenRazo/Project-Website/backend/internal/messaging/repository"
 	"gorm.io/gorm"
 )
 
@@ -16,7 +15,7 @@ type AttachmentRepo struct {
 }
 
 // NewAttachmentRepository creates a new PostgreSQL attachment repository
-func NewAttachmentRepository(db *gorm.DB) repository.AttachmentRepository {
+func NewAttachmentRepository(db *gorm.DB) *AttachmentRepo {
 	return &AttachmentRepo{
 		db: db,
 	}

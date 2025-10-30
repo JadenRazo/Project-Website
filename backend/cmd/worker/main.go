@@ -379,7 +379,7 @@ func main() {
 
 	// Initialize worker with database connection
 	worker := NewWorker(dbConn)
-	
+
 	// Initialize scheduled tasks
 	scheduledTasks := tasks.NewScheduledTasks(dbConn)
 
@@ -393,7 +393,7 @@ func main() {
 			logger.Fatal("Worker failed", "error", err)
 		}
 	}()
-	
+
 	// Start scheduled tasks in background
 	go func() {
 		if err := scheduledTasks.Start(ctx); err != nil && err != context.Canceled {

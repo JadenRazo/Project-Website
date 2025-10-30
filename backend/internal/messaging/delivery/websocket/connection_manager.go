@@ -7,9 +7,9 @@ import (
 
 // WebSocketConfig holds websocket configuration
 type WebSocketConfig struct {
-	MaxConnections      int
-	RateLimitPerMinute  int
-	ConnectionTimeout   time.Duration
+	MaxConnections     int
+	RateLimitPerMinute int
+	ConnectionTimeout  time.Duration
 }
 
 // ConnectionManager handles WebSocket connection limits and rate limiting

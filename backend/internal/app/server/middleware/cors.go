@@ -10,7 +10,12 @@ import (
 func CORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Set CORS headers - intentionally restrictive defaults
-		w.Header().Set("Access-Control-Allow-Origin", "https://jadenrazo.dev")
+		origin := r.Header.Get("Origin")
+		if origin == "https://jadenrazo.dev" || origin == "https://www.jadenrazo.dev" {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+		} else {
+			w.Header().Set("Access-Control-Allow-Origin", "https://jadenrazo.dev")
+		}
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")

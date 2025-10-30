@@ -1,0 +1,27 @@
+server:
+  host: "0.0.0.0"
+  port: 8080
+  basePath: "/devpanel"
+  tlsEnabled: false
+  tlsCertFile: ""
+  tlsKeyFile: ""
+
+auth:
+  enabled: true
+  secretKey: "${JWT_SECRET}"
+  adminUsers:
+    - "admin"
+  tokenExpiry: 24
+
+projects:
+  configPath: "config/projects.yaml"
+
+database:
+  type: "postgres"
+  path: ""
+  host: "${DB_HOST}"
+  port: 5432
+  user: "${DB_USER}"
+  password: "${DB_PASSWORD}"
+  dbName: "project_website"
+  sslMode: "disable"

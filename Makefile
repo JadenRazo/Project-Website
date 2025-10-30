@@ -1,4 +1,4 @@
-.PHONY: all dev dev-fresh dev-kill dev-fresh-kill build clean test lint migrate seed backup restore install start stop setup status update-code-stats fresh kill-sessions
+.PHONY: all dev dev-fresh dev-kill dev-fresh-kill build clean test lint db-init db-reset seed backup restore install start stop setup status update-code-stats fresh kill-sessions
 
 # Default target
 all: dev-fresh-kill
@@ -92,33 +92,35 @@ type-check:
 lint:
 	@echo "Running linters..."
 	@cd frontend && npm run lint
-	@./scripts/lint.sh
+	@./scripts/development/lint.sh
 
 lint-fix:
 	@echo "Running linters with auto-fix..."
 	@cd frontend && npm run lint:fix
-	@./scripts/lint.sh
+	@./scripts/development/lint.sh
 
 # Database operations
-migrate:
-	@echo "Running database migrations..."
-	@cd backend && go run cmd/migration/main.go up
+db-init:
+	@echo "Initializing database schema..."
+	@psql -d project_website -f backend/schema.sql
 
-migrate-down:
-	@echo "Rolling back database migrations..."
-	@cd backend && go run cmd/migration/main.go down
+db-reset:
+	@echo "Resetting database (WARNING: This will drop all data!)..."
+	@dropdb --if-exists project_website
+	@createdb project_website
+	@psql -d project_website -f backend/schema.sql
 
 seed:
 	@echo "Seeding database..."
-	@./scripts/seed.sh
+	@./scripts/database/seed.sh
 
 backup:
 	@echo "Backing up database..."
-	@./scripts/backup_db.sh
+	@./scripts/database/backup_db.sh
 
 restore:
 	@echo "Restoring database..."
-	@./scripts/restore_db.sh
+	@./scripts/database/restore_db.sh
 
 # Install dependencies
 install:
@@ -147,7 +149,7 @@ start:
 
 stop:
 	@echo "Stopping all services..."
-	@./stop-dev.sh 2>/dev/null || ./scripts/stop.sh 2>/dev/null || echo "Killing tmux sessions..."
+	@./scripts/development/stop-dev.sh 2>/dev/null || echo "Killing tmux sessions..."
 	@tmux kill-session -t portfolio-frontend 2>/dev/null || true
 	@tmux kill-session -t portfolio-backend 2>/dev/null || true
 
@@ -181,7 +183,7 @@ status:
 # Code statistics
 update-code-stats:
 	@echo "Updating code statistics..."
-	@./scripts/update_code_stats.sh
+	@./scripts/monitoring/update_code_stats.sh
 
 # Development workflow shortcuts
 fresh: clean-cache dev-fresh-kill
@@ -215,8 +217,8 @@ help:
 	@echo "  pre-commit      - Run full pre-commit checks"
 	@echo ""
 	@echo "DATABASE:"
-	@echo "  migrate         - Run database migrations"
-	@echo "  migrate-down    - Rollback migrations"
+	@echo "  db-init         - Initialize database schema"
+	@echo "  db-reset        - Reset database (drops all data!)"
 	@echo "  seed            - Seed database"
 	@echo "  backup          - Backup database"
 	@echo "  restore         - Restore database"

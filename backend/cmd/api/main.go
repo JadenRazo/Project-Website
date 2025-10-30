@@ -1,9 +1,9 @@
-// cmd/api/main.go
 package main
 
 import (
 	"bufio"
 	"context"
+	"crypto/rand"
 	"fmt"
 	"net/http"
 	"net/http/pprof"
@@ -20,24 +20,32 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"gorm.io/gorm"
 
-	"github.com/JadenRazo/Project-Website/backend/internal/app/config"
+	appconfig "github.com/JadenRazo/Project-Website/backend/internal/app/config"
+	"github.com/JadenRazo/Project-Website/backend/internal/codestats"
+	codeStatsHTTP "github.com/JadenRazo/Project-Website/backend/internal/codestats/delivery/http"
+	"github.com/JadenRazo/Project-Website/backend/internal/codestats/projectpath"
+	projectPathHTTP "github.com/JadenRazo/Project-Website/backend/internal/codestats/projectpath/delivery/http"
+	projectPathRepo "github.com/JadenRazo/Project-Website/backend/internal/codestats/projectpath/repository"
+	"github.com/JadenRazo/Project-Website/backend/internal/common/auth"
+	"github.com/JadenRazo/Project-Website/backend/internal/common/cache"
 	"github.com/JadenRazo/Project-Website/backend/internal/common/logger"
 	"github.com/JadenRazo/Project-Website/backend/internal/common/metrics"
+	"github.com/JadenRazo/Project-Website/backend/internal/common/middleware"
 	"github.com/JadenRazo/Project-Website/backend/internal/core"
 	coreConfig "github.com/JadenRazo/Project-Website/backend/internal/core/config"
 	"github.com/JadenRazo/Project-Website/backend/internal/core/db"
 	"github.com/JadenRazo/Project-Website/backend/internal/devpanel"
-	"github.com/JadenRazo/Project-Website/backend/internal/codestats"
-	codeStatsHTTP "github.com/JadenRazo/Project-Website/backend/internal/codestats/delivery/http"
 	// "github.com/JadenRazo/Project-Website/backend/internal/devpanel/project"
-	projectRepo "github.com/JadenRazo/Project-Website/backend/internal/projects/repository"
-	projectHTTP "github.com/JadenRazo/Project-Website/backend/internal/projects/delivery/http"
-	projectMemoryService "github.com/JadenRazo/Project-Website/backend/internal/projects/service"
 	"github.com/JadenRazo/Project-Website/backend/internal/gateway"
 	"github.com/JadenRazo/Project-Website/backend/internal/messaging"
+	projectHTTP "github.com/JadenRazo/Project-Website/backend/internal/projects/delivery/http"
+	projectMemoryService "github.com/JadenRazo/Project-Website/backend/internal/projects/service"
 	"github.com/JadenRazo/Project-Website/backend/internal/status"
 	"github.com/JadenRazo/Project-Website/backend/internal/urlshortener"
+	"github.com/JadenRazo/Project-Website/backend/internal/visitor"
+	"github.com/JadenRazo/Project-Website/backend/internal/worker"
 )
 
 const (
@@ -45,7 +53,59 @@ const (
 	appVersion = "1.0.0"
 )
 
-// loadEnvFile loads environment variables from a file
+type databaseAdapter struct {
+	db *gorm.DB
+}
+
+func (d *databaseAdapter) Ping(ctx context.Context) error {
+	sqlDB, err := d.db.DB()
+	if err != nil {
+		return err
+	}
+	return sqlDB.PingContext(ctx)
+}
+
+func (d *databaseAdapter) GetDB() *gorm.DB {
+	return d.db
+}
+
+func (d *databaseAdapter) Transaction(fn func(tx *gorm.DB) error) error {
+	return d.db.Transaction(fn)
+}
+
+func (d *databaseAdapter) Close() error {
+	sqlDB, err := d.db.DB()
+	if err != nil {
+		return err
+	}
+	return sqlDB.Close()
+}
+
+func verifyVisitorTables(db *gorm.DB) error {
+	requiredTables := []string{
+		"visitor_sessions",
+		"page_views",
+		"visitor_realtime",
+		"visitor_metrics",
+		"visitor_daily_summary",
+		"privacy_consents",
+		"visitor_locations",
+	}
+
+	for _, table := range requiredTables {
+		var exists bool
+		err := db.Raw("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = ?)", table).Scan(&exists).Error
+		if err != nil {
+			return fmt.Errorf("failed to check table %s: %w", table, err)
+		}
+		if !exists {
+			return fmt.Errorf("table %s does not exist", table)
+		}
+	}
+
+	return nil
+}
+
 func loadEnvFile(filename string) error {
 	file, err := os.Open(filename)
 	if err != nil {
@@ -56,7 +116,6 @@ func loadEnvFile(filename string) error {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
-		// Skip empty lines and comments
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
@@ -68,8 +127,7 @@ func loadEnvFile(filename string) error {
 
 		key := strings.TrimSpace(parts[0])
 		value := strings.TrimSpace(parts[1])
-		
-		// Remove quotes if present
+
 		if len(value) >= 2 && value[0] == '"' && value[len(value)-1] == '"' {
 			value = value[1 : len(value)-1]
 		}
@@ -81,7 +139,7 @@ func loadEnvFile(filename string) error {
 }
 
 func main() {
-	// Capture and handle panics
+	fmt.Println("Application starting...")
 	defer func() {
 		if r := recover(); r != nil {
 			buf := make([]byte, 1024)
@@ -91,22 +149,20 @@ func main() {
 		}
 	}()
 
-	// Load .env file if it exists
 	if _, err := os.Stat(".env"); err == nil {
 		if err := loadEnvFile(".env"); err != nil {
 			fmt.Printf("Warning: Failed to load .env file: %v\n", err)
 		}
 	}
 
-	// Setup context for the entire application
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// Load configuration
+	fmt.Println("Loading configuration...")
 	cfg := coreConfig.GetConfig()
+	fmt.Println("Configuration loaded.")
 
-	// Initialize logger
-	err := logger.InitLogger(&config.LoggingConfig{
+	err := logger.InitLogger(&appconfig.LoggingConfig{
 		Level:      cfg.Logging.Level,
 		Format:     "json",
 		Output:     "file",
@@ -124,33 +180,78 @@ func main() {
 	}
 	defer logger.Shutdown()
 
-	// Log startup
 	logger.Info("Application starting up", "name", appName, "version", appVersion, "environment", cfg.Environment)
 	logger.Info("Configuration loaded")
 
-	// Initialize service manager
+	fmt.Println("Initializing service manager...")
 	serviceManager := core.NewServiceManager()
+	fmt.Println("Service manager initialized.")
 
-	// Initialize database connection
-	database, err := db.GetDB()
+	fmt.Println("Connecting to database...")
+	gormDB, err := db.GetDB()
 	if err != nil {
 		logger.Fatal("Failed to connect to database", "error", err)
 	}
+	fmt.Println("Database connection established.")
 
-	// Run migrations
-	logger.Info("Running automatic migrations")
-	
-	err = db.RunMigrations(
-		&projectRepo.ProjectModel{},
-	)
-	if err != nil {
-		logger.Fatal("Failed to run migrations", "error", err)
+	databaseWrapper := &databaseAdapter{db: gormDB}
+
+	logger.Info("Database connection established")
+
+	fmt.Println("Initializing secure cache...")
+	logger.Info("Initializing secure cache with Redis config", "host", cfg.Redis.Host, "port", cfg.Redis.Port)
+	secureRedisConfig := cache.SecureRedisConfig{
+		NetworkAddr:   cfg.Redis.Host + ":" + cfg.Redis.Port,
+		Password:      cfg.Redis.Password,
+	}
+	if cfg.Redis.EncryptionKey == "" {
+		logger.Info("Generating random encryption key")
+		key := make([]byte, 32)
+		_, err := rand.Read(key)
+		if err != nil {
+			logger.Fatal("Failed to generate encryption key", "error", err)
+		}
+		secureRedisConfig.EncryptionKey = key
+	} else {
+		logger.Info("Using encryption key from config")
+		secureRedisConfig.EncryptionKey = []byte(cfg.Redis.EncryptionKey)
 	}
 
-	// Initialize services
-	logger.Info("Initializing services")
+	secureRedisClient, err := cache.NewSecureRedisClient(secureRedisConfig)
+	if err != nil {
+		logger.Fatal("Failed to initialize secure redis client", "error", err)
+	}
+	secureCacheInstance, err := cache.NewSecureCache(secureRedisClient)
+	if err != nil {
+		logger.Fatal("Failed to initialize secure cache", "error", err)
+	}
+	logger.Info("Secure cache initialized")
+	fmt.Println("Secure cache initialized.")
 
-	// Create service-specific configs
+	fmt.Println("Initializing auth service...")
+	authConfig := &appconfig.AuthConfig{
+		JWTSecret:      cfg.Auth.JWTSecret,
+		TokenExpiry:    15 * time.Minute,
+		RefreshExpiry:  7 * 24 * time.Hour,
+		Issuer:         "jadenrazo-api",
+		Audience:       "jadenrazo-web",
+		CookieSecure:   cfg.Environment == "production",
+		CookieHTTPOnly: true,
+	}
+	authService, err := auth.New(authConfig, databaseWrapper, secureCacheInstance)
+	if err != nil {
+		logger.Fatal("Failed to initialize auth service", "error", err)
+	}
+	logger.Info("Auth service initialized")
+	fmt.Println("Auth service initialized.")
+
+	adminAuthHandlers := auth.NewAdminAuthHandlers(gormDB)
+	logger.Info("Admin auth handlers initialized")
+	fmt.Println("Admin auth handlers initialized.")
+
+	logger.Info("Initializing services")
+	fmt.Println("Initializing services...")
+
 	urlShortenerConfig := urlshortener.Config{
 		BaseURL:      cfg.URLShortener.BaseURL,
 		MaxURLLength: 2048,
@@ -164,61 +265,74 @@ func main() {
 		AllowedFileTypes: []string{"image/jpeg", "image/png", "image/gif", "application/pdf"},
 	}
 
-	urlShortenerService := urlshortener.NewService(database, urlShortenerConfig)
-	messagingService := messaging.NewService(database, messagingConfig)
-	
-	// Initialize code stats service
-	codeStatsConfig, err := codestats.LoadConfig("config/codestats.yaml")
-	if err != nil {
-		logger.Warn("Failed to load code stats config, using defaults", "error", err)
-		codeStatsConfig = codestats.DefaultConfig()
-	}
-	codeStatsService := codestats.NewService(database, *codeStatsConfig)
+	urlShortenerService := urlshortener.NewService(gormDB, urlShortenerConfig)
+	urlShortenerService.SetAuth(authService)
+	messagingService := messaging.NewService(gormDB, messagingConfig)
 
-	// Initialize projects service (using memory service for now due to DB issues)
-	// projectRepository := projectRepo.NewGormRepository(database)
-	// projectService := project.NewService(projectRepository)
+	projectPathRepository := projectPathRepo.NewGormRepository(gormDB)
+
+	codeStatsService := codestats.NewService(gormDB, projectPathRepository)
+
+	projectPathService := projectpath.NewServiceWithStatsUpdater(projectPathRepository, codeStatsService)
+
 	projectService := projectMemoryService.NewMemoryProjectService()
 
-	// Initialize metrics manager with database support
 	metricsConfig := metrics.DefaultConfig()
-	metricsManager, err := metrics.NewManagerWithDB(metricsConfig, database)
+	metricsManager, err := metrics.NewManagerWithDB(metricsConfig, gormDB)
 	if err != nil {
 		logger.Warn("Failed to initialize metrics manager", "error", err)
 		metricsManager = nil
 	}
 
-	// Initialize status monitoring service with metrics
-	statusService := status.NewService(database, 30*time.Second, metricsManager)
+	statusService := status.NewService(gormDB, 30*time.Second, metricsManager)
 
-	// Initialize devpanel service
-	devpanelService := devpanel.NewService(serviceManager, devpanel.Config{
+	visitorConfig := visitor.Config{
+		EnableTracking:     true,
+		SessionTimeout:     30 * time.Minute,
+		RealtimeTimeout:    5 * time.Minute,
+		MaxPageViewsPerSession: 100,
+		EnableBotDetection: true,
+		PrivacyMode:        "balanced",
+	}
+
+	// Check visitor tables BEFORE creating the service
+	if err := verifyVisitorTables(gormDB); err != nil {
+		logger.Error("Visitor Analytics disabled: Database tables not found", "error", err)
+		fmt.Printf("\n=== VISITOR ANALYTICS ERROR ===\n")
+		fmt.Printf("Visitor analytics tables are missing from the database.\n")
+		fmt.Printf("Please apply the schema: psql -U user -d db < backend/schema.sql\n")
+		fmt.Printf("Error details: %v\n", err)
+		fmt.Printf("===============================\n\n")
+		visitorConfig.EnableTracking = false
+	}
+
+	// Now create the service with the properly configured config
+	visitorService := visitor.NewService(gormDB, secureCacheInstance, metricsManager, visitorConfig)
+
+	workerService := worker.NewService(gormDB)
+
+	metricsCollector := devpanel.NewMetricsCollector(devpanel.Config{
+		MetricsInterval: 30 * time.Second,
+	})
+
+	devpanelService := devpanel.NewService(serviceManager, visitorService, metricsCollector, devpanel.Config{
 		AdminToken:      cfg.AdminToken,
 		MetricsInterval: 30 * time.Second,
 		MaxLogLines:     1000,
 		LogRetention:    7 * 24 * time.Hour,
 	})
 
-	// Initialize log manager
 	logManager := devpanel.NewLogManager(
 		filepath.Join("logs", "services"),
 		cfg.MaxLogLines,
 		cfg.LogRetention,
 	)
 	logManager.StartCleanup()
-	// Note: We should call a cleanup method here if available
 
-	// Initialize metrics collector
-	metricsCollector := devpanel.NewMetricsCollector(devpanel.Config{
-		MetricsInterval: 30 * time.Second,
-	})
-	_ = metricsCollector // Silencing "declared and not used" error for now.
-	// Example: Start collecting metrics. Adapt to the actual method signature.
-	// go metricsCollector.StartCollecting(ctx, serviceManager)
-	// Note: We should call a cleanup method for metricsCollector during shutdown if it has one.
+	fmt.Println("Services initialized.")
 
-	// Register services with service manager
 	logger.Info("Registering services with service manager")
+	fmt.Println("Registering services with service manager...")
 	if err := serviceManager.RegisterService(urlShortenerService); err != nil {
 		logger.Fatal("Failed to register URL shortener service", "error", err)
 	}
@@ -228,43 +342,56 @@ func main() {
 	if err := serviceManager.RegisterService(devpanelService); err != nil {
 		logger.Fatal("Failed to register devpanel service", "error", err)
 	}
+	if err := serviceManager.RegisterService(visitorService); err != nil {
+		logger.Fatal("Failed to register visitor service", "error", err)
+	}
+	if err := serviceManager.RegisterService(workerService); err != nil {
+		logger.Fatal("Failed to register worker service", "error", err)
+	}
+	fmt.Println("Services registered.")
 
-	// Initialize API gateway
+	logger.Info("Starting metrics collector")
+	fmt.Println("Starting metrics collector...")
+	metricsCollector.StartCollecting(serviceManager)
+	fmt.Println("Metrics collector started.")
+
 	logger.Info("Initializing API gateway")
+	fmt.Println("Initializing API gateway...")
 	apiGateway := gateway.NewGateway(serviceManager)
+	fmt.Println("API gateway initialized.")
 
-	// Configure security headers
+	apiGateway.AddMiddleware(middleware.ErrorRecovery())
+
 	apiGateway.AddMiddleware(func(c *gin.Context) {
 		c.Header("X-Content-Type-Options", "nosniff")
 		c.Header("X-Frame-Options", "DENY")
-		c.Header("Content-Security-Policy", "default-src 'self'")
 		c.Header("X-XSS-Protection", "1; mode=block")
 		c.Header("Referrer-Policy", "strict-origin-when-cross-origin")
 		c.Next()
 	})
 
-	// Add compression middleware
-	// Note: gin.Gzip middleware needs to be imported to use compression
 	apiGateway.AddMiddleware(gzip.Gzip(gzip.DefaultCompression))
 
-	// Add Request ID middleware
 	apiGateway.AddMiddleware(func(c *gin.Context) {
 		requestID := c.GetHeader("X-Request-ID")
 		if requestID == "" {
 			requestID = uuid.New().String()
 		}
-		c.Set("RequestID", requestID)       // Make it available for other handlers/loggers
-		c.Header("X-Request-ID", requestID) // Ensure it's in the response
+		c.Set("RequestID", requestID)
+		c.Header("X-Request-ID", requestID)
 		c.Next()
 	})
 
-	// Add latency tracking middleware
 	if metricsManager != nil {
 		apiGateway.AddMiddleware(metricsManager.GinLatencyMiddleware())
 	}
 
-	// Add profiling endpoints in development or if explicitly enabled
-	if cfg.Environment == "development" || cfg.EnablePprof { // Assuming cfg.EnablePprof exists
+	apiGateway.AddMiddleware(middleware.APIRateLimiter())
+
+	apiGateway.AddMiddleware(middleware.RequestValidation())
+	apiGateway.AddMiddleware(middleware.QueryParamValidation())
+
+	if cfg.Environment == "development" || cfg.EnablePprof {
 		logger.Info("Enabling profiling endpoints")
 		pprofGroup := apiGateway.GetRouter().Group("/debug/pprof")
 		{
@@ -280,19 +407,22 @@ func main() {
 		}
 	}
 
-	// Configure CORS
 	var allowedOrigins []string
-	if cfg.AllowedOrigins != "" {
+	if len(cfg.App.AllowedOrigins) > 0 {
+		allowedOrigins = cfg.App.AllowedOrigins
+		logger.Info("Using configured CORS origins", "origins", allowedOrigins)
+	} else if cfg.AllowedOrigins != "" {
 		allowedOrigins = strings.Split(cfg.AllowedOrigins, ",")
+		logger.Info("Using CORS origins from string config", "origins", allowedOrigins)
 	} else {
-		// Default to allow all origins in development
 		if cfg.Environment == "development" {
 			allowedOrigins = []string{"http://localhost:3000", "http://localhost:3001"}
 		} else {
-			allowedOrigins = []string{"https://jadenrazo.dev"}
+			allowedOrigins = []string{"https://jadenrazo.dev", "https://www.jadenrazo.dev"}
 		}
+		logger.Info("Using default CORS origins", "origins", allowedOrigins)
 	}
-	
+
 	apiGateway.AddMiddleware(cors.New(cors.Config{
 		AllowOrigins:     allowedOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
@@ -302,33 +432,49 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	// Register service routes
+	router := apiGateway.GetRouter()
+
+	router.GET("/ws/analytics", func(c *gin.Context) {
+		visitorService.ServeWs(visitorService.GetHub(), c)
+	})
+
+	router.Use(visitor.TrackingMiddleware(visitorService))
+
 	logger.Info("Registering service routes")
+	fmt.Println("Registering service routes...")
+	apiGateway.RegisterService("auth", func(rg *gin.RouterGroup) {
+		authService.RegisterUserRoutes(rg)
+
+		admin := rg.Group("/admin")
+		{
+			admin.POST("/login", adminAuthHandlers.Login)
+			admin.POST("/validate", adminAuthHandlers.ValidateToken)
+			admin.POST("/setup/request", adminAuthHandlers.RequestSetup)
+			admin.POST("/setup/complete", adminAuthHandlers.CompleteSetup)
+			admin.GET("/setup/status", adminAuthHandlers.CheckSetupStatus)
+		}
+	})
 	apiGateway.RegisterService("urls", urlShortenerService.RegisterRoutes)
 	apiGateway.RegisterService("messaging", messagingService.RegisterRoutes)
 	apiGateway.RegisterService("devpanel", devpanelService.RegisterRoutes)
-	
-	// Register code stats routes
+
 	codeStatsHandler := codeStatsHTTP.NewHandler(codeStatsService)
 	apiGateway.RegisterService("code", codeStatsHandler.RegisterRoutes)
-	
-	// Register projects routes - this will create routes at /api/v1/projects/*
+
+	projectPathHandler := projectPathHTTP.NewHandler(projectPathService)
+	apiGateway.RegisterService("code/paths", projectPathHandler.RegisterRoutes)
+
 	projectHandler := projectHTTP.NewHandler(projectService)
 	apiGateway.RegisterService("projects", projectHandler.RegisterRoutes)
-	
-	// Register status monitoring routes
+
 	apiGateway.RegisterService("status", statusService.RegisterRoutes)
 
-	// Register system endpoints
-	apiGateway.RegisterHealthCheck()
-	
-	// Add Prometheus metrics endpoint (instead of RegisterMetrics to avoid duplicate)
-	apiGateway.GetRouter().GET("/metrics", gin.WrapH(promhttp.Handler()))
+	apiGateway.RegisterService("visitor", visitorService.RegisterRoutes)
 
-	// Serve static files
-	router := apiGateway.GetRouter()
-	
-	// Serve frontend build files
+	apiGateway.RegisterHealthCheck()
+
+	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
+
 	frontendBuildPath := filepath.Join("..", "frontend", "build")
 	if _, err := os.Stat(frontendBuildPath); err == nil {
 		logger.Info("Serving frontend build files", "path", frontendBuildPath)
@@ -338,7 +484,6 @@ func main() {
 		router.StaticFile("/robots.txt", filepath.Join(frontendBuildPath, "robots.txt"))
 	}
 
-	// Serve public files (including code_stats.json)
 	publicPath := filepath.Join("..", "frontend", "public")
 	if _, err := os.Stat(publicPath); err == nil {
 		logger.Info("Serving public files", "path", publicPath)
@@ -348,12 +493,9 @@ func main() {
 		router.StaticFile("/favicon-32x32.png", filepath.Join(publicPath, "favicon-32x32.png"))
 	}
 
-	// Set up shortcode redirect route at root level
 	router.GET("/:shortCode", urlShortenerService.RedirectHandler)
 
-	// SPA fallback - serve index.html for all unmatched routes
 	router.NoRoute(func(c *gin.Context) {
-		// Don't serve index.html for API routes
 		if strings.HasPrefix(c.Request.URL.Path, "/api") ||
 			strings.HasPrefix(c.Request.URL.Path, "/health") ||
 			strings.HasPrefix(c.Request.URL.Path, "/metrics") ||
@@ -361,7 +503,7 @@ func main() {
 			c.JSON(404, gin.H{"error": "Not found"})
 			return
 		}
-		
+
 		indexPath := filepath.Join(frontendBuildPath, "index.html")
 		if _, err := os.Stat(indexPath); err == nil {
 			c.File(indexPath)
@@ -370,26 +512,35 @@ func main() {
 		}
 	})
 
-	// Start health checks
-	serviceManager.StartHealthChecks()
-	
-	// Code stats are now updated on-demand when API endpoint is called
+	fmt.Println("Service routes registered.")
 
-	// Configure server with proper timeouts and limits
+	logger.Info("Starting all registered services")
+	fmt.Println("Starting all registered services...")
+	for _, service := range serviceManager.GetAllServices() {
+		if err := service.Start(); err != nil {
+			logger.Warn("Failed to start service", "service", service.Name(), "error", err)
+		} else {
+			logger.Info("Service started", "service", service.Name())
+		}
+	}
+	fmt.Println("All services started.")
+
+	serviceManager.StartHealthChecks()
+
+
 	srv := &http.Server{
 		Addr:           ":" + cfg.Port,
 		Handler:        apiGateway.GetRouter(),
-		ReadTimeout:    10 * time.Second,  // Default read timeout
-		WriteTimeout:   15 * time.Second,  // Default write timeout
-		IdleTimeout:    120 * time.Second, // Default idle timeout
-		MaxHeaderBytes: 1 << 20,           // 1 MB
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   15 * time.Second,
+		IdleTimeout:    120 * time.Second,
+		MaxHeaderBytes: 1 << 20,
 	}
 
-	// Start server
 	go func() {
 		logger.Info("Starting server", "port", cfg.Port)
+		fmt.Println("Starting server on port", cfg.Port)
 		var err error
-		// Use existing fields from cfg.Server for TLS
 		if cfg.Server.TLSEnabled {
 			logger.Info("TLS enabled", "cert_path", cfg.Server.TLSCert, "key_path", cfg.Server.TLSKey)
 			if _, errCert := os.Stat(cfg.Server.TLSCert); os.IsNotExist(errCert) {
@@ -408,40 +559,36 @@ func main() {
 		}
 	}()
 
-	// Wait for interrupt signal to gracefully shut down the server
 	logger.Info("Server started successfully, waiting for shutdown signal")
+	fmt.Println("Server started successfully, waiting for shutdown signal")
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	sig := <-quit
 	logger.Info("Received shutdown signal", "signal", sig.String())
 
-	// Define shutdown timeout
-	shutdownTimeout := 5 * time.Second // Default shutdown timeout
+	shutdownTimeout := 5 * time.Second
 
 	shutdownCtx, shutdownCancel := context.WithTimeout(ctx, shutdownTimeout)
 	defer shutdownCancel()
 
-	// Notify clients that the server is shutting down (if applicable)
 	logger.Info("Gracefully shutting down server")
 
-	// Stop all services
 	logger.Info("Stopping all services")
 	if err := serviceManager.StopAllServices(); err != nil {
 		logger.Error("Error stopping services", "error", err)
 	}
 
-	// Shutdown HTTP server
 	logger.Info("Shutting down HTTP server", "timeout", shutdownTimeout)
 	if err := srv.Shutdown(shutdownCtx); err != nil {
 		logger.Error("Server forced to shutdown", "error", err)
 		return
 	}
 
-	// Close database connection
 	logger.Info("Closing database connection")
 	if err := db.CloseDB(); err != nil {
 		logger.Error("Error closing database", "error", err)
 	}
 
 	logger.Info("Server exited properly")
+	fmt.Println("Server exited properly.")
 }

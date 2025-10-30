@@ -1,6 +1,6 @@
 # Deployment Guide
 
-This guide provides step-by-step instructions for deploying the Jaden Razo website backend services on an Ubuntu server.
+I've created these step-by-step instructions for deploying my website backend services on an Ubuntu server.
 
 ## Prerequisites
 
@@ -37,28 +37,38 @@ git clone https://github.com/jadenrazo/website.git .
 ## Step 3: Build Backend Services
 
 ```bash
+# Navigate to backend directory
+cd backend
+
 # Install Go dependencies
 go mod tidy
 
 # Build all services
 mkdir -p bin
+go build -o bin/api cmd/api/main.go
 go build -o bin/devpanel cmd/devpanel/main.go
 go build -o bin/urlshortener cmd/urlshortener/main.go
 go build -o bin/messaging cmd/messaging/main.go
+go build -o bin/worker cmd/worker/main.go
 
 # Make startup script executable
+cd ..
 chmod +x deploy/start-backend.sh
+chmod +x deploy/start-services.sh
 ```
 
 ## Step 4: Set Up Databases
 
-### PostgreSQL for URL Shortener
+### PostgreSQL Database
 
 ```bash
 # Create database and user
-sudo -u postgres psql -c "CREATE DATABASE urlshortener;"
-sudo -u postgres psql -c "CREATE USER postgres WITH ENCRYPTED PASSWORD 'postgres';"
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE urlshortener TO postgres;"
+sudo -u postgres psql -c "CREATE DATABASE portfolio;"
+sudo -u postgres psql -c "CREATE USER portfolio WITH ENCRYPTED PASSWORD 'your_secure_password';"
+sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE portfolio TO portfolio;"
+
+# Apply schema
+psql -U portfolio -d portfolio -f backend/schema.sql
 
 # Enable PostgreSQL to start on boot
 systemctl enable postgresql
@@ -67,21 +77,26 @@ systemctl start postgresql
 
 ## Step 5: Configure Backend Services
 
-Copy and edit configuration files:
+Set up environment variables and configuration:
 
 ```bash
-# Create directory
-mkdir -p config
+# Create .env file in backend directory
+cd backend
+cat > .env << EOF
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=portfolio
+DB_PASSWORD=your_secure_password
+DB_NAME=portfolio
+JWT_SECRET=your_jwt_secret_here
+ADMIN_TOKEN=your_admin_token_here
+REDIS_PASSWORD=your_redis_password
+ENV=production
+EOF
 
-# Copy configuration files
-cp deploy/config-examples/devpanel.yaml config/
-cp deploy/config-examples/urlshortener.yaml config/
-cp deploy/config-examples/messaging.yaml config/
-
-# Edit configuration files as needed
-# nano config/devpanel.yaml
-# nano config/urlshortener.yaml
-# nano config/messaging.yaml
+# Ensure configuration files exist
+ls config/*.yaml
+cd ..
 ```
 
 ## Step 6: Build Frontend
@@ -179,9 +194,13 @@ cd /root/Project-Website
 git pull
 
 # Rebuild backend
+cd backend
+go build -o bin/api cmd/api/main.go
 go build -o bin/devpanel cmd/devpanel/main.go
 go build -o bin/urlshortener cmd/urlshortener/main.go
 go build -o bin/messaging cmd/messaging/main.go
+go build -o bin/worker cmd/worker/main.go
+cd ..
 
 # Rebuild frontend
 cd frontend
@@ -196,14 +215,18 @@ systemctl restart jadenrazo-backend
 ### Backup Strategy
 
 ```bash
-# Backup databases
-pg_dump -U postgres urlshortener > /root/backups/urlshortener_$(date +%Y%m%d).sql
+# Create backup directory
+mkdir -p /root/backups
 
-# Backup SQLite databases
-cp /root/Project-Website/data/*.db /root/backups/
+# Backup PostgreSQL database
+pg_dump -U portfolio portfolio > /root/backups/portfolio_$(date +%Y%m%d).sql
+
+# Or use the backup script
+./scripts/database/backup_db.sh
 
 # Backup configuration
-cp -r /root/Project-Website/config /root/backups/config_$(date +%Y%m%d)
+cp -r /root/Project-Website/backend/config /root/backups/config_$(date +%Y%m%d)
+cp /root/Project-Website/backend/.env /root/backups/.env_$(date +%Y%m%d)
 ```
 
 ## Troubleshooting

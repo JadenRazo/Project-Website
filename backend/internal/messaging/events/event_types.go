@@ -3,9 +3,9 @@ package events
 import (
 	"time"
 
-	"Project-Website/backend/internal/messaging/domain"
+	"github.com/JadenRazo/Project-Website/backend/internal/messaging/domain"
 
-	"github.com/JadenRazo/Project-Website/backend/internal/domain"
+	domain2 "github.com/JadenRazo/Project-Website/backend/internal/domain"
 	"github.com/google/uuid"
 )
 

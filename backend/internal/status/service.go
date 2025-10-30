@@ -6,45 +6,41 @@ import (
 	"sync"
 	"time"
 
+	"github.com/JadenRazo/Project-Website/backend/internal/common/metrics"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"github.com/JadenRazo/Project-Website/backend/internal/common/metrics"
 )
 
-// ServiceStatus represents the status of a service
 type ServiceStatus struct {
-	Name        string    `json:"name"`
-	Status      string    `json:"status"` // operational, degraded, down
-	Latency     int64     `json:"latency_ms"`
-	LastChecked time.Time `json:"last_checked"`
-	Error       string    `json:"error,omitempty"`
-	Uptime      float64   `json:"uptime_percentage"`
+	Name        string                 `json:"name"`
+	Status      string                 `json:"status"`
+	Latency     int64                  `json:"latency_ms"`
+	LastChecked time.Time              `json:"last_checked"`
+	Error       string                 `json:"error,omitempty"`
+	Uptime      float64                `json:"uptime_percentage"`
 	Details     map[string]interface{} `json:"details,omitempty"`
 }
 
-// SystemStatus represents the overall system status
 type SystemStatus struct {
-	Status      string           `json:"status"` // operational, partial_outage, major_outage
-	Services    []ServiceStatus  `json:"services"`
-	LastUpdated time.Time        `json:"last_updated"`
-	Incidents   []Incident       `json:"incidents,omitempty"`
+	Status      string          `json:"status"`
+	Services    []ServiceStatus `json:"services"`
+	LastUpdated time.Time       `json:"last_updated"`
+	Incidents   []Incident      `json:"incidents,omitempty"`
 }
 
-// Incident represents a service incident
 type Incident struct {
-	ID          uint      `gorm:"primaryKey" json:"id"`
-	Service     string    `json:"service"`
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	Status      string    `json:"status"` // investigating, identified, monitoring, resolved
-	Severity    string    `json:"severity"` // minor, major, critical
-	StartedAt   time.Time `json:"started_at"`
+	ID          uint       `gorm:"primaryKey" json:"id"`
+	Service     string     `json:"service"`
+	Title       string     `json:"title"`
+	Description string     `json:"description"`
+	Status      string     `json:"status"`
+	Severity    string     `json:"severity"`
+	StartedAt   time.Time  `json:"started_at"`
 	ResolvedAt  *time.Time `json:"resolved_at,omitempty"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	CreatedAt   time.Time  `json:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at"`
 }
 
-// StatusHistory tracks service status over time
 type StatusHistory struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`
 	Service   string    `json:"service"`
@@ -54,9 +50,9 @@ type StatusHistory struct {
 	CheckedAt time.Time `json:"checked_at"`
 }
 
-// Service handles status monitoring
 type Service struct {
-	db              *gorm.DB
+	db              *StatusDatabase
+	originalDB      *gorm.DB
 	mu              sync.RWMutex
 	serviceStatuses map[string]*ServiceStatus
 	checkInterval   time.Duration
@@ -65,13 +61,14 @@ type Service struct {
 	metricsHandler  *metrics.SystemMetricsHandler
 }
 
-// HealthCheck is a function that checks the health of a service
 type HealthCheck func(ctx context.Context) error
 
-// NewService creates a new status service
 func NewService(db *gorm.DB, checkInterval time.Duration, metricsManager *metrics.Manager) *Service {
+	statusDB := NewStatusDatabase(nil, db)
+
 	service := &Service{
-		db:              db,
+		db:              statusDB,
+		originalDB:      db,
 		serviceStatuses: make(map[string]*ServiceStatus),
 		checkInterval:   checkInterval,
 		checks:          make(map[string]HealthCheck),
@@ -79,63 +76,61 @@ func NewService(db *gorm.DB, checkInterval time.Duration, metricsManager *metric
 		metricsHandler:  metrics.NewSystemMetricsHandler(metricsManager),
 	}
 
-	// Auto-migrate status tables
-	db.AutoMigrate(&Incident{}, &StatusHistory{})
+	service.initializeDatabase()
 
-	// Register default health checks
 	service.registerDefaultChecks()
 
-	// Start monitoring
 	go service.startMonitoring()
 
-	// Start periodic latency collection (every 5 minutes to reduce data volume)
 	if metricsManager != nil {
 		go service.startPeriodicLatencyCollection()
-		
-		// Start periodic cleanup
+
 		metricsManager.StartPeriodicCleanup()
 	}
 
 	return service
 }
 
-// RegisterHealthCheck registers a health check for a service
+func (s *Service) initializeDatabase() {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	err := s.db.ExecuteWithRetry(ctx, func(db *gorm.DB) error {
+		return db.AutoMigrate(&Incident{}, &StatusHistory{})
+	})
+
+	if err != nil {
+		fmt.Printf("Warning: Failed to initialize database tables: %v\n", err)
+	}
+}
+
 func (s *Service) RegisterHealthCheck(name string, check HealthCheck) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.checks[name] = check
 }
 
-// registerDefaultChecks registers default health checks
 func (s *Service) registerDefaultChecks() {
-	// Database check
 	s.RegisterHealthCheck("database", func(ctx context.Context) error {
-		db, err := s.db.DB()
-		if err != nil {
-			return err
-		}
-		return db.PingContext(ctx)
+		return s.db.Ping(ctx)
 	})
 
-	// API check (self-ping)
 	s.RegisterHealthCheck("api", func(ctx context.Context) error {
-		// This is a simple check that the API service itself is running
 		return nil
 	})
 
-	// Code Stats check
 	s.RegisterHealthCheck("code_stats", func(ctx context.Context) error {
 		var count int64
-		return s.db.WithContext(ctx).Model(&StatusHistory{}).Count(&count).Error
+		return s.db.ExecuteWithRetry(ctx, func(db *gorm.DB) error {
+			return db.WithContext(ctx).Model(&StatusHistory{}).Count(&count).Error
+		})
 	})
 }
 
-// startMonitoring starts the background monitoring
 func (s *Service) startMonitoring() {
 	ticker := time.NewTicker(s.checkInterval)
 	defer ticker.Stop()
 
-	// Initial check
 	s.performChecks()
 
 	for range ticker.C {
@@ -143,7 +138,6 @@ func (s *Service) startMonitoring() {
 	}
 }
 
-// performChecks performs all registered health checks
 func (s *Service) performChecks() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -158,26 +152,22 @@ func (s *Service) performChecks() {
 		if err != nil {
 			if err == context.DeadlineExceeded {
 				status = "down"
-				errorMsg = "Health check timed out"
+				errorMsg = SanitizeErrorMessage(err)
 			} else {
 				status = "degraded"
-				errorMsg = err.Error()
+				errorMsg = SanitizeErrorMessage(err)
 			}
 		}
 
 		s.updateServiceStatus(name, status, latency, errorMsg)
-		
-		// Record to history
 		s.recordHistory(name, status, latency, errorMsg)
-		
-		// Record latency metrics for successful checks
+
 		if s.metricsManager != nil && status == "operational" {
 			s.metricsManager.RecordLatency(float64(latency), name)
 		}
 	}
 }
 
-// updateServiceStatus updates the status of a service
 func (s *Service) updateServiceStatus(name, status string, latency int64, errorMsg string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -193,32 +183,43 @@ func (s *Service) updateServiceStatus(name, status string, latency int64, errorM
 	s.serviceStatuses[name].LastChecked = time.Now()
 	s.serviceStatuses[name].Error = errorMsg
 
-	// Calculate uptime (last 24 hours)
 	s.serviceStatuses[name].Uptime = s.calculateUptime(name)
 }
 
-// calculateUptime calculates the uptime percentage for the last 24 hours
 func (s *Service) calculateUptime(service string) float64 {
+	if !s.db.IsHealthy() {
+		return 100.0
+	}
+
 	var totalChecks, successfulChecks int64
-	
 	twentyFourHoursAgo := time.Now().Add(-24 * time.Hour)
-	
-	s.db.Model(&StatusHistory{}).
-		Where("service = ? AND checked_at > ?", service, twentyFourHoursAgo).
-		Count(&totalChecks)
-	
-	s.db.Model(&StatusHistory{}).
-		Where("service = ? AND checked_at > ? AND status = ?", service, twentyFourHoursAgo, "operational").
-		Count(&successfulChecks)
-	
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err := s.db.ExecuteWithRetry(ctx, func(db *gorm.DB) error {
+		if err := db.Model(&StatusHistory{}).
+			Where("service = ? AND checked_at > ?", service, twentyFourHoursAgo).
+			Count(&totalChecks).Error; err != nil {
+			return err
+		}
+
+		return db.Model(&StatusHistory{}).
+			Where("service = ? AND checked_at > ? AND status = ?", service, twentyFourHoursAgo, "operational").
+			Count(&successfulChecks).Error
+	})
+
+	if err != nil {
+		return 100.0
+	}
+
 	if totalChecks == 0 {
 		return 100.0
 	}
-	
+
 	return float64(successfulChecks) / float64(totalChecks) * 100.0
 }
 
-// recordHistory records a status check to history
 func (s *Service) recordHistory(service, status string, latency int64, errorMsg string) {
 	history := &StatusHistory{
 		Service:   service,
@@ -227,17 +228,26 @@ func (s *Service) recordHistory(service, status string, latency int64, errorMsg 
 		Error:     errorMsg,
 		CheckedAt: time.Now(),
 	}
-	s.db.Create(history)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err := s.db.ExecuteWithRetry(ctx, func(db *gorm.DB) error {
+		return db.Create(history).Error
+	})
+
+	if err != nil {
+		fmt.Printf("Warning: Failed to record status history: %v\n", err)
+	}
 }
 
-// GetSystemStatus returns the overall system status
 func (s *Service) GetSystemStatus() *SystemStatus {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	services := make([]ServiceStatus, 0, len(s.serviceStatuses))
 	operationalCount := 0
-	
+
 	for _, status := range s.serviceStatuses {
 		services = append(services, *status)
 		if status.Status == "operational" {
@@ -245,7 +255,6 @@ func (s *Service) GetSystemStatus() *SystemStatus {
 		}
 	}
 
-	// Determine overall status
 	overallStatus := "operational"
 	if operationalCount == 0 {
 		overallStatus = "major_outage"
@@ -253,9 +262,28 @@ func (s *Service) GetSystemStatus() *SystemStatus {
 		overallStatus = "partial_outage"
 	}
 
-	// Get active incidents
 	var incidents []Incident
-	s.db.Where("resolved_at IS NULL").Order("started_at DESC").Find(&incidents)
+	if s.db.IsHealthy() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		err := s.db.ExecuteWithRetry(ctx, func(db *gorm.DB) error {
+			return db.Where("resolved_at IS NULL").Order("started_at DESC").Find(&incidents).Error
+		})
+
+		if err != nil {
+			incidents = []Incident{
+				{
+					Service:     "database",
+					Title:       "Database connectivity issues",
+					Description: "Unable to retrieve incident data",
+					Status:      "investigating",
+					Severity:    "major",
+					StartedAt:   time.Now(),
+				},
+			}
+		}
+	}
 
 	return &SystemStatus{
 		Status:      overallStatus,
@@ -265,7 +293,6 @@ func (s *Service) GetSystemStatus() *SystemStatus {
 	}
 }
 
-// GetServiceStatus returns the status of a specific service
 func (s *Service) GetServiceStatus(name string) (*ServiceStatus, bool) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -278,43 +305,61 @@ func (s *Service) GetServiceStatus(name string) (*ServiceStatus, bool) {
 	return status, true
 }
 
-// GetStatusHistory returns the status history for a service
 func (s *Service) GetStatusHistory(service string, duration time.Duration) ([]StatusHistory, error) {
 	var history []StatusHistory
 	since := time.Now().Add(-duration)
-	
-	err := s.db.Where("service = ? AND checked_at > ?", service, since).
-		Order("checked_at DESC").
-		Find(&history).Error
-		
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	err := s.db.ExecuteWithRetry(ctx, func(db *gorm.DB) error {
+		return db.Where("service = ? AND checked_at > ?", service, since).
+			Order("checked_at DESC").
+			Find(&history).Error
+	})
+
 	return history, err
 }
 
-// CreateIncident creates a new incident
 func (s *Service) CreateIncident(incident *Incident) error {
 	incident.StartedAt = time.Now()
 	incident.CreatedAt = time.Now()
 	incident.UpdatedAt = time.Now()
-	return s.db.Create(incident).Error
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	return s.db.ExecuteWithRetry(ctx, func(db *gorm.DB) error {
+		return db.Create(incident).Error
+	})
 }
 
-// UpdateIncident updates an existing incident
 func (s *Service) UpdateIncident(id uint, updates map[string]interface{}) error {
 	updates["updated_at"] = time.Now()
-	return s.db.Model(&Incident{}).Where("id = ?", id).Updates(updates).Error
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	return s.db.ExecuteWithRetry(ctx, func(db *gorm.DB) error {
+		return db.Model(&Incident{}).Where("id = ?", id).Updates(updates).Error
+	})
 }
 
-// ResolveIncident resolves an incident
 func (s *Service) ResolveIncident(id uint) error {
 	now := time.Now()
-	return s.db.Model(&Incident{}).Where("id = ?", id).Updates(map[string]interface{}{
-		"status":      "resolved",
-		"resolved_at": &now,
-		"updated_at":  now,
-	}).Error
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	return s.db.ExecuteWithRetry(ctx, func(db *gorm.DB) error {
+		return db.Model(&Incident{}).Where("id = ?", id).Updates(map[string]interface{}{
+			"status":      "resolved",
+			"resolved_at": &now,
+			"updated_at":  now,
+		}).Error
+	})
 }
 
-// RegisterRoutes registers HTTP routes
 func (s *Service) RegisterRoutes(router *gin.RouterGroup) {
 	router.GET("/", s.handleGetSystemStatus)
 	router.GET("/services/:name", s.handleGetServiceStatus)
@@ -323,15 +368,13 @@ func (s *Service) RegisterRoutes(router *gin.RouterGroup) {
 	router.POST("/incidents", s.handleCreateIncident)
 	router.PUT("/incidents/:id", s.handleUpdateIncident)
 	router.POST("/incidents/:id/resolve", s.handleResolveIncident)
-	
-	// Metrics routes
+
 	router.GET("/metrics/day", s.handleMetricsDay)
 	router.GET("/metrics/week", s.handleMetricsWeek)
 	router.GET("/metrics/month", s.handleMetricsMonth)
 	router.GET("/metrics/latest", s.handleLatestMetrics)
 }
 
-// HTTP handlers
 func (s *Service) handleGetSystemStatus(c *gin.Context) {
 	c.JSON(200, s.GetSystemStatus())
 }
@@ -349,94 +392,101 @@ func (s *Service) handleGetServiceStatus(c *gin.Context) {
 func (s *Service) handleGetServiceHistory(c *gin.Context) {
 	name := c.Param("name")
 	durationStr := c.DefaultQuery("duration", "24h")
-	
+
 	duration, err := time.ParseDuration(durationStr)
 	if err != nil {
 		c.JSON(400, gin.H{"error": "Invalid duration"})
 		return
 	}
-	
+
 	history, err := s.GetStatusHistory(name, duration)
 	if err != nil {
-		c.JSON(500, gin.H{"error": "Failed to get history"})
+		c.JSON(500, gin.H{"error": "Service history temporarily unavailable"})
 		return
 	}
-	
+
 	c.JSON(200, history)
 }
 
 func (s *Service) handleGetIncidents(c *gin.Context) {
 	var incidents []Incident
-	query := s.db.Order("started_at DESC")
-	
-	if active := c.Query("active"); active == "true" {
-		query = query.Where("resolved_at IS NULL")
-	}
-	
-	if err := query.Find(&incidents).Error; err != nil {
-		c.JSON(500, gin.H{"error": "Failed to get incidents"})
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	err := s.db.ExecuteWithRetry(ctx, func(db *gorm.DB) error {
+		query := db.Order("started_at DESC")
+
+		if active := c.Query("active"); active == "true" {
+			query = query.Where("resolved_at IS NULL")
+		}
+
+		return query.Find(&incidents).Error
+	})
+
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Incident data temporarily unavailable"})
 		return
 	}
-	
+
 	c.JSON(200, incidents)
 }
 
 func (s *Service) handleCreateIncident(c *gin.Context) {
 	var incident Incident
 	if err := c.ShouldBindJSON(&incident); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"error": "Invalid incident data provided"})
 		return
 	}
-	
+
 	if err := s.CreateIncident(&incident); err != nil {
-		c.JSON(500, gin.H{"error": "Failed to create incident"})
+		c.JSON(500, gin.H{"error": "Unable to create incident at this time"})
 		return
 	}
-	
+
 	c.JSON(201, incident)
 }
 
 func (s *Service) handleUpdateIncident(c *gin.Context) {
 	id := c.Param("id")
-	
+
 	var updates map[string]interface{}
 	if err := c.ShouldBindJSON(&updates); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"error": "Invalid update data provided"})
 		return
 	}
-	
+
 	var incidentID uint
 	if _, err := fmt.Sscanf(id, "%d", &incidentID); err != nil {
 		c.JSON(400, gin.H{"error": "Invalid incident ID"})
 		return
 	}
-	
+
 	if err := s.UpdateIncident(incidentID, updates); err != nil {
-		c.JSON(500, gin.H{"error": "Failed to update incident"})
+		c.JSON(500, gin.H{"error": "Unable to update incident at this time"})
 		return
 	}
-	
+
 	c.JSON(200, gin.H{"message": "Incident updated"})
 }
 
 func (s *Service) handleResolveIncident(c *gin.Context) {
 	id := c.Param("id")
-	
+
 	var incidentID uint
 	if _, err := fmt.Sscanf(id, "%d", &incidentID); err != nil {
 		c.JSON(400, gin.H{"error": "Invalid incident ID"})
 		return
 	}
-	
+
 	if err := s.ResolveIncident(incidentID); err != nil {
-		c.JSON(500, gin.H{"error": "Failed to resolve incident"})
+		c.JSON(500, gin.H{"error": "Unable to resolve incident at this time"})
 		return
 	}
-	
+
 	c.JSON(200, gin.H{"message": "Incident resolved"})
 }
 
-// Metrics handlers
 func (s *Service) handleMetricsDay(c *gin.Context) {
 	if s.metricsHandler == nil {
 		c.JSON(503, gin.H{"error": "Metrics not available"})
@@ -469,39 +519,29 @@ func (s *Service) handleLatestMetrics(c *gin.Context) {
 	s.metricsHandler.HandleLatestMetrics(c.Writer, c.Request)
 }
 
-// startPeriodicLatencyCollection starts collecting latency metrics every 5 minutes
 func (s *Service) startPeriodicLatencyCollection() {
 	ticker := time.NewTicker(5 * time.Minute)
 	defer ticker.Stop()
-	
+
 	for range ticker.C {
 		s.collectLatencyMetrics()
 	}
 }
 
-// collectLatencyMetrics performs a latency check and records the result
 func (s *Service) collectLatencyMetrics() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	
+
 	start := time.Now()
-	
-	// Perform a simple API health check
+
 	err := s.performAPIHealthCheck(ctx)
 	latency := time.Since(start).Seconds() * 1000 // Convert to milliseconds
-	
+
 	if err == nil && s.metricsManager != nil {
-		// Only record successful latency measurements
 		s.metricsManager.RecordLatency(latency, "api_health_check")
 	}
 }
 
-// performAPIHealthCheck performs a simple health check
 func (s *Service) performAPIHealthCheck(ctx context.Context) error {
-	// Check database connectivity as a proxy for API health
-	db, err := s.db.DB()
-	if err != nil {
-		return err
-	}
-	return db.PingContext(ctx)
+	return s.db.Ping(ctx)
 }

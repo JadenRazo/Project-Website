@@ -4,16 +4,18 @@ import (
 	"encoding/json"
 	"net/http"
 	"time"
+
+	"github.com/JadenRazo/Project-Website/backend/internal/common/response"
 )
 
 // SystemMetricsResponse represents the response for system metrics
 type SystemMetricsResponse struct {
-	Period           string           `json:"period"`
+	Period            string          `json:"period"`
 	HasSufficientData bool            `json:"has_sufficient_data"`
-	Metrics          []LatencyMetric  `json:"metrics"`
-	Stats            LatencyStats     `json:"stats"`
-	LastUpdated      time.Time        `json:"last_updated"`
-	Message          string           `json:"message,omitempty"`
+	Metrics           []LatencyMetric `json:"metrics"`
+	Stats             LatencyStats    `json:"stats"`
+	LastUpdated       time.Time       `json:"last_updated"`
+	Message           string          `json:"message,omitempty"`
 }
 
 // SystemMetricsHandler handles requests for system metrics
@@ -31,7 +33,7 @@ func NewSystemMetricsHandler(manager *Manager) *SystemMetricsHandler {
 // HandleMetrics handles GET /api/metrics/{period}
 func (h *SystemMetricsHandler) HandleMetrics(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		response.MethodNotAllowed(w, "Method not allowed")
 		return
 	}
 
@@ -42,20 +44,20 @@ func (h *SystemMetricsHandler) HandleMetrics(w http.ResponseWriter, r *http.Requ
 	}
 
 	timePeriod := TimePeriod(period)
-	
+
 	// Validate period
 	if !isValidPeriod(timePeriod) {
-		http.Error(w, "Invalid time period. Use 'day', 'week', or 'month'", http.StatusBadRequest)
+		response.BadRequest(w, "Invalid time period. Use 'day', 'week', or 'month'")
 		return
 	}
 
-	response := h.buildMetricsResponse(timePeriod)
-	
+	metricsResponse := h.buildMetricsResponse(timePeriod)
+
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "no-cache")
-	
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+
+	if err := json.NewEncoder(w).Encode(metricsResponse); err != nil {
+		response.InternalError(w, "Failed to encode response")
 		return
 	}
 }
@@ -81,29 +83,29 @@ func (h *SystemMetricsHandler) HandleMetricsMonth(w http.ResponseWriter, r *http
 // HandleLatestMetrics handles GET /api/metrics/latest
 func (h *SystemMetricsHandler) HandleLatestMetrics(w http.ResponseWriter, r *http.Request) {
 	latest := h.manager.GetLatestLatency()
-	
+
 	response := map[string]interface{}{
 		"latest_metric": latest,
 		"timestamp":     time.Now(),
 	}
-	
+
 	if latest == nil {
 		response["message"] = "No latency data available yet"
 	}
-	
+
 	h.writeJSONResponse(w, response)
 }
 
 // buildMetricsResponse builds the metrics response for a given period
 func (h *SystemMetricsHandler) buildMetricsResponse(period TimePeriod) SystemMetricsResponse {
 	hasSufficientData := h.manager.HasSufficientLatencyData(period)
-	
+
 	response := SystemMetricsResponse{
 		Period:            string(period),
 		HasSufficientData: hasSufficientData,
 		LastUpdated:       time.Now(),
 	}
-	
+
 	if hasSufficientData {
 		response.Metrics = h.manager.GetLatencyMetrics(period)
 		response.Stats = h.manager.GetLatencyStats(period)
@@ -112,7 +114,7 @@ func (h *SystemMetricsHandler) buildMetricsResponse(period TimePeriod) SystemMet
 		response.Stats = LatencyStats{Period: string(period)}
 		response.Message = h.getInsufficientDataMessage(period)
 	}
-	
+
 	return response
 }
 
@@ -137,9 +139,9 @@ func (h *SystemMetricsHandler) writeJSONResponse(w http.ResponseWriter, data int
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-	
+
 	if err := json.NewEncoder(w).Encode(data); err != nil {
-		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		response.InternalError(w, "Failed to encode response")
 		return
 	}
 }

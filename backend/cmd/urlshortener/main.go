@@ -35,6 +35,10 @@ func main() {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
+	// Database schema should be initialized using backend/schema.sql
+	// All tables including shortened_urls and url_clicks are defined there
+	fmt.Println("Using existing database schema from backend/schema.sql")
+
 	// Configure URL shortener service
 	urlShortenerConfig := urlshortener.Config{
 		BaseURL:      cfg.URLShortener.BaseURL,

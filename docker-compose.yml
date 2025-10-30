@@ -1,0 +1,194 @@
+version: '3.8'
+
+services:
+  # Secure Redis Service
+  redis:
+    image: redis:7-alpine
+    container_name: portfolio_redis_secure
+    restart: unless-stopped
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - ./deploy/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - ./deploy/redis/users.acl:/usr/local/etc/redis/users.acl:ro
+      - redis_data:/data
+      - redis_socket:/var/run/redis
+    networks:
+      - internal_network
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+    # NO PORTS EXPOSED - Only accessible via internal network or socket
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD", "redis-cli", "-s", "/var/run/redis/redis.sock", "--user", "health", "-a", "${REDIS_HEALTH_PASSWORD}", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:14-alpine
+    container_name: portfolio_postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${DB_USER:-portfolio}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME:-portfolio}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    networks:
+      - internal_network
+    ports:
+      - "127.0.0.1:5432:5432"  # Only expose to localhost
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-portfolio}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Prometheus for metrics
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: portfolio_prometheus
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - internal_network
+      - monitoring_network
+    ports:
+      - "127.0.0.1:9090:9090"  # Only expose to localhost
+    depends_on:
+      - backend
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: portfolio_grafana
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_SERVER_ROOT_URL=http://localhost:3001
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./deploy/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./deploy/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    networks:
+      - monitoring_network
+    ports:
+      - "127.0.0.1:3001:3000"  # Grafana on port 3001 to avoid conflict
+    depends_on:
+      - prometheus
+
+  # Backend API Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: portfolio_backend
+    restart: unless-stopped
+    environment:
+      - ENV=production
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-portfolio}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME:-portfolio}
+      - REDIS_SOCKET=/var/run/redis/redis.sock
+      - REDIS_PASSWORD=${REDIS_APP_PASSWORD}
+      - REDIS_USERNAME=app
+      - JWT_SECRET=${JWT_SECRET}
+      - ADMIN_TOKEN=${ADMIN_TOKEN}
+      - METRICS_ENABLED=true
+      - VISITOR_TRACKING_ENABLED=true
+      - PRIVACY_MODE=balanced
+    volumes:
+      - redis_socket:/var/run/redis
+      - ./backend/config:/app/config:ro
+    networks:
+      - internal_network
+      - external_network
+    ports:
+      - "127.0.0.1:8080:8080"   # Main API
+      - "127.0.0.1:8081:8081"   # DevPanel
+      - "127.0.0.1:8082:8082"   # Messaging
+      - "127.0.0.1:8083:8083"   # URL Shortener
+    depends_on:
+      - postgres
+      - redis
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: portfolio_frontend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - REACT_APP_API_URL=http://backend:8080
+      - REACT_APP_WS_URL=ws://backend:8082
+    networks:
+      - external_network
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: portfolio_nginx
+    restart: unless-stopped
+    volumes:
+      - ./deploy/nginx:/etc/nginx/conf.d:ro
+      - ./deploy/nginx/ssl:/etc/nginx/ssl:ro
+    networks:
+      - external_network
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - frontend
+      - backend
+
+networks:
+  internal_network:
+    driver: bridge
+    internal: true  # No external access
+  external_network:
+    driver: bridge
+  monitoring_network:
+    driver: bridge
+    internal: true  # Monitoring stack isolated
+
+volumes:
+  redis_data:
+    driver: local
+  redis_socket:
+    driver: local
+  postgres_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local

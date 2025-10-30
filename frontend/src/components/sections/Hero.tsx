@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../hooks/useTheme';
 import useDeviceCapabilities from '../../hooks/useDeviceCapabilities';
 import usePerformanceOptimizations from '../../hooks/usePerformanceOptimizations';
+import { useScrollTo } from '../../hooks/useScrollTo';
 
 interface BioItemProps {
   $active: boolean;
@@ -946,44 +947,6 @@ const TypewriterCursor = styled(motion.div)`
   border-radius: 1px;
 `;
 
-// Global smooth scroll enhancement
-const GlobalSmoothScrollStyles = styled.div`
-  /* Enhanced smooth scrolling for the entire page */
-  html {
-    scroll-behavior: smooth;
-    scroll-padding-top: 80px;
-  }
-  
-  /* Force smooth scrolling for all scroll operations */
-  * {
-    scroll-behavior: smooth;
-  }
-  
-  /* Custom scroll timing for enhanced smoothness */
-  html, body {
-    scroll-behavior: smooth;
-    scrollbar-width: thin;
-  }
-  
-  /* Webkit browsers smooth scroll enhancement */
-  ::-webkit-scrollbar {
-    width: 8px;
-  }
-  
-  ::-webkit-scrollbar-track {
-    background: rgba(0,0,0,0.1);
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    background: rgba(0,0,0,0.3);
-    border-radius: 4px;
-  }
-  
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgba(0,0,0,0.5);
-  }
-`;
-
 // Main Hero component refactored to use the new hooks
 export const Hero: React.FC = () => {
   // Get theme from context
@@ -991,6 +954,9 @@ export const Hero: React.FC = () => {
   
   // Initialize navigation
   const navigate = useNavigate();
+  
+  // Initialize scroll hook
+  const { scrollToPosition } = useScrollTo();
   
   // Initialize component state
   const [isNameHovered, setIsNameHovered] = useState(false);
@@ -1193,46 +1159,20 @@ export const Hero: React.FC = () => {
       if (initialScrollPosition !== undefined && initialScrollPosition !== 0) {
         const scrollBackPosition = initialScrollPosition; // Save before reset
         
-        try {
-          // Ensure smooth scroll CSS is applied
-          document.documentElement.style.scrollBehavior = 'smooth';
-          document.body.style.scrollBehavior = 'smooth';
-          
-          // Method 1: Standard scrollTo (WORKING VERSION)
-          window.scrollTo({
-            top: scrollBackPosition,
-            left: 0,
-            behavior: 'smooth'
-          });
-          
-          // Method 2: Backup with document.documentElement (WORKING VERSION)
-          setTimeout(() => {
-            document.documentElement.scrollTo({
-              top: scrollBackPosition,
-              left: 0,
-              behavior: 'smooth'
-            });
-          }, 100);
-          
-          // Method 3: Force with document.body as fallback (WORKING VERSION)
-          setTimeout(() => {
-            if (Math.abs(window.pageYOffset - scrollBackPosition) > 30) {
-              document.body.scrollTop = scrollBackPosition;
-              document.documentElement.scrollTop = scrollBackPosition;
-            }
-          }, 200);
-          
-        } catch (error) {
-          console.error('Upward scroll failed:', error);
-          // Emergency fallback
-          document.body.scrollTop = scrollBackPosition;
-          document.documentElement.scrollTop = scrollBackPosition;
-        }
+        scrollToPosition(scrollBackPosition);
         
-        // CRITICAL: Reset scroll position after closing so next button is treated as fresh open
-        setTimeout(() => {
-          setInitialScrollPosition(0);
-        }, 500); // Wait for scroll to complete
+        // Reset scroll position after animation completes
+        // Using requestAnimationFrame for better timing than setTimeout
+        const resetScrollPosition = () => {
+          const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+          // Check if we're close enough to target position (within 5px)
+          if (Math.abs(currentScroll - scrollBackPosition) > 5) {
+            requestAnimationFrame(resetScrollPosition);
+          } else {
+            setInitialScrollPosition(0);
+          }
+        };
+        requestAnimationFrame(resetScrollPosition);
       }
       return;
     }
@@ -1265,42 +1205,7 @@ export const Hero: React.FC = () => {
           const targetY = bioBottom + dropdownHeight - (window.innerHeight * 0.6);
           
           
-          // RESTORE THE PROVEN WORKING METHODS
-          try {
-            // Ensure smooth scroll CSS is applied
-            document.documentElement.style.scrollBehavior = 'smooth';
-            document.body.style.scrollBehavior = 'smooth';
-            
-            // Method 1: Standard scrollTo (WORKING VERSION)
-            window.scrollTo({
-              top: targetY,
-              left: 0,
-              behavior: 'smooth'
-            });
-            
-            // Method 2: Backup with document.documentElement (WORKING VERSION)
-            setTimeout(() => {
-              document.documentElement.scrollTo({
-                top: targetY,
-                left: 0,
-                behavior: 'smooth'
-              });
-            }, 100);
-            
-            // Method 3: Force with document.body as fallback (WORKING VERSION)
-            setTimeout(() => {
-              if (Math.abs(window.pageYOffset - targetY) > 30) {
-                document.body.scrollTop = targetY;
-                document.documentElement.scrollTop = targetY;
-              }
-            }, 200);
-            
-          } catch (error) {
-            console.error('Scroll failed:', error);
-            // Emergency fallback
-            document.body.scrollTop = targetY;
-            document.documentElement.scrollTop = targetY;
-          }
+          scrollToPosition(targetY);
         };
         
         scrollToDropdown();
@@ -1309,7 +1214,7 @@ export const Hero: React.FC = () => {
       return;
     }
     
-  }, [activeSkill, initialScrollPosition]);
+  }, [activeSkill, initialScrollPosition, scrollToPosition]);
 
   // Handler for portfolio navigation
   const handlePortfolioClick = useCallback(() => {
@@ -1318,7 +1223,6 @@ export const Hero: React.FC = () => {
 
   return (
     <>
-      <GlobalSmoothScrollStyles />
       <HeroContainer>
         <ContentWrapper
           variants={animationVariants.container}

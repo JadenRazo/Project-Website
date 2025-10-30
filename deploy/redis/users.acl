@@ -1,0 +1,18 @@
+# Redis ACL Configuration
+# Define user permissions for secure access
+
+# Default user (disabled for security)
+user default on nopass ~* &* -@all
+
+# Application user with limited permissions
+# Password will be replaced by environment variable
+user app on >${REDIS_APP_PASSWORD} ~* &* +@read +@write +@list +@set +@hash +@stream +@geo +@hyperloglog +@bitmap -@dangerous -flushdb -flushall -shutdown -config -acl -module -debug -client -monitor -slaveof -replicaof -save -bgsave -keys
+
+# Monitoring user (read-only for metrics)
+user monitor on >${REDIS_MONITOR_PASSWORD} ~* &* +@read +ping +info +latency +memory +slowlog|get +config|get -@write -@dangerous
+
+# Background worker user (for async tasks)
+user worker on >${REDIS_WORKER_PASSWORD} ~* &* +@read +@write +@list +@stream +@pubsub -@dangerous -flushdb -flushall -shutdown -config -acl
+
+# Health check user (minimal permissions)
+user health on >${REDIS_HEALTH_PASSWORD} ~* &* +ping +echo -@all

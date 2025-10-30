@@ -3,11 +3,12 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/JadenRazo/Project-Website/backend/internal/devpanel/project"
+	"github.com/google/uuid"
 )
 
 // MemoryProjectService is an in-memory implementation of the project service
@@ -22,7 +23,7 @@ func NewMemoryProjectService() *MemoryProjectService {
 		projects: make(map[string]*project.Project),
 		mutex:    sync.RWMutex{},
 	}
-	
+
 	// Seed with initial data
 	service.seedData()
 	return service
@@ -30,7 +31,7 @@ func NewMemoryProjectService() *MemoryProjectService {
 
 func (s *MemoryProjectService) seedData() {
 	ownerID := uuid.New()
-	
+
 	seedProjects := []*project.Project{
 		{
 			ID:          uuid.New(),
@@ -105,7 +106,7 @@ func (s *MemoryProjectService) seedData() {
 			UpdatedAt:   time.Now(),
 		},
 	}
-	
+
 	for _, proj := range seedProjects {
 		s.projects[proj.ID.String()] = proj
 	}
@@ -114,29 +115,29 @@ func (s *MemoryProjectService) seedData() {
 func (s *MemoryProjectService) Create(ctx context.Context, proj *project.Project) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
-	
+
 	if proj == nil {
 		return project.ErrInvalidProject
 	}
-	
+
 	if proj.Name == "" {
 		return fmt.Errorf("%w: name is required", project.ErrInvalidProject)
 	}
-	
+
 	// Set defaults
 	now := time.Now()
 	proj.ID = uuid.New()
 	proj.CreatedAt = now
 	proj.UpdatedAt = now
-	
+
 	if proj.Status == "" {
 		proj.Status = project.StatusDraft
 	}
-	
+
 	if proj.OwnerID == uuid.Nil {
 		proj.OwnerID = uuid.New() // Default owner for testing
 	}
-	
+
 	s.projects[proj.ID.String()] = proj
 	return nil
 }
@@ -144,54 +145,54 @@ func (s *MemoryProjectService) Create(ctx context.Context, proj *project.Project
 func (s *MemoryProjectService) Get(ctx context.Context, id uuid.UUID) (*project.Project, error) {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
-	
+
 	if id == uuid.Nil {
 		return nil, fmt.Errorf("%w: invalid project ID", project.ErrInvalidProject)
 	}
-	
+
 	proj, exists := s.projects[id.String()]
 	if !exists {
 		return nil, project.ErrProjectNotFound
 	}
-	
+
 	return proj, nil
 }
 
 func (s *MemoryProjectService) GetByOwner(ctx context.Context, ownerID uuid.UUID) ([]*project.Project, error) {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
-	
+
 	var result []*project.Project
 	for _, proj := range s.projects {
 		if proj.OwnerID == ownerID {
 			result = append(result, proj)
 		}
 	}
-	
+
 	return result, nil
 }
 
 func (s *MemoryProjectService) Update(ctx context.Context, proj *project.Project) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
-	
+
 	if proj == nil {
 		return project.ErrInvalidProject
 	}
-	
+
 	if proj.ID == uuid.Nil {
 		return fmt.Errorf("%w: project ID is required", project.ErrInvalidProject)
 	}
-	
+
 	existing, exists := s.projects[proj.ID.String()]
 	if !exists {
 		return project.ErrProjectNotFound
 	}
-	
+
 	// Preserve creation date
 	proj.CreatedAt = existing.CreatedAt
 	proj.UpdatedAt = time.Now()
-	
+
 	s.projects[proj.ID.String()] = proj
 	return nil
 }
@@ -199,15 +200,15 @@ func (s *MemoryProjectService) Update(ctx context.Context, proj *project.Project
 func (s *MemoryProjectService) Delete(ctx context.Context, id uuid.UUID) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
-	
+
 	if id == uuid.Nil {
 		return fmt.Errorf("%w: invalid project ID", project.ErrInvalidProject)
 	}
-	
+
 	if _, exists := s.projects[id.String()]; !exists {
 		return project.ErrProjectNotFound
 	}
-	
+
 	delete(s.projects, id.String())
 	return nil
 }
@@ -215,38 +216,38 @@ func (s *MemoryProjectService) Delete(ctx context.Context, id uuid.UUID) error {
 func (s *MemoryProjectService) List(ctx context.Context, filter *project.Filter, pagination *project.Pagination) ([]*project.Project, int, error) {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
-	
+
 	if pagination == nil {
 		pagination = &project.Pagination{
 			Page:     1,
 			PageSize: 10,
 		}
 	}
-	
+
 	if pagination.Page < 1 {
 		pagination.Page = 1
 	}
-	
+
 	if pagination.PageSize < 1 || pagination.PageSize > 100 {
 		pagination.PageSize = 10
 	}
-	
+
 	if filter == nil {
 		filter = &project.Filter{}
 	}
-	
+
 	var filteredProjects []*project.Project
-	
+
 	for _, proj := range s.projects {
 		// Apply filters
 		if filter.Status != nil && proj.Status != *filter.Status {
 			continue
 		}
-		
+
 		if filter.OwnerID != uuid.Nil && proj.OwnerID != filter.OwnerID {
 			continue
 		}
-		
+
 		if filter.Tag != "" {
 			hasTag := false
 			for _, tag := range proj.Tags {
@@ -259,50 +260,37 @@ func (s *MemoryProjectService) List(ctx context.Context, filter *project.Filter,
 				continue
 			}
 		}
-		
+
 		if filter.Search != "" {
-			// Simple case-insensitive search in name and description
-			searchLower := filter.Search
-			if !containsIgnoreCase(proj.Name, searchLower) && !containsIgnoreCase(proj.Description, searchLower) {
+			// Case-insensitive search in name and description
+			if !containsIgnoreCase(proj.Name, filter.Search) && !containsIgnoreCase(proj.Description, filter.Search) {
 				continue
 			}
 		}
-		
+
 		filteredProjects = append(filteredProjects, proj)
 	}
-	
+
 	total := len(filteredProjects)
-	
+
 	// Apply pagination
 	start := (pagination.Page - 1) * pagination.PageSize
 	end := start + pagination.PageSize
-	
+
 	if start > total {
 		return []*project.Project{}, total, nil
 	}
-	
+
 	if end > total {
 		end = total
 	}
-	
+
 	return filteredProjects[start:end], total, nil
 }
 
 func containsIgnoreCase(str, substr string) bool {
-	// Simple case-insensitive contains check
-	return len(str) >= len(substr) && 
-		   (str == substr || 
-		    (len(str) > len(substr) && 
-		     (str[:len(substr)] == substr || 
-		      str[len(str)-len(substr):] == substr ||
-		      findSubstring(str, substr))))
-}
-
-func findSubstring(str, substr string) bool {
-	for i := 0; i <= len(str)-len(substr); i++ {
-		if str[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
+	// Convert both strings to lowercase for case-insensitive comparison
+	strLower := strings.ToLower(str)
+	substrLower := strings.ToLower(substr)
+	return strings.Contains(strLower, substrLower)
 }

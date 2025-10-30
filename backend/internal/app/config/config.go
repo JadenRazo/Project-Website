@@ -176,7 +176,7 @@ func LoadConfig(path string) (*Config, error) {
 func setDefaults(cfg *Config) {
 	// App defaults
 	if len(cfg.App.AllowedOrigins) == 0 {
-		cfg.App.AllowedOrigins = []string{"https://jadenrazo.dev"}
+		cfg.App.AllowedOrigins = []string{"https://jadenrazo.dev", "https://www.jadenrazo.dev"}
 	}
 
 	// Server defaults

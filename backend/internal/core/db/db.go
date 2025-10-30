@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"regexp"
 	"time"
 
 	"gorm.io/driver/postgres"
@@ -33,8 +34,16 @@ func GetDB() (*gorm.DB, error) {
 	var dsn string
 	if dbURL := os.Getenv("DATABASE_URL"); dbURL != "" {
 		// Use DATABASE_URL if provided
-		dsn = dbURL
-	} else {
+		// Regex to validate DATABASE_URL format
+		re := regexp.MustCompile(`^postgres://(?:[^:@/]+(?::[^@/]*)?@)?(?:[^:/]+|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?/(?:[^?]+)(?:\?.*)?$`)
+		if !re.MatchString(dbURL) {
+			fmt.Printf("Warning: Invalid DATABASE_URL format, falling back to individual DB variables.")
+		} else {
+			dsn = dbURL
+		}
+	}
+
+	if dsn == "" {
 		// Build from individual environment variables with proper URL encoding for password
 		password := url.QueryEscape(getEnvWithDefault("DB_PASSWORD", "postgres"))
 		dsn = fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
@@ -53,7 +62,7 @@ func GetDB() (*gorm.DB, error) {
 		SkipDefaultTransaction: true,
 		PrepareStmt:            true,
 	})
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
@@ -88,14 +97,10 @@ func GetDBWithContext(ctx context.Context) (*gorm.DB, error) {
 	return db.WithContext(ctx), nil
 }
 
-// RunMigrations runs database migrations
+// RunMigrations is deprecated - use backend/schema.sql to initialize database
+// This function is kept for backward compatibility but should not be used
 func RunMigrations(models ...interface{}) error {
-	db, err := GetDB()
-	if err != nil {
-		return err
-	}
-
-	return db.AutoMigrate(models...)
+	return fmt.Errorf("automatic migrations are disabled - please use backend/schema.sql to initialize the database")
 }
 
 // CloseDB closes the database connection

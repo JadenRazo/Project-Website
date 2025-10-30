@@ -2,9 +2,11 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
+import Badge from '../../components/common/Badge';
+import { useScrollTo } from '../../hooks/useScrollTo';
 
 // Import the image using require
-const headshot = require('../../assets/images/headshot.jpg');
+const headshot = require('../../assets/images/headshot.webp');
 
 const AboutContainer = styled.div`
   min-height: calc(100vh - 200px);
@@ -21,23 +23,21 @@ const AboutContainer = styled.div`
 const ContentWrapper = styled.div`
   max-width: 1200px;
   margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: ${({ theme }) => theme.spacing.xl};
-  
-  @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    grid-template-columns: 1fr 2fr;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.xxl};
 `;
 
 const ProfileSection = styled(motion.div)`
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.xl};
   
   @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    text-align: left;
-    position: sticky;
-    top: 80px;
-    height: fit-content;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: center;
   }
 `;
 
@@ -45,11 +45,10 @@ const ProfileImage = styled(motion.div)`
   width: 200px;
   height: 200px;
   border-radius: 50%;
-  margin: 0 auto;
   background: ${({ theme }) => theme.colors.primary};
   overflow: hidden;
-  margin-bottom: ${({ theme }) => theme.spacing.lg};
   position: relative;
+  flex-shrink: 0;
   
   img {
     width: 100%;
@@ -59,14 +58,18 @@ const ProfileImage = styled(motion.div)`
     top: 0;
     left: 0;
   }
-  
-  @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    margin: 0 0 ${({ theme }) => theme.spacing.lg} 0;
-  }
 
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     width: 150px;
     height: 150px;
+  }
+`;
+
+const ProfileInfo = styled.div`
+  text-align: center;
+  
+  @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    text-align: left;
   }
 `;
 
@@ -79,13 +82,20 @@ const Name = styled(motion.h1)`
 const Title = styled(motion.h2)`
   color: ${({ theme }) => theme.colors.textSecondary};
   font-size: 1.2rem;
-  margin-bottom: ${({ theme }) => theme.spacing.lg};
+  margin-bottom: ${({ theme }) => theme.spacing.md};
 `;
 
 const MainContent = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing.xl};
+`;
+
+const ProfileSectionWrapper = styled.div`
+  background: ${({ theme }) => theme.colors.surface};
+  padding: ${({ theme }) => theme.spacing.xxl};
+  border-radius: ${({ theme }) => theme.borderRadius.large};
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 `;
 
 const Section = styled(motion.section)`
@@ -223,6 +233,77 @@ const Cursor = styled(motion.span)`
   margin-left: 2px;
   align-self: center;
   border-radius: 1px;
+`;
+
+const CertificationGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: ${({ theme }) => theme.spacing.lg};
+`;
+
+const CertificationCard = styled(motion.div)`
+  background: ${({ theme }) => theme.colors.background};
+  padding: ${({ theme }) => theme.spacing.lg};
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
+`;
+
+const CertificationName = styled.h4`
+  color: ${({ theme }) => theme.colors.text};
+  font-size: 1.1rem;
+  margin-bottom: ${({ theme }) => theme.spacing.xs};
+`;
+
+const CertificationIssuer = styled.p`
+  color: ${({ theme }) => theme.colors.primary};
+  font-size: 0.95rem;
+  margin-bottom: ${({ theme }) => theme.spacing.sm};
+`;
+
+const CertificationDate = styled.p`
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: 0.85rem;
+  margin-bottom: ${({ theme }) => theme.spacing.sm};
+`;
+
+const CertificationLink = styled.a`
+  color: ${({ theme }) => theme.colors.primary};
+  text-decoration: none;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.xs};
+  
+  &:hover {
+    text-decoration: underline;
+  }
+  
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+`;
+
+const CertificationBadgeContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${({ theme }) => theme.spacing.xs};
+  margin-top: ${({ theme }) => theme.spacing.sm};
+  align-items: center;
+`;
+
+const CertificationActions = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.sm};
+  margin-top: ${({ theme }) => theme.spacing.sm};
 `;
 
 // Define animation variants for experience section
@@ -391,11 +472,33 @@ const ExperienceSection = () => {
 };
 
 const About: React.FC = () => {
+  const [certifications, setCertifications] = useState<any[]>([]);
+  const [certificationsLoading, setCertificationsLoading] = useState(true);
+
   // Scroll to top on component mount (if not using the ScrollToTop component)
+  const { scrollToTop } = useScrollTo();
+
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      window.scrollTo(0, 0);
-    }
+    scrollToTop({ behavior: 'auto' });
+  }, [scrollToTop]);
+
+  // Fetch certifications
+  useEffect(() => {
+    const fetchCertifications = async () => {
+      try {
+        const response = await fetch('/api/v1/devpanel/public/certifications');
+        if (response.ok) {
+          const data = await response.json();
+          setCertifications(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch certifications:', error);
+      } finally {
+        setCertificationsLoading(false);
+      }
+    };
+
+    fetchCertifications();
   }, []);
 
   // Animation variants for staggered animations
@@ -424,42 +527,132 @@ const About: React.FC = () => {
   return (
     <AboutContainer>
       <ContentWrapper>
-        <ProfileSection
-          initial={{ x: -50, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 100 }}
-        >
-          <ProfileImage
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: "spring", stiffness: 300 }}
+        {/* Profile and Certifications Section */}
+        <ProfileSectionWrapper>
+          <ProfileSection
+            initial={{ y: -30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 100 }}
           >
-            <img 
-              src={headshot} 
-              alt="Jaden Razo - Full Stack Developer"
-              loading="eager"
-            />
-          </ProfileImage>
-          <Name>Jaden Razo</Name>
-          <Title>Full Stack Developer</Title>
-        </ProfileSection>
-
-        <MainContent>
-          {/* About Me Section */}
-          <Section
-            variants={containerVariants}
-            initial="initial"
-            animate="animate"
-          >
-            <SectionTitle>About Me</SectionTitle>
-            <SectionContent>
-              <motion.p variants={itemVariants}>
+            <ProfileImage
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <img 
+                src={headshot} 
+                alt="Jaden Razo - Full Stack Developer"
+                loading="eager"
+              />
+            </ProfileImage>
+            <ProfileInfo>
+              <Name>Jaden Razo</Name>
+              <Title>Full Stack Developer</Title>
+              <motion.p 
+                style={{ color: 'var(--text)', lineHeight: 1.6, marginTop: '1rem' }}
+                variants={itemVariants}
+              >
                 I am a passionate Full Stack Developer with expertise in building scalable web applications
                 and microservices. With a strong foundation in both frontend and backend development,
                 I specialize in creating efficient, user-friendly solutions that solve real-world problems.
               </motion.p>
-            </SectionContent>
-          </Section>
+            </ProfileInfo>
+          </ProfileSection>
 
+          {/* Certifications directly below profile */}
+          {!certificationsLoading && certifications.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              style={{ marginTop: '2rem' }}
+            >
+              <SectionTitle style={{ marginBottom: '1.5rem' }}>Certifications</SectionTitle>
+              <CertificationGrid>
+                {certifications.map((cert, index) => (
+                  <CertificationCard
+                    key={cert.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 * index }}
+                    whileHover={{ scale: 1.02 }}
+                  >
+                    <CertificationName>{cert.name}</CertificationName>
+                    <CertificationIssuer>{cert.issuer}</CertificationIssuer>
+                    <CertificationDate>
+                      Issued: {new Date(cert.issue_date).toLocaleDateString('en-US', { 
+                        year: 'numeric', 
+                        month: 'long' 
+                      })}
+                      {cert.expiry_date && (
+                        <>
+                          <br />
+                          Expires: {new Date(cert.expiry_date).toLocaleDateString('en-US', { 
+                            year: 'numeric', 
+                            month: 'long' 
+                          })}
+                        </>
+                      )}
+                    </CertificationDate>
+                    {cert.credential_id && (
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                        Credential ID: {cert.credential_id}
+                      </p>
+                    )}
+                    <CertificationActions>
+                      {cert.verification_url && (
+                        <CertificationLink 
+                          href={cert.verification_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                        >
+                          {cert.verification_text || 'Verify Certificate'}
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6m4-3h6v6m-11 5L21 3" />
+                          </svg>
+                        </CertificationLink>
+                      )}
+                      
+                      <CertificationBadgeContainer>
+                        {cert.is_featured && (
+                          <Badge variant="featured">
+                            Featured
+                          </Badge>
+                        )}
+                        {cert.category && cert.category.name && (
+                          <Badge variant="category">
+                            {cert.category.name}
+                          </Badge>
+                        )}
+                        {cert.expiry_date && (() => {
+                          const expiryDate = new Date(cert.expiry_date);
+                          const now = new Date();
+                          const monthsUntilExpiry = (expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30);
+                          
+                          if (monthsUntilExpiry < 0) {
+                            return (
+                              <Badge variant="expired">
+                                Expired
+                              </Badge>
+                            );
+                          } else if (monthsUntilExpiry < 3) {
+                            return (
+                              <Badge variant="expiry">
+                                Expires Soon
+                              </Badge>
+                            );
+                          }
+                          return null;
+                        })()}
+                      </CertificationBadgeContainer>
+                    </CertificationActions>
+                  </CertificationCard>
+                ))}
+              </CertificationGrid>
+            </motion.div>
+          )}
+        </ProfileSectionWrapper>
+
+        <MainContent>
           {/* Technical Skills Section */}
           <Section
             variants={containerVariants}

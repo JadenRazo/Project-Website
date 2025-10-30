@@ -47,7 +47,7 @@ type MemoryStats struct {
 func getMemoryStats() MemoryStats {
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
-	
+
 	return MemoryStats{
 		AllocMB:      float64(m.Alloc) / 1024 / 1024,
 		TotalAllocMB: float64(m.TotalAlloc) / 1024 / 1024,
@@ -81,16 +81,16 @@ func setupTestDB() *gorm.DB {
 // Setup test router with services
 func setupTestRouter() (*gin.Engine, *gorm.DB) {
 	gin.SetMode(gin.TestMode)
-	
+
 	db := setupTestDB()
 	router := gin.New()
-	
+
 	// Add middleware to track database queries
 	queryCount := 0
 	db.Callback().Query().Before("gorm:query").Register("count_queries", func(db *gorm.DB) {
 		queryCount++
 	})
-	
+
 	// Setup services
 	messagingService := messaging.NewService(db, messaging.Config{
 		WebSocketPort:    8081,
@@ -98,29 +98,29 @@ func setupTestRouter() (*gin.Engine, *gorm.DB) {
 		MaxAttachments:   10,
 		AllowedFileTypes: []string{"image/jpeg", "image/png"},
 	})
-	
+
 	urlService := urlshortener.NewService(db, urlshortener.Config{
 		BaseURL:      "http://localhost:8080",
 		MaxURLLength: 2048,
 		MinURLLength: 5,
 	})
-	
+
 	// Register routes
 	api := router.Group("/api/v1")
 	messagingService.RegisterRoutes(api)
 	urlService.RegisterRoutes(api)
-	
+
 	return router, db
 }
 
 // Benchmark messaging service endpoints
 func BenchmarkMessagingService(b *testing.B) {
 	router, db := setupTestRouter()
-	
+
 	// Create test user and channel
 	userID := uuid.New()
 	channelID := uuid.New()
-	
+
 	channel := &entity.Channel{
 		ID:          channelID,
 		Name:        "test-channel",
@@ -129,60 +129,60 @@ func BenchmarkMessagingService(b *testing.B) {
 		CreatedBy:   userID,
 	}
 	db.Create(channel)
-	
+
 	member := &entity.ChannelMember{
 		ChannelID: channelID,
 		UserID:    userID,
 		Role:      "owner",
 	}
 	db.Create(member)
-	
+
 	b.Run("SendMessage", func(b *testing.B) {
 		memBefore := getMemoryStats()
 		latencies := make([]time.Duration, b.N)
-		
+
 		b.ResetTimer()
 		b.StartTimer()
-		
+
 		for i := 0; i < b.N; i++ {
 			start := time.Now()
-			
+
 			reqBody := map[string]interface{}{
 				"content":      fmt.Sprintf("Test message %d", i),
 				"message_type": "text",
 			}
 			jsonBody, _ := json.Marshal(reqBody)
-			
+
 			req := httptest.NewRequest("POST", fmt.Sprintf("/api/v1/messaging/channels/%s/messages", channelID), bytes.NewBuffer(jsonBody))
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("Authorization", "Bearer test-token")
-			
+
 			// Mock authentication middleware
 			req = req.WithContext(req.Context())
-			
+
 			w := httptest.NewRecorder()
-			
+
 			// Add user_id to context manually for testing
 			c, _ := gin.CreateTestContext(w)
 			c.Request = req
 			c.Set("user_id", userID.String())
-			
+
 			router.ServeHTTP(w, req)
-			
+
 			latencies[i] = time.Since(start)
-			
+
 			if w.Code != http.StatusCreated {
 				b.Errorf("Expected status 201, got %d", w.Code)
 			}
 		}
-		
+
 		b.StopTimer()
-		
+
 		memAfter := getMemoryStats()
-		
+
 		// Calculate latency percentiles
 		p95, p99 := calculatePercentiles(latencies)
-		
+
 		result := BenchmarkResult{
 			TestName:       "MessagingService.SendMessage",
 			Duration:       time.Duration(b.N) * time.Nanosecond,
@@ -191,19 +191,19 @@ func BenchmarkMessagingService(b *testing.B) {
 			P95Latency:     p95,
 			P99Latency:     p99,
 		}
-		
+
 		logBenchmarkResult(b, result)
-		
+
 		// Performance assertions
 		if result.RequestsPerSec < 100 {
 			b.Errorf("Low throughput: %.2f req/sec (expected > 100)", result.RequestsPerSec)
 		}
-		
+
 		if memAfter.AllocMB-memBefore.AllocMB > 50 {
 			b.Errorf("High memory usage: %.2f MB increase", memAfter.AllocMB-memBefore.AllocMB)
 		}
 	})
-	
+
 	b.Run("GetMessages", func(b *testing.B) {
 		// Pre-populate with test messages
 		for i := 0; i < 100; i++ {
@@ -215,35 +215,35 @@ func BenchmarkMessagingService(b *testing.B) {
 			}
 			db.Create(msg)
 		}
-		
+
 		memBefore := getMemoryStats()
 		latencies := make([]time.Duration, b.N)
-		
+
 		b.ResetTimer()
-		
+
 		for i := 0; i < b.N; i++ {
 			start := time.Now()
-			
+
 			req := httptest.NewRequest("GET", fmt.Sprintf("/api/v1/messaging/channels/%s/messages?page=1&page_size=20", channelID), nil)
 			req.Header.Set("Authorization", "Bearer test-token")
-			
+
 			w := httptest.NewRecorder()
 			c, _ := gin.CreateTestContext(w)
 			c.Request = req
 			c.Set("user_id", userID.String())
-			
+
 			router.ServeHTTP(w, req)
-			
+
 			latencies[i] = time.Since(start)
-			
+
 			if w.Code != http.StatusOK {
 				b.Errorf("Expected status 200, got %d", w.Code)
 			}
 		}
-		
+
 		memAfter := getMemoryStats()
 		p95, p99 := calculatePercentiles(latencies)
-		
+
 		result := BenchmarkResult{
 			TestName:       "MessagingService.GetMessages",
 			Duration:       b.Elapsed(),
@@ -252,7 +252,7 @@ func BenchmarkMessagingService(b *testing.B) {
 			P95Latency:     p95,
 			P99Latency:     p99,
 		}
-		
+
 		logBenchmarkResult(b, result)
 	})
 }
@@ -260,39 +260,39 @@ func BenchmarkMessagingService(b *testing.B) {
 // Benchmark URL shortener service
 func BenchmarkURLShortenerService(b *testing.B) {
 	router, _ := setupTestRouter()
-	
+
 	b.Run("ShortenURL", func(b *testing.B) {
 		memBefore := getMemoryStats()
 		latencies := make([]time.Duration, b.N)
-		
+
 		b.ResetTimer()
-		
+
 		for i := 0; i < b.N; i++ {
 			start := time.Now()
-			
+
 			reqBody := map[string]interface{}{
 				"url":         fmt.Sprintf("https://example.com/test-page-%d", i),
 				"title":       fmt.Sprintf("Test Page %d", i),
 				"description": "Test page for benchmarking",
 			}
 			jsonBody, _ := json.Marshal(reqBody)
-			
+
 			req := httptest.NewRequest("POST", "/api/v1/urls/shorten", bytes.NewBuffer(jsonBody))
 			req.Header.Set("Content-Type", "application/json")
-			
+
 			w := httptest.NewRecorder()
 			router.ServeHTTP(w, req)
-			
+
 			latencies[i] = time.Since(start)
-			
+
 			if w.Code != http.StatusCreated {
 				b.Errorf("Expected status 201, got %d", w.Code)
 			}
 		}
-		
+
 		memAfter := getMemoryStats()
 		p95, p99 := calculatePercentiles(latencies)
-		
+
 		result := BenchmarkResult{
 			TestName:       "URLShortenerService.ShortenURL",
 			Duration:       b.Elapsed(),
@@ -301,9 +301,9 @@ func BenchmarkURLShortenerService(b *testing.B) {
 			P95Latency:     p95,
 			P99Latency:     p99,
 		}
-		
+
 		logBenchmarkResult(b, result)
-		
+
 		// Performance assertions
 		if result.RequestsPerSec < 200 {
 			b.Errorf("Low throughput: %.2f req/sec (expected > 200)", result.RequestsPerSec)
@@ -314,11 +314,11 @@ func BenchmarkURLShortenerService(b *testing.B) {
 // Benchmark concurrent operations
 func BenchmarkConcurrentOperations(b *testing.B) {
 	router, db := setupTestRouter()
-	
+
 	// Setup test data
 	userID := uuid.New()
 	channelID := uuid.New()
-	
+
 	channel := &entity.Channel{
 		ID:          channelID,
 		Name:        "concurrent-test",
@@ -327,72 +327,72 @@ func BenchmarkConcurrentOperations(b *testing.B) {
 		CreatedBy:   userID,
 	}
 	db.Create(channel)
-	
+
 	member := &entity.ChannelMember{
 		ChannelID: channelID,
 		UserID:    userID,
 		Role:      "owner",
 	}
 	db.Create(member)
-	
+
 	b.Run("ConcurrentMessageSending", func(b *testing.B) {
 		memBefore := getMemoryStats()
-		
+
 		concurrency := 10
 		messagesPerGoroutine := b.N / concurrency
-		
+
 		var wg sync.WaitGroup
 		latencies := make([]time.Duration, b.N)
 		latencyMutex := sync.Mutex{}
 		latencyIndex := 0
-		
+
 		b.ResetTimer()
-		
+
 		for i := 0; i < concurrency; i++ {
 			wg.Add(1)
 			go func(goroutineID int) {
 				defer wg.Done()
-				
+
 				for j := 0; j < messagesPerGoroutine; j++ {
 					start := time.Now()
-					
+
 					reqBody := map[string]interface{}{
 						"content":      fmt.Sprintf("Concurrent message %d-%d", goroutineID, j),
 						"message_type": "text",
 					}
 					jsonBody, _ := json.Marshal(reqBody)
-					
+
 					req := httptest.NewRequest("POST", fmt.Sprintf("/api/v1/messaging/channels/%s/messages", channelID), bytes.NewBuffer(jsonBody))
 					req.Header.Set("Content-Type", "application/json")
-					
+
 					w := httptest.NewRecorder()
 					c, _ := gin.CreateTestContext(w)
 					c.Request = req
 					c.Set("user_id", userID.String())
-					
+
 					router.ServeHTTP(w, req)
-					
+
 					duration := time.Since(start)
-					
+
 					latencyMutex.Lock()
 					if latencyIndex < len(latencies) {
 						latencies[latencyIndex] = duration
 						latencyIndex++
 					}
 					latencyMutex.Unlock()
-					
+
 					if w.Code != http.StatusCreated {
 						b.Errorf("Expected status 201, got %d", w.Code)
 					}
 				}
 			}(i)
 		}
-		
+
 		wg.Wait()
-		
+
 		memAfter := getMemoryStats()
 		p95, p99 := calculatePercentiles(latencies[:latencyIndex])
-		
+
 		result := BenchmarkResult{
 			TestName:       "ConcurrentMessageSending",
 			Duration:       b.Elapsed(),
@@ -401,14 +401,14 @@ func BenchmarkConcurrentOperations(b *testing.B) {
 			P95Latency:     p95,
 			P99Latency:     p99,
 		}
-		
+
 		logBenchmarkResult(b, result)
-		
+
 		// Performance assertions for concurrent operations
 		if result.RequestsPerSec < 50 {
 			b.Errorf("Low concurrent throughput: %.2f req/sec (expected > 50)", result.RequestsPerSec)
 		}
-		
+
 		if memAfter.AllocMB-memBefore.AllocMB > 100 {
 			b.Errorf("High memory usage in concurrent test: %.2f MB increase", memAfter.AllocMB-memBefore.AllocMB)
 		}
@@ -418,10 +418,10 @@ func BenchmarkConcurrentOperations(b *testing.B) {
 // Memory leak detection test
 func BenchmarkMemoryLeakDetection(b *testing.B) {
 	router, _ := setupTestRouter()
-	
+
 	b.Run("MemoryLeakTest", func(b *testing.B) {
 		memBefore := getMemoryStats()
-		
+
 		// Perform many operations
 		for i := 0; i < b.N; i++ {
 			reqBody := map[string]interface{}{
@@ -429,33 +429,33 @@ func BenchmarkMemoryLeakDetection(b *testing.B) {
 				"title": fmt.Sprintf("Page %d", i),
 			}
 			jsonBody, _ := json.Marshal(reqBody)
-			
+
 			req := httptest.NewRequest("POST", "/api/v1/urls/shorten", bytes.NewBuffer(jsonBody))
 			req.Header.Set("Content-Type", "application/json")
-			
+
 			w := httptest.NewRecorder()
 			router.ServeHTTP(w, req)
-			
+
 			if i%100 == 0 {
 				runtime.GC() // Force garbage collection periodically
 			}
 		}
-		
+
 		// Force final GC
 		runtime.GC()
 		runtime.GC() // Run twice to ensure cleanup
-		
+
 		memAfter := getMemoryStats()
 		memoryGrowth := memAfter.AllocMB - memBefore.AllocMB
-		
-		b.Logf("Memory growth: %.2f MB (before: %.2f MB, after: %.2f MB)", 
+
+		b.Logf("Memory growth: %.2f MB (before: %.2f MB, after: %.2f MB)",
 			memoryGrowth, memBefore.AllocMB, memAfter.AllocMB)
-		
+
 		// Memory growth should be reasonable
 		if memoryGrowth > 50 {
 			b.Errorf("Potential memory leak detected: %.2f MB growth", memoryGrowth)
 		}
-		
+
 		// GC should have run at least once
 		if memAfter.NumGC <= memBefore.NumGC {
 			b.Logf("Warning: GC did not run during test")
@@ -466,11 +466,11 @@ func BenchmarkMemoryLeakDetection(b *testing.B) {
 // Database query performance test
 func BenchmarkDatabaseQueries(b *testing.B) {
 	db := setupTestDB()
-	
+
 	// Pre-populate with test data
 	userID := uuid.New()
 	channelID := uuid.New()
-	
+
 	// Create channel
 	channel := &entity.Channel{
 		ID:          channelID,
@@ -480,7 +480,7 @@ func BenchmarkDatabaseQueries(b *testing.B) {
 		CreatedBy:   userID,
 	}
 	db.Create(channel)
-	
+
 	// Create many messages
 	for i := 0; i < 1000; i++ {
 		msg := &entity.Message{
@@ -491,10 +491,10 @@ func BenchmarkDatabaseQueries(b *testing.B) {
 		}
 		db.Create(msg)
 	}
-	
+
 	b.Run("PaginatedMessageQuery", func(b *testing.B) {
 		b.ResetTimer()
-		
+
 		for i := 0; i < b.N; i++ {
 			var messages []entity.Message
 			err := db.Where("channel_id = ?", channelID).
@@ -502,30 +502,30 @@ func BenchmarkDatabaseQueries(b *testing.B) {
 				Limit(20).
 				Offset(i % 10 * 20). // Simulate different pages
 				Find(&messages).Error
-			
+
 			if err != nil {
 				b.Errorf("Database query failed: %v", err)
 			}
-			
+
 			if len(messages) == 0 {
 				b.Errorf("No messages returned")
 			}
 		}
 	})
-	
+
 	b.Run("MessageCountQuery", func(b *testing.B) {
 		b.ResetTimer()
-		
+
 		for i := 0; i < b.N; i++ {
 			var count int64
 			err := db.Model(&entity.Message{}).
 				Where("channel_id = ?", channelID).
 				Count(&count).Error
-			
+
 			if err != nil {
 				b.Errorf("Count query failed: %v", err)
 			}
-			
+
 			if count == 0 {
 				b.Errorf("Expected non-zero count")
 			}
@@ -539,7 +539,7 @@ func calculatePercentiles(latencies []time.Duration) (p95, p99 time.Duration) {
 	if len(latencies) == 0 {
 		return 0, 0
 	}
-	
+
 	// Sort latencies
 	for i := 0; i < len(latencies)-1; i++ {
 		for j := i + 1; j < len(latencies); j++ {
@@ -548,17 +548,17 @@ func calculatePercentiles(latencies []time.Duration) (p95, p99 time.Duration) {
 			}
 		}
 	}
-	
+
 	p95Index := int(0.95 * float64(len(latencies)))
 	p99Index := int(0.99 * float64(len(latencies)))
-	
+
 	if p95Index >= len(latencies) {
 		p95Index = len(latencies) - 1
 	}
 	if p99Index >= len(latencies) {
 		p99Index = len(latencies) - 1
 	}
-	
+
 	return latencies[p95Index], latencies[p99Index]
 }
 
@@ -571,7 +571,7 @@ func logBenchmarkResult(b *testing.B, result BenchmarkResult) {
 	b.Logf("  GC runs: %d", result.MemoryUsage.NumGC)
 	b.Logf("  P95 Latency: %v", result.P95Latency)
 	b.Logf("  P99 Latency: %v", result.P99Latency)
-	
+
 	// Write results to file for analysis
 	if testing.Verbose() {
 		resultJSON, _ := json.MarshalIndent(result, "", "  ")

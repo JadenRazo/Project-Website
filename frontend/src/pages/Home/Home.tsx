@@ -3,6 +3,7 @@ import type { LazyExoticComponent, ComponentType } from 'react';
 import SmartSkeleton from '../../components/skeletons/SmartSkeleton';
 import { useComponentLoading } from '../../hooks/useLoadingState';
 
+
 // Define proper types for lazy-loaded components
 type LazyComponent = LazyExoticComponent<ComponentType<any>>;
 
@@ -15,6 +16,7 @@ const SkillsSection: LazyComponent = lazy(() => import('../../components/section
 // Main Home component
 const Home = () => {
   useComponentLoading('Home');
+  
 
   return (
     <div className="home-container">

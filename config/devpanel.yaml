@@ -17,11 +17,11 @@ projects:
   configPath: "config/projects.yaml"
 
 database:
-  type: "sqlite"
-  path: "data/devpanel.db"
-  host: ""
-  port: 0
-  user: ""
+  type: "postgres"
+  path: ""
+  host: "REDACTED-IP"
+  port: 5432
+  user: "postgres"
   password: ""
-  dbName: ""
-  sslMode: "" 
+  dbName: "project_website"
+  sslMode: "disable" 

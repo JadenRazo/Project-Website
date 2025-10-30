@@ -12,11 +12,11 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Config holds all configuration for the application
 type Config struct {
 	Port              string             `yaml:"port"`
 	JWTSecret         string             `yaml:"jwtSecret" sensitive:"true"`
 	Database          DatabaseConfig     `yaml:"database"`
+	Redis             RedisConfig        `yaml:"redis"`
 	AllowedOrigins    []string           `yaml:"allowedOrigins"`
 	Environment       string             `yaml:"environment"`
 	BaseURL           string             `yaml:"baseURL"`
@@ -38,7 +38,13 @@ type Config struct {
 	DevPanel          DevPanelConfig     `yaml:"devPanel"`
 }
 
-// DatabaseConfig holds PostgreSQL specific configuration
+type RedisConfig struct {
+	Host          string `yaml:"host"`
+	Port          string `yaml:"port"`
+	Password      string `yaml:"password" sensitive:"true"`
+	EncryptionKey string `yaml:"encryptionKey" sensitive:"true"`
+}
+
 type DatabaseConfig struct {
 	Driver   string `yaml:"driver"`
 	Host     string `yaml:"host"`
@@ -50,27 +56,21 @@ type DatabaseConfig struct {
 	DSN      string `yaml:"-"`
 }
 
-// URLShortenerConfig holds configuration for URL shortener service
 type URLShortenerConfig struct {
 	BaseURL         string `yaml:"baseURL"`         // e.g., http://localhost:8080 or your public domain
 	ShortCodeLength int    `yaml:"shortCodeLength"` // Default length for generated short codes
-	// MaxURLLength and MinURLLength are currently hardcoded in main.go
 }
 
-// MessagingConfig holds configuration for messaging service
 type MessagingConfig struct {
 	MaxMessageSize int `yaml:"maxMessageSize"` // Max size of a message in bytes
-	// WebSocketPort, MaxAttachments, AllowedFileTypes are currently hardcoded in main.go
 }
 
-// DevPanelConfig holds configuration for the developer panel service
 type DevPanelConfig struct {
 	MetricsInterval string `yaml:"metricsInterval"` // e.g., "30s"
 	MaxLogLines     int    `yaml:"maxLogLines"`
 	LogRetention    string `yaml:"logRetention"` // e.g., "168h" (for 7 days)
 }
 
-// LogFilter defines a filter for log entries
 type LogFilter struct {
 	Field    string `yaml:"field"`
 	Operator string `yaml:"operator"`
@@ -105,6 +105,10 @@ const (
 	EnvDBPassword              = "DB_PASSWORD"
 	EnvDBName                  = "DB_NAME"
 	EnvDBSSLMode               = "DB_SSLMODE"
+	EnvRedisHost                 = "REDIS_HOST"
+	EnvRedisPort                 = "REDIS_PORT"
+	EnvRedisPassword             = "REDIS_PASSWORD"
+	EnvRedisEncryptionKey        = "REDIS_ENCRYPTION_KEY"
 	EnvURLShortenerBaseURL     = "URL_SHORTENER_BASE_URL"
 	EnvURLShortenerCodeLength  = "URL_SHORTENER_CODE_LENGTH"
 	EnvMessagingMaxMessageSize = "MESSAGING_MAX_MESSAGE_SIZE"
@@ -113,23 +117,20 @@ const (
 	EnvDevPanelLogRetention    = "DEV_PANEL_LOG_RETENTION"
 )
 
-// LoadConfig loads configuration from environment variables and config files
 func LoadConfig() (*Config, error) {
-	// Try to load .env file first
 	_ = godotenv.Load(".env")
 
-	// Determine environment
 	env := getEnv(EnvEnvironment, "development")
 
-	// Try to load environment-specific config file
 	configPath := getEnv(EnvConfigPath, fmt.Sprintf("config/%s.yaml", env))
 	config, err := loadConfigFromFile(configPath)
 	if err != nil {
-		// If no config file, use environment variables
+		fmt.Printf("WARNING: Could not load config file %s: %v. Using defaults and environment variables.\n", configPath, err)
 		config = &Config{}
+	} else {
+		fmt.Printf("INFO: Loaded configuration from %s\n", configPath)
 	}
 
-	// Override with environment variables if they exist
 	if os.Getenv(EnvPort) != "" {
 		config.Port = os.Getenv(EnvPort)
 	}
@@ -205,7 +206,6 @@ func LoadConfig() (*Config, error) {
 		}
 	}
 
-	// Load DatabaseConfig from environment variables
 	if driver := os.Getenv(EnvDBDriver); driver != "" {
 		config.Database.Driver = driver
 	}
@@ -230,7 +230,19 @@ func LoadConfig() (*Config, error) {
 		config.Database.SSLMode = sslmode
 	}
 
-	// Load URLShortenerConfig from environment variables
+	if host := os.Getenv(EnvRedisHost); host != "" {
+		config.Redis.Host = host
+	}
+	if port := os.Getenv(EnvRedisPort); port != "" {
+		config.Redis.Port = port
+	}
+	if password := os.Getenv(EnvRedisPassword); password != "" {
+		config.Redis.Password = password
+	}
+	if encryptionKey := os.Getenv(EnvRedisEncryptionKey); encryptionKey != "" {
+		config.Redis.EncryptionKey = encryptionKey
+	}
+
 	if baseURL := os.Getenv(EnvURLShortenerBaseURL); baseURL != "" {
 		config.URLShortener.BaseURL = baseURL
 	}
@@ -240,14 +252,12 @@ func LoadConfig() (*Config, error) {
 		}
 	}
 
-	// Load MessagingConfig from environment variables
 	if sizeStr := os.Getenv(EnvMessagingMaxMessageSize); sizeStr != "" {
 		if size, err := strconv.Atoi(sizeStr); err == nil {
 			config.Messaging.MaxMessageSize = size
 		}
 	}
 
-	// Load DevPanelConfig from environment variables
 	if interval := os.Getenv(EnvDevPanelMetricsInterval); interval != "" {
 		config.DevPanel.MetricsInterval = interval
 	}
@@ -260,40 +270,38 @@ func LoadConfig() (*Config, error) {
 		config.DevPanel.LogRetention = retention
 	}
 
-	// Set defaults for any missing values
 	setDefaults(config)
 
-	// Validate configuration
 	if err := validateConfig(config); err != nil {
 		return nil, err
 	}
 
+	fmt.Printf("INFO: CORS AllowedOrigins configured: %v\n", config.AllowedOrigins)
+
 	return config, nil
 }
 
-// loadConfigFromFile loads configuration from YAML file
 func loadConfigFromFile(path string) (*Config, error) {
-	// Check if file exists
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return nil, fmt.Errorf("config file not found: %s", path)
 	}
 
-	// Read file
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("error reading config file: %w", err)
 	}
 
-	// Parse YAML
+	// Expand environment variables
+	expandedData := os.ExpandEnv(string(data))
+
 	var config Config
-	if err := yaml.Unmarshal(data, &config); err != nil {
+	if err := yaml.Unmarshal([]byte(expandedData), &config); err != nil {
 		return nil, fmt.Errorf("error parsing config file: %w", err)
 	}
 
 	return &config, nil
 }
 
-// Helper function to get environment variables
 func getEnv(key, defaultValue string) string {
 	value := os.Getenv(key)
 	if value == "" {
@@ -302,13 +310,11 @@ func getEnv(key, defaultValue string) string {
 	return value
 }
 
-// setDefaults sets default values for missing configuration
 func setDefaults(config *Config) {
 	if config.Port == "" {
 		config.Port = "8080"
 	}
 	if config.JWTSecret == "" {
-		// Generate a warning but use default in development
 		if config.Environment == "production" {
 			fmt.Println("WARNING: No JWT secret provided in production environment!")
 		}
@@ -342,7 +348,6 @@ func setDefaults(config *Config) {
 		config.ShutdownTimeout = 5 * time.Second
 	}
 
-	// Set Database defaults
 	if config.Database.Driver == "" {
 		config.Database.Driver = "postgres"
 	}
@@ -353,24 +358,21 @@ func setDefaults(config *Config) {
 		config.Database.Port = 5432
 	}
 	if config.Database.User == "" {
-		// This should ideally cause an error in production if not set
 		config.Database.User = "postgres"
 		if config.Environment == "production" {
 			fmt.Println("WARNING: DB_USER not set, defaulting to 'postgres'. This is not recommended for production.")
 		}
 	}
 	if config.Database.DBName == "" {
-		config.Database.DBName = "project_website" // Default DB name
+		config.Database.DBName = "project_website"
 		if config.Environment == "production" {
 			fmt.Println("WARNING: DB_NAME not set, defaulting to 'project_website'.")
 		}
 	}
 	if config.Database.Password == "" && config.Environment == "production" {
-		// It's critical this is set in prod. We won't default it here for prod.
 		fmt.Println("CRITICAL WARNING: DB_PASSWORD is not set for production environment!")
 	}
 	if config.Database.SSLMode == "" {
-		// Default to "disable" for local dev, "require" or "verify-full" for prod is better
 		if config.Environment == "production" {
 			config.Database.SSLMode = "require"
 		} else {
@@ -378,7 +380,6 @@ func setDefaults(config *Config) {
 		}
 	}
 
-	// Construct DSN for PostgreSQL
 	config.Database.DSN = fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
 		config.Database.Host,
 		config.Database.Port,
@@ -388,21 +389,17 @@ func setDefaults(config *Config) {
 		config.Database.SSLMode,
 	)
 
-	// Set URLShortener defaults
 	if config.URLShortener.BaseURL == "" {
-		// It often makes sense for this to be the same as the main BaseURL
 		config.URLShortener.BaseURL = config.BaseURL
 	}
 	if config.URLShortener.ShortCodeLength == 0 {
-		config.URLShortener.ShortCodeLength = 7 // Default length
+		config.URLShortener.ShortCodeLength = 7
 	}
 
-	// Set Messaging defaults
 	if config.Messaging.MaxMessageSize == 0 {
-		config.Messaging.MaxMessageSize = 4096 // Default 4KB
+		config.Messaging.MaxMessageSize = 4096
 	}
 
-	// Set DevPanel defaults
 	if config.DevPanel.MetricsInterval == "" {
 		config.DevPanel.MetricsInterval = "30s"
 	}
@@ -410,15 +407,18 @@ func setDefaults(config *Config) {
 		config.DevPanel.MaxLogLines = 1000
 	}
 	if config.DevPanel.LogRetention == "" {
-		config.DevPanel.LogRetention = "168h" // 7 days
+		config.DevPanel.LogRetention = "168h"
 	}
 
 	if len(config.AllowedOrigins) == 0 {
-		config.AllowedOrigins = []string{"http://localhost:3000"}
+		if config.Environment == "production" {
+			config.AllowedOrigins = []string{"https://jadenrazo.dev", "https://www.jadenrazo.dev"}
+		} else {
+			config.AllowedOrigins = []string{"http://localhost:3000"}
+		}
 	}
 }
 
-// validateConfig validates the configuration
 func validateConfig(config *Config) error {
 	if config.Port == "" {
 		return errors.New("port is required")
@@ -426,7 +426,6 @@ func validateConfig(config *Config) error {
 	if config.JWTSecret == "" || (config.Environment == "production" && config.JWTSecret == "your-secret-key-change-in-production") {
 		return errors.New("JWT secret is required and must be changed for production")
 	}
-	// Database validation
 	if config.Database.Driver == "" {
 		return errors.New("database driver is required")
 	}
@@ -446,13 +445,10 @@ func validateConfig(config *Config) error {
 		return errors.New("database name is required")
 	}
 	if config.Environment == "production" && config.Database.Password == "" {
-		// For production, password is a must
 		return errors.New("database password is required for production environment")
 	}
 
 	if config.Environment == "production" && (config.Database.SSLMode != "require" && config.Database.SSLMode != "verify-full" && config.Database.SSLMode != "verify-ca") {
-		// Forcing secure SSL for prod. "disable" is not allowed.
-		// "allow" is also risky.
 		fmt.Printf("WARNING: Insecure database SSLMode ('%s') for production. Recommended: 'require', 'verify-ca', or 'verify-full'.\n", config.Database.SSLMode)
 
 	}
@@ -460,36 +456,29 @@ func validateConfig(config *Config) error {
 	if config.BaseURL == "" {
 		return errors.New("base URL is required")
 	}
-	// Add more validation rules as needed
 	return nil
 }
 
-// GetAPIRateLimiter returns the rate limit configuration for API endpoints
 func (c *Config) GetAPIRateLimiter() (int, time.Duration) {
 	return c.APIRateLimit, time.Minute
 }
 
-// GetRedirectRateLimiter returns the rate limit configuration for redirect endpoints
 func (c *Config) GetRedirectRateLimiter() (int, time.Duration) {
 	return c.RedirectRateLimit, time.Minute
 }
 
-// IsDevelopment returns true if the environment is set to development
 func (c *Config) IsDevelopment() bool {
 	return c.Environment == "development"
 }
 
-// IsProduction returns true if the environment is set to production
 func (c *Config) IsProduction() bool {
 	return c.Environment == "production"
 }
 
-// IsTest returns true if the environment is set to test
 func (c *Config) IsTest() bool {
 	return c.Environment == "test"
 }
 
-// GetSanitizedConfig returns a copy of the config with sensitive data masked
 func (c *Config) GetSanitizedConfig() map[string]interface{} {
 	return map[string]interface{}{
 		"port":              c.Port,

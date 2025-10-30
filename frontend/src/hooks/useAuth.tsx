@@ -6,6 +6,7 @@ export const useAuth = () => {
     isAuthenticated,
     isLoading,
     login,
+    register,
     logout,
   } = useAuthStore();
 
@@ -14,6 +15,7 @@ export const useAuth = () => {
     isAuthenticated,
     isLoading,
     login,
+    register,
     logout,
   };
 }; 

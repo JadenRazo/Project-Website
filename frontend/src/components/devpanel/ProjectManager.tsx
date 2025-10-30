@@ -1,34 +1,44 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
-
-// Types
-interface Project {
-  id: string;
-  name: string;
-  description: string;
-  repo_url: string;
-  live_url?: string;
-  tags: string[];
-  status: 'active' | 'archived' | 'draft';
-  created_at: string;
-  updated_at: string;
-}
-
-interface ProjectFormData {
-  name: string;
-  description: string;
-  repo_url: string;
-  live_url: string;
-  tags: string[];
-  status: 'active' | 'archived' | 'draft';
-}
+import { useScrollTo } from '../../hooks/useScrollTo';
+import { ScrollableModal } from '../common/ScrollableModal';
+import { useInlineFormScroll } from '../../hooks/useInlineFormScroll';
+import { useCrudOperations } from '../../hooks/useCrudOperations';
+import {
+  Project,
+  ProjectFormData,
+  defaultProjectFormData,
+  mapProjectToFormData,
+} from '../../utils/devPanelApi';
 
 // Styled Components
 const Container = styled.div`
   display: flex;
   flex-direction: column;
   gap: 2rem;
+`;
+
+const ErrorMessage = styled.div`
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: ${({ theme }) => theme.colors.error}20;
+  color: ${({ theme }) => theme.colors.error};
+  border-radius: 8px;
+  border-left: 4px solid ${({ theme }) => theme.colors.error};
+  animation: slideIn 0.3s ease-out;
+  scroll-margin-top: 100px;
+  
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 `;
 
 const Header = styled.div`
@@ -164,29 +174,7 @@ const ActionButton = styled.button<{ variant: 'edit' | 'delete' | 'view' }>`
   }
 `;
 
-const Modal = styled(motion.div)`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  padding: 1rem;
-`;
-
-const ModalContent = styled(motion.div)`
-  background: ${({ theme }) => theme.colors.card};
-  border-radius: 8px;
-  padding: 2rem;
-  width: 100%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
-`;
+// Modal styles - Removed in favor of ScrollableModal component
 
 const Form = styled.form`
   display: flex;
@@ -323,13 +311,7 @@ const ModalButton = styled.button<{ variant: 'primary' | 'secondary' }>`
   }
 `;
 
-const ErrorMessage = styled.div`
-  padding: 1rem;
-  background: ${({ theme }) => theme.colors.error + '20'};
-  color: ${({ theme }) => theme.colors.error};
-  border-radius: 4px;
-  margin-bottom: 1rem;
-`;
+// Removed duplicate ErrorMessage - using the one defined above
 
 const LoadingSpinner = styled.div`
   display: flex;
@@ -341,123 +323,40 @@ const LoadingSpinner = styled.div`
 
 // Main Component
 export const ProjectManager: React.FC = () => {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [showModal, setShowModal] = useState(false);
-  const [editingProject, setEditingProject] = useState<Project | null>(null);
-  const [formData, setFormData] = useState<ProjectFormData>({
-    name: '',
-    description: '',
-    repo_url: '',
-    live_url: '',
-    tags: [],
-    status: 'draft'
-  });
+  // Use CRUD operations hook for projects
+  const projectsCrud = useCrudOperations<Project, ProjectFormData>(
+    {
+      baseUrl: '/api/v1/projects',
+      resourceName: 'projects',
+      requiresAuth: false,
+    },
+    defaultProjectFormData,
+    {
+      onItemToFormData: mapProjectToFormData,
+      extractItemsFromResponse: (data) => data.projects || [],
+    }
+  );
+
+  // Local state for UI
   const [tagInput, setTagInput] = useState('');
+  const { scrollToElement } = useScrollTo();
+  const { formRef: errorRef } = useInlineFormScroll(!!projectsCrud.error, {
+    scrollOffset: 100,
+    scrollDelay: 200
+  });
 
   useEffect(() => {
-    fetchProjects();
+    projectsCrud.fetchItems();
   }, []);
 
-  const fetchProjects = async () => {
-    try {
-      setLoading(true);
-      const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:8080';
-      const response = await fetch(`${apiUrl}/api/v1/projects`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch projects');
-      }
-      
-      const data = await response.json();
-      setProjects(data.projects || []);
-      setError(null);
-    } catch (err) {
-      console.error('Error fetching projects:', err);
-      setError('Failed to load projects');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const handleSubmit = projectsCrud.handleSubmit;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    try {
-      const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:8080';
-      const url = editingProject 
-        ? `${apiUrl}/api/v1/projects/${editingProject.id}`
-        : `${apiUrl}/api/v1/projects`;
-      
-      const method = editingProject ? 'PUT' : 'POST';
-      
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+  const handleDelete = projectsCrud.handleDelete;
 
-      if (!response.ok) {
-        throw new Error('Failed to save project');
-      }
-
-      await fetchProjects();
-      setShowModal(false);
-      resetForm();
-    } catch (err) {
-      console.error('Error saving project:', err);
-      setError('Failed to save project');
-    }
-  };
-
-  const handleDelete = async (projectId: string) => {
-    if (!window.confirm('Are you sure you want to delete this project?')) {
-      return;
-    }
-
-    try {
-      const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:8080';
-      const response = await fetch(`${apiUrl}/api/v1/projects/${projectId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete project');
-      }
-
-      await fetchProjects();
-    } catch (err) {
-      console.error('Error deleting project:', err);
-      setError('Failed to delete project');
-    }
-  };
-
-  const handleEdit = (project: Project) => {
-    setEditingProject(project);
-    setFormData({
-      name: project.name,
-      description: project.description,
-      repo_url: project.repo_url,
-      live_url: project.live_url || '',
-      tags: project.tags || [],
-      status: project.status
-    });
-    setShowModal(true);
-  };
-
+  const handleEdit = projectsCrud.handleEdit;
+  
   const resetForm = () => {
-    setEditingProject(null);
-    setFormData({
-      name: '',
-      description: '',
-      repo_url: '',
-      live_url: '',
-      tags: [],
-      status: 'draft'
-    });
+    projectsCrud.resetForm();
     setTagInput('');
   };
 
@@ -465,8 +364,8 @@ export const ProjectManager: React.FC = () => {
     if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault();
       const tag = tagInput.trim();
-      if (tag && !formData.tags.includes(tag)) {
-        setFormData(prev => ({
+      if (tag && !projectsCrud.formData.tags.includes(tag)) {
+        projectsCrud.setFormData(prev => ({
           ...prev,
           tags: [...prev.tags, tag]
         }));
@@ -476,13 +375,13 @@ export const ProjectManager: React.FC = () => {
   };
 
   const removeTag = (tagToRemove: string) => {
-    setFormData(prev => ({
+    projectsCrud.setFormData(prev => ({
       ...prev,
       tags: prev.tags.filter(tag => tag !== tagToRemove)
     }));
   };
 
-  if (loading) {
+  if (projectsCrud.loading) {
     return <LoadingSpinner>Loading projects...</LoadingSpinner>;
   }
 
@@ -490,16 +389,16 @@ export const ProjectManager: React.FC = () => {
     <Container>
       <Header>
         <Title>Project Management</Title>
-        <AddButton onClick={() => setShowModal(true)}>
+        <AddButton onClick={projectsCrud.handleCreate}>
           Add New Project
         </AddButton>
       </Header>
 
-      {error && <ErrorMessage>{error}</ErrorMessage>}
+      {projectsCrud.error && <ErrorMessage ref={errorRef}>{projectsCrud.error}</ErrorMessage>}
 
       <ProjectGrid>
         <AnimatePresence>
-          {projects.map((project) => (
+          {projectsCrud.items.map((project) => (
             <ProjectCard
               key={project.id}
               initial={{ opacity: 0, y: 20 }}
@@ -544,28 +443,19 @@ export const ProjectManager: React.FC = () => {
       </ProjectGrid>
 
       <AnimatePresence>
-        {showModal && (
-          <Modal
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowModal(false)}
-          >
-            <ModalContent
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h3>{editingProject ? 'Edit Project' : 'Add New Project'}</h3>
+        <ScrollableModal 
+          isOpen={projectsCrud.showModal} 
+          onClose={() => projectsCrud.setShowModal(false)}
+        >
+          <h3 style={{ marginBottom: '1.5rem' }}>{projectsCrud.editingItem ? 'Edit Project' : 'Add New Project'}</h3>
               
               <Form onSubmit={handleSubmit}>
                 <FormGroup>
                   <Label>Project Name</Label>
                   <Input
                     type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    value={projectsCrud.formData.name}
+                    onChange={(e) => projectsCrud.setFormData(prev => ({ ...prev, name: e.target.value }))}
                     required
                   />
                 </FormGroup>
@@ -573,8 +463,8 @@ export const ProjectManager: React.FC = () => {
                 <FormGroup>
                   <Label>Description</Label>
                   <TextArea
-                    value={formData.description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    value={projectsCrud.formData.description}
+                    onChange={(e) => projectsCrud.setFormData(prev => ({ ...prev, description: e.target.value }))}
                     required
                   />
                 </FormGroup>
@@ -583,8 +473,8 @@ export const ProjectManager: React.FC = () => {
                   <Label>Repository URL</Label>
                   <Input
                     type="url"
-                    value={formData.repo_url}
-                    onChange={(e) => setFormData(prev => ({ ...prev, repo_url: e.target.value }))}
+                    value={projectsCrud.formData.repo_url}
+                    onChange={(e) => projectsCrud.setFormData(prev => ({ ...prev, repo_url: e.target.value }))}
                     required
                   />
                 </FormGroup>
@@ -593,16 +483,16 @@ export const ProjectManager: React.FC = () => {
                   <Label>Live URL (Optional)</Label>
                   <Input
                     type="url"
-                    value={formData.live_url}
-                    onChange={(e) => setFormData(prev => ({ ...prev, live_url: e.target.value }))}
+                    value={projectsCrud.formData.live_url}
+                    onChange={(e) => projectsCrud.setFormData(prev => ({ ...prev, live_url: e.target.value }))}
                   />
                 </FormGroup>
 
                 <FormGroup>
                   <Label>Status</Label>
                   <Select
-                    value={formData.status}
-                    onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as any }))}
+                    value={projectsCrud.formData.status}
+                    onChange={(e) => projectsCrud.setFormData(prev => ({ ...prev, status: e.target.value as any }))}
                   >
                     <option value="draft">Draft</option>
                     <option value="active">Active</option>
@@ -613,7 +503,7 @@ export const ProjectManager: React.FC = () => {
                 <FormGroup>
                   <Label>Tags (press Enter or comma to add)</Label>
                   <TagInput>
-                    {formData.tags.map((tag) => (
+                    {projectsCrud.formData.tags.map((tag) => (
                       <TagItem key={tag}>
                         {tag}
                         <RemoveTagButton type="button" onClick={() => removeTag(tag)}>
@@ -636,20 +526,18 @@ export const ProjectManager: React.FC = () => {
                     type="button" 
                     variant="secondary" 
                     onClick={() => {
-                      setShowModal(false);
+                      projectsCrud.setShowModal(false);
                       resetForm();
                     }}
                   >
                     Cancel
                   </ModalButton>
                   <ModalButton type="submit" variant="primary">
-                    {editingProject ? 'Update' : 'Create'}
+                    {projectsCrud.editingItem ? 'Update' : 'Create'}
                   </ModalButton>
                 </ModalActions>
               </Form>
-            </ModalContent>
-          </Modal>
-        )}
+        </ScrollableModal>
       </AnimatePresence>
     </Container>
   );
