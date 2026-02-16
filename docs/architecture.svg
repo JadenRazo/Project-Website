@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0d1117"/>
+      <stop offset="100%" stop-color="#161b22"/>
+    </linearGradient>
+    <marker id="arrowGreen" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto"><path d="M0,0 L12,5 L0,10 L3,5Z" fill="#4ade80"/></marker>
+    <marker id="arrowBlue" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto"><path d="M0,0 L12,5 L0,10 L3,5Z" fill="#60a5fa"/></marker>
+    <marker id="arrowAmber" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto"><path d="M0,0 L12,5 L0,10 L3,5Z" fill="#fbbf24"/></marker>
+    <marker id="arrowCyan" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto"><path d="M0,0 L12,5 L0,10 L3,5Z" fill="#22d3ee"/></marker>
+    <marker id="arrowPurple" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto"><path d="M0,0 L12,5 L0,10 L3,5Z" fill="#c084fc"/></marker>
+  </defs>
+
+  <rect width="1200" height="900" rx="12" fill="url(#bgGrad)"/>
+
+  <text x="600" y="42" text-anchor="middle" fill="#f0f6fc" font-size="26" font-weight="700">Project-Website Architecture</text>
+  <text x="600" y="68" text-anchor="middle" fill="#9198a1" font-size="14">React frontend — Nginx reverse proxy — Go microservices — PostgreSQL + Redis</text>
+
+  <!-- ═══ React Frontend ═══ -->
+  <rect x="30" y="90" width="1140" height="190" rx="12" fill="#1c2333" stroke="#60a5fa" stroke-width="2"/>
+  <text x="600" y="118" text-anchor="middle" fill="#93c5fd" font-size="18" font-weight="700">React Frontend (TypeScript)</text>
+
+  <rect x="50" y="132" width="350" height="130" rx="8" fill="#0d1b2a" stroke="#60a5fa" stroke-width="1.2"/>
+  <text x="225" y="156" text-anchor="middle" fill="#93c5fd" font-size="14" font-weight="600">Pages</text>
+  <text x="70" y="178" fill="#c9d1d9" font-size="12">Home / Portfolio / About / Blog</text>
+  <text x="70" y="198" fill="#c9d1d9" font-size="12">URL Shortener / Messaging</text>
+  <text x="70" y="218" fill="#c9d1d9" font-size="12">DevPanel / Admin Dashboard</text>
+  <text x="70" y="238" fill="#c9d1d9" font-size="12">Visitor Analytics / Live Chat</text>
+
+  <rect x="420" y="132" width="350" height="130" rx="8" fill="#0d1b2a" stroke="#60a5fa" stroke-width="1.2"/>
+  <text x="595" y="156" text-anchor="middle" fill="#93c5fd" font-size="14" font-weight="600">Shared Components</text>
+  <text x="440" y="178" fill="#c9d1d9" font-size="12">Navbar / Footer / ErrorBoundary</text>
+  <text x="440" y="198" fill="#c9d1d9" font-size="12">MarkdownRenderer / CodeBlock</text>
+  <text x="440" y="218" fill="#c9d1d9" font-size="12">Form components / Toast system</text>
+  <text x="440" y="238" fill="#c9d1d9" font-size="12">Theme provider / Auth context</text>
+
+  <rect x="790" y="132" width="370" height="130" rx="8" fill="#0d1b2a" stroke="#60a5fa" stroke-width="1.2"/>
+  <text x="975" y="156" text-anchor="middle" fill="#93c5fd" font-size="14" font-weight="600">State &amp; Services</text>
+  <text x="810" y="178" fill="#c9d1d9" font-size="12">React Router v6 (client-side routing)</text>
+  <text x="810" y="198" fill="#c9d1d9" font-size="12">Context API (auth, theme, toast)</text>
+  <text x="810" y="218" fill="#c9d1d9" font-size="12">WebSocket client (live messaging)</text>
+  <text x="810" y="238" fill="#c9d1d9" font-size="12">API service layer (fetch wrappers)</text>
+
+  <!-- Arrow -->
+  <path d="M600,280 L600,310" stroke="#fbbf24" stroke-width="3" marker-end="url(#arrowAmber)" fill="none"/>
+
+  <!-- ═══ Nginx ═══ -->
+  <rect x="30" y="310" width="1140" height="60" rx="12" fill="#1c2333" stroke="#fbbf24" stroke-width="2"/>
+  <text x="600" y="348" text-anchor="middle" fill="#fbbf24" font-size="16" font-weight="700">Nginx Reverse Proxy  —  :80 / :443  —  SSL termination, static files, proxy_pass to backend</text>
+
+  <path d="M600,370 L600,400" stroke="#fbbf24" stroke-width="3" marker-end="url(#arrowAmber)" fill="none"/>
+
+  <!-- ═══ Go Microservices ═══ -->
+  <rect x="30" y="400" width="1140" height="210" rx="12" fill="#1c2333" stroke="#22d3ee" stroke-width="2"/>
+  <text x="600" y="428" text-anchor="middle" fill="#67e8f9" font-size="18" font-weight="700">Go Backend Microservices</text>
+
+  <rect x="50" y="444" width="210" height="80" rx="8" fill="#0e2a32" stroke="#22d3ee" stroke-width="1.2"/>
+  <text x="155" y="468" text-anchor="middle" fill="#67e8f9" font-size="14" font-weight="600">Main API  :8080</text>
+  <text x="70" y="488" fill="#c9d1d9" font-size="11">Portfolio, blog, projects</text>
+  <text x="70" y="504" fill="#c9d1d9" font-size="11">Visitor tracking, analytics</text>
+
+  <rect x="280" y="444" width="210" height="80" rx="8" fill="#0e2a32" stroke="#22d3ee" stroke-width="1.2"/>
+  <text x="385" y="468" text-anchor="middle" fill="#67e8f9" font-size="14" font-weight="600">DevPanel  :8081</text>
+  <text x="300" y="488" fill="#c9d1d9" font-size="11">Admin dashboard</text>
+  <text x="300" y="504" fill="#c9d1d9" font-size="11">Content management</text>
+
+  <rect x="510" y="444" width="210" height="80" rx="8" fill="#0e2a32" stroke="#22d3ee" stroke-width="1.2"/>
+  <text x="615" y="468" text-anchor="middle" fill="#67e8f9" font-size="14" font-weight="600">Messaging  :8082</text>
+  <text x="530" y="488" fill="#c9d1d9" font-size="11">WebSocket real-time chat</text>
+  <text x="530" y="504" fill="#c9d1d9" font-size="11">Contact forms, threads</text>
+
+  <rect x="740" y="444" width="210" height="80" rx="8" fill="#0e2a32" stroke="#22d3ee" stroke-width="1.2"/>
+  <text x="845" y="468" text-anchor="middle" fill="#67e8f9" font-size="14" font-weight="600">URL Shortener  :8083</text>
+  <text x="760" y="488" fill="#c9d1d9" font-size="11">Short URL generation</text>
+  <text x="760" y="504" fill="#c9d1d9" font-size="11">Click tracking, analytics</text>
+
+  <rect x="970" y="444" width="190" height="80" rx="8" fill="#0e2a32" stroke="#c084fc" stroke-width="1.2"/>
+  <text x="1065" y="468" text-anchor="middle" fill="#d8b4fe" font-size="14" font-weight="600">Shared Infra</text>
+  <text x="990" y="488" fill="#c9d1d9" font-size="11">JWT auth middleware</text>
+  <text x="990" y="504" fill="#c9d1d9" font-size="11">Rate limiter, CORS</text>
+
+  <rect x="50" y="536" width="1110" height="36" rx="6" fill="#172032"/>
+  <text x="600" y="560" text-anchor="middle" fill="#9198a1" font-size="12" font-weight="600">Circuit breaker  ·  Structured logging  ·  Graceful shutdown  ·  Health checks  ·  CORS  ·  Helmet</text>
+
+  <!-- Arrows to data -->
+  <path d="M300,610 L300,640" stroke="#4ade80" stroke-width="3" marker-end="url(#arrowGreen)" fill="none"/>
+  <path d="M600,610 L600,640" stroke="#4ade80" stroke-width="3" marker-end="url(#arrowGreen)" fill="none"/>
+  <path d="M900,610 L900,640" stroke="#4ade80" stroke-width="3" marker-end="url(#arrowGreen)" fill="none"/>
+
+  <!-- ═══ Data Layer ═══ -->
+  <rect x="30" y="640" width="1140" height="110" rx="12" fill="#1c2333" stroke="#4ade80" stroke-width="2"/>
+  <text x="600" y="668" text-anchor="middle" fill="#4ade80" font-size="18" font-weight="700">Data Layer</text>
+
+  <rect x="50" y="682" width="260" height="50" rx="8" fill="#1a2e1a" stroke="#4ade80" stroke-width="1.2"/>
+  <text x="180" y="706" text-anchor="middle" fill="#86efac" font-size="14" font-weight="600">PostgreSQL</text>
+  <text x="180" y="722" text-anchor="middle" fill="#9198a1" font-size="11">Users, URLs, messages, analytics</text>
+
+  <rect x="330" y="682" width="260" height="50" rx="8" fill="#1a2e1a" stroke="#4ade80" stroke-width="1.2"/>
+  <text x="460" y="706" text-anchor="middle" fill="#86efac" font-size="14" font-weight="600">Redis</text>
+  <text x="460" y="722" text-anchor="middle" fill="#9198a1" font-size="11">Session cache, rate limits, sockets</text>
+
+  <rect x="610" y="682" width="260" height="50" rx="8" fill="#1a2e1a" stroke="#4ade80" stroke-width="1.2"/>
+  <text x="740" y="706" text-anchor="middle" fill="#86efac" font-size="14" font-weight="600">Prometheus</text>
+  <text x="740" y="722" text-anchor="middle" fill="#9198a1" font-size="11">Metrics collection, /metrics</text>
+
+  <rect x="890" y="682" width="270" height="50" rx="8" fill="#1a2e1a" stroke="#4ade80" stroke-width="1.2"/>
+  <text x="1025" y="706" text-anchor="middle" fill="#86efac" font-size="14" font-weight="600">Grafana</text>
+  <text x="1025" y="722" text-anchor="middle" fill="#9198a1" font-size="11">Dashboards, alerts, visualization</text>
+
+  <!-- ═══ Deploy ═══ -->
+  <rect x="30" y="770" width="1140" height="60" rx="12" fill="#1c2333" stroke="#7d8590" stroke-width="1.5"/>
+  <text x="600" y="808" text-anchor="middle" fill="#f0f6fc" font-size="15" font-weight="700">Docker Compose  ·  3 isolated networks (internal / external / monitoring)  ·  Localhost-only ports  ·  Health checks</text>
+
+  <text x="600" y="870" text-anchor="middle" fill="#7d8590" font-size="12">Go 1.21+  ·  React 18  ·  TypeScript  ·  PostgreSQL 14  ·  Redis 7  ·  Nginx  ·  Prometheus + Grafana</text>
+</svg>
