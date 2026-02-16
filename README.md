@@ -4,6 +4,22 @@
 
 My full-stack portfolio website with 5 independent Go microservices. It includes a modern React frontend and a Go-based backend architecture with separate microservice processes for URL shortening, messaging, developer panel, visitor analytics, and background workers.
 
+## Architecture
+
+![Architecture](docs/architecture.svg)
+
+## Architecture
+
+![Architecture](docs/architecture.svg)
+
+## Architecture
+
+![Architecture](docs/architecture.svg)
+
+## Architecture
+
+![Architecture](docs/architecture.svg)
+
 ## System Requirements
 
 ### Development Environment
