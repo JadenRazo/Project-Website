@@ -8,18 +8,6 @@ My full-stack portfolio website with 5 independent Go microservices. It includes
 
 ![Architecture](docs/architecture.svg)
 
-## Architecture
-
-![Architecture](docs/architecture.svg)
-
-## Architecture
-
-![Architecture](docs/architecture.svg)
-
-## Architecture
-
-![Architecture](docs/architecture.svg)
-
 ## System Requirements
 
 ### Development Environment
