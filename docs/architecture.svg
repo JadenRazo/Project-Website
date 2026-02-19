@@ -22,10 +22,10 @@
 
   <rect x="50" y="132" width="350" height="130" rx="8" fill="#0d1b2a" stroke="#60a5fa" stroke-width="1.2"/>
   <text x="225" y="156" text-anchor="middle" fill="#93c5fd" font-size="14" font-weight="600">Pages</text>
-  <text x="70" y="178" fill="#c9d1d9" font-size="12">Home / Portfolio / About / Blog</text>
+  <text x="70" y="178" fill="#c9d1d9" font-size="12">Home / Projects / About / Contact</text>
   <text x="70" y="198" fill="#c9d1d9" font-size="12">URL Shortener / Messaging</text>
-  <text x="70" y="218" fill="#c9d1d9" font-size="12">DevPanel / Admin Dashboard</text>
-  <text x="70" y="238" fill="#c9d1d9" font-size="12">Visitor Analytics / Live Chat</text>
+  <text x="70" y="218" fill="#c9d1d9" font-size="12">DevPanel / Status Monitor</text>
+  <text x="70" y="238" fill="#c9d1d9" font-size="12">404 Handler / Theme Support</text>
 
   <rect x="420" y="132" width="350" height="130" rx="8" fill="#0d1b2a" stroke="#60a5fa" stroke-width="1.2"/>
   <text x="595" y="156" text-anchor="middle" fill="#93c5fd" font-size="14" font-weight="600">Shared Components</text>
