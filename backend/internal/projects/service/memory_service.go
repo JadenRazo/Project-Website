@@ -105,6 +105,30 @@ func (s *MemoryProjectService) seedData() {
 			CreatedAt:   time.Now().Add(-3 * 24 * time.Hour),
 			UpdatedAt:   time.Now(),
 		},
+		{
+			ID:          uuid.New(),
+			OwnerID:     ownerID,
+			Name:        "Showers Auto Detail",
+			Description: "A mobile-first auto detailing booking platform with instant quotes, online booking, Square payment integration, before/after gallery, and admin dashboard with 2FA authentication.",
+			Status:      project.StatusActive,
+			RepoURL:     "https://github.com/JadenRazo/showersautodetail",
+			LiveURL:     "https://showersautodetail.com",
+			Tags:        []string{"Astro", "React", "Node.js", "PostgreSQL", "Tailwind CSS", "Square API", "Docker"},
+			CreatedAt:   time.Now().Add(-1 * 24 * time.Hour),
+			UpdatedAt:   time.Now(),
+		},
+		{
+			ID:          uuid.New(),
+			OwnerID:     ownerID,
+			Name:        "WeenieSMP - Full-Stack Minecraft Server Ecosystem",
+			Description: "A production-grade Minecraft server ecosystem featuring a Vue 3 website with Tebex e-commerce, Go backend microservices for real-time statistics and leaderboards, MariaDB integration with custom Minecraft plugin data (playtime tracking, land claims, bounty systems), Redis caching layer (60s TTL), multi-domain Nginx routing with TLS 1.3, and comprehensive Docker deployment infrastructure serving 12,000+ registered players.",
+			Status:      project.StatusActive,
+			RepoURL:     "https://github.com/JadenRazo/Project-Website/tree/main/weeniesmp",
+			LiveURL:     "https://weeniesmp.net",
+			Tags:        []string{"Vue 3", "TypeScript", "Go", "MariaDB", "Redis", "Pinia", "Tebex API", "Docker", "Nginx", "Microservices", "TLS", "Tailwind CSS"},
+			CreatedAt:   time.Now().Add(-2 * 24 * time.Hour),
+			UpdatedAt:   time.Now(),
+		},
 	}
 
 	for _, proj := range seedProjects {

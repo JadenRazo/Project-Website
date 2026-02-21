@@ -3,6 +3,9 @@ import styled from 'styled-components';
 import { api } from '../../utils/apiConfig';
 import { handleError } from '../../utils/errorHandler';
 import { useScrollTo } from '../../hooks/useScrollTo';
+import OAuthButtons from './OAuthButtons';
+import { MFAVerification } from './MFAVerification';
+import { LoginResponse } from '../../utils/mfaApi';
 
 interface AdminLoginProps {
   onLoginSuccess: (userData: any) => void;
@@ -352,6 +355,8 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
   const [setupStatus, setSetupStatus] = useState<SetupStatus | null>(null);
   const [showSetup, setShowSetup] = useState(false);
   const [setupStep, setSetupStep] = useState<'request' | 'complete'>('request');
+  const [showMFAVerification, setShowMFAVerification] = useState(false);
+  const [mfaTempToken, setMfaTempToken] = useState('');
   
   // Scroll hooks and refs
   const { scrollToElement } = useScrollTo();
@@ -438,22 +443,42 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
     setError('');
 
     try {
-      const data = await api.post('/api/v1/auth/admin/login', 
-        { email, password }, 
+      const data: LoginResponse = await api.post('/api/v1/auth/admin/login',
+        { email, password },
         { skipAuth: true }
       );
-      
-      api.setAuthToken(data.token);
-      onLoginSuccess(data.user);
+
+      if (data.requires_mfa && data.temp_token) {
+        setMfaTempToken(data.temp_token);
+        setShowMFAVerification(true);
+      } else if (data.token) {
+        api.setAuthToken(data.token);
+        onLoginSuccess(data.user);
+      } else {
+        setError('Invalid response from server');
+      }
     } catch (err) {
       handleError(err, { context: 'AdminLogin.handleLogin' });
-      const message = err instanceof Error && err.message.includes('error') 
-        ? err.message 
+      const message = err instanceof Error && err.message.includes('error')
+        ? err.message
         : 'Network error. Please try again.';
       setError(message);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleMFASuccess = (response: LoginResponse) => {
+    if (response.token) {
+      api.setAuthToken(response.token);
+      onLoginSuccess(response.user);
+    }
+  };
+
+  const handleMFACancel = () => {
+    setShowMFAVerification(false);
+    setMfaTempToken('');
+    setPassword('');
   };
 
   const handleSetupRequest = async (e: React.FormEvent) => {
@@ -518,11 +543,25 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
     }
   };
 
+  if (showMFAVerification && mfaTempToken) {
+    return (
+      <LoginContainer>
+        <LoginCard ref={loginCardRef}>
+          <MFAVerification
+            tempToken={mfaTempToken}
+            onSuccess={handleMFASuccess}
+            onCancel={handleMFACancel}
+          />
+        </LoginCard>
+      </LoginContainer>
+    );
+  }
+
   return (
     <LoginContainer>
       <LoginCard ref={loginCardRef}>
         <LoginTitle>DevPanel Admin Access</LoginTitle>
-        
+
         {setupStatus?.hasAdmin ? (
           <>
             <Form onSubmit={handleLogin}>
@@ -553,10 +592,12 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
               </InputGroup>
               
               {error && <ErrorMessage ref={errorRef}>{error}</ErrorMessage>}
-              
+
               <Button type="submit" disabled={loading}>
                 {loading ? 'Signing in...' : 'Sign In'}
               </Button>
+
+              <OAuthButtons disabled={loading} />
             </Form>
           </>
         ) : showSetup ? (

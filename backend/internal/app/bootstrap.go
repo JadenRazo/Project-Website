@@ -19,26 +19,31 @@ import (
 	"github.com/JadenRazo/Project-Website/backend/internal/common/metrics"
 	"github.com/JadenRazo/Project-Website/backend/internal/common/storage"
 	"github.com/JadenRazo/Project-Website/backend/internal/common/tracing"
+	mcstatshttp "github.com/JadenRazo/Project-Website/backend/internal/mcstats/delivery/http"
+	mcstatsrepo "github.com/JadenRazo/Project-Website/backend/internal/mcstats/repository"
+	mcstatsservice "github.com/JadenRazo/Project-Website/backend/internal/mcstats/service"
 )
 
 // Application represents the main application structure
 type Application struct {
 	Config         *config.Config
 	Server         *server.Server
-	DB             *database.DB
+	DB             database.Database
 	Cache          cache.Cache
 	MetricsManager *metrics.Manager
 	Tracer         *tracing.Tracer
 	Storage        *storage.Provider
 	Auth           *auth.Auth
 	HealthChecker  *health.Health
+	MCStatsHandler *mcstatshttp.Handler
+	MariaDB        *mcstatsrepo.MariaDB
 	ShutdownCh     chan os.Signal
 }
 
 // New creates a new application instance
 func New(cfg *config.Config) (*Application, error) {
 	// Initialize logger
-	if err := logger.Setup(cfg.Logger); err != nil {
+	if err := logger.InitLogger(&cfg.Logging, cfg.App.Name, cfg.App.Version); err != nil {
 		return nil, fmt.Errorf("failed to setup logger: %w", err)
 	}
 
@@ -60,7 +65,7 @@ func (a *Application) Boot() error {
 	startTime := time.Now()
 
 	// Initialize database
-	db, err := database.New(a.Config.Database)
+	db, err := database.NewDatabase(&a.Config.Database)
 	if err != nil {
 		return fmt.Errorf("failed to initialize database: %w", err)
 	}
@@ -68,11 +73,25 @@ func (a *Application) Boot() error {
 	logger.Info("Database initialized")
 
 	// Initialize cache
-	a.Cache, err = cache.NewCache(a.Config.Cache)
+	a.Cache, err = cache.NewCache(&a.Config.Cache)
 	if err != nil {
 		return fmt.Errorf("failed to initialize cache: %w", err)
 	}
 	logger.Info("Cache initialized")
+
+	// Initialize MariaDB for MC stats (optional)
+	if a.Config.MariaDB.Enabled {
+		mariadb, err := mcstatsrepo.NewMariaDB(&a.Config.MariaDB)
+		if err != nil {
+			logger.Warnf("MariaDB initialization failed (mcstats disabled): %v", err)
+		} else {
+			a.MariaDB = mariadb
+			statsRepo := mcstatsrepo.NewStatsRepository(mariadb)
+			statsService := mcstatsservice.NewStatsService(statsRepo, a.Cache)
+			a.MCStatsHandler = mcstatshttp.NewHandler(statsService)
+			logger.Info("MariaDB and MC Stats initialized")
+		}
+	}
 
 	// Initialize metrics
 	metricsManager, err := metrics.NewManager(a.Config.Metrics)
@@ -107,14 +126,17 @@ func (a *Application) Boot() error {
 	logger.Info("Authentication initialized")
 
 	// Initialize health checker
-	healthChecker := health.New()
-	healthChecker.AddCheck("database", a.DB.HealthCheck)
-	healthChecker.AddCheck("cache", a.Cache.HealthCheck)
+	healthChecker := health.NewHealth(a.Config.App.Version)
+	healthChecker.AddChecker(health.NewDatabaseChecker(a.DB))
+	healthChecker.AddChecker(health.NewCacheChecker(a.Cache))
+	if a.MariaDB != nil {
+		healthChecker.AddChecker(health.NewMariaDBChecker(a.MariaDB.Ping))
+	}
 	a.HealthChecker = healthChecker
 	logger.Info("Health checker initialized")
 
 	// Initialize HTTP server
-	srv, err := server.New(a.Config, a.DB, a.Cache, a.Auth, a.MetricsManager, a.HealthChecker)
+	srv, err := server.New(a.Config, a.DB, a.Cache, a.Auth, a.MetricsManager, a.HealthChecker, a.MCStatsHandler)
 	if err != nil {
 		return fmt.Errorf("failed to initialize server: %w", err)
 	}
@@ -196,6 +218,15 @@ func (a *Application) Shutdown() error {
 			logger.Errorf("Error closing cache: %v", err)
 		} else {
 			logger.Info("Cache connection closed")
+		}
+	}
+
+	// Close MariaDB connection
+	if a.MariaDB != nil {
+		if err := a.MariaDB.Close(); err != nil {
+			logger.Errorf("Error closing MariaDB: %v", err)
+		} else {
+			logger.Info("MariaDB connection closed")
 		}
 	}
 

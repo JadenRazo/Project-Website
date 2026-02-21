@@ -405,7 +405,8 @@ setup_frontend() {
         log "Clearing frontend caches..."
         npm run clear-cache 2>/dev/null || {
             log "Manual cache clearing..."
-            rm -rf node_modules/.cache 2>/dev/null || true
+            rm -rf node_modules/.vite 2>/dev/null || true
+            rm -rf .vite 2>/dev/null || true
             rm -rf build 2>/dev/null || true
             rm -f .eslintcache 2>/dev/null || true
             rm -f tsconfig.tsbuildinfo 2>/dev/null || true
@@ -444,7 +445,7 @@ start_frontend() {
     if [ "$FORCE_FRESH" = true ]; then
         tmux send-keys -t "$FRONTEND_SESSION" "npm run dev:fresh" Enter
     else
-        tmux send-keys -t "$FRONTEND_SESSION" "npm start" Enter
+        tmux send-keys -t "$FRONTEND_SESSION" "npm run dev" Enter
     fi
     
     # Send 'y' after a short delay in case there's a port prompt

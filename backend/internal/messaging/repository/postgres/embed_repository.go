@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/JadenRazo/Project-Website/backend/internal/domain"
-	"github.com/JadenRazo/Project-Website/backend/internal/messaging/repository"
+	msgerrors "github.com/JadenRazo/Project-Website/backend/internal/messaging/errors"
 	"gorm.io/gorm"
 )
 
@@ -16,7 +16,7 @@ type EmbedRepo struct {
 }
 
 // NewEmbedRepository creates a new PostgreSQL embed repository
-func NewEmbedRepository(db *gorm.DB) repository.EmbedRepository {
+func NewEmbedRepository(db *gorm.DB) *EmbedRepo {
 	return &EmbedRepo{
 		db: db,
 	}
@@ -41,7 +41,7 @@ func (r *EmbedRepo) FindByID(ctx context.Context, id uint) (*domain.MessagingEmb
 		First(&embed, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, repository.ErrNotFound
+			return nil, msgerrors.ErrNotFound
 		}
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func (r *EmbedRepo) Delete(ctx context.Context, id uint) error {
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
-		return repository.ErrNotFound
+		return msgerrors.ErrNotFound
 	}
 	return nil
 }
@@ -92,7 +92,7 @@ func (r *EmbedRepo) GetEmbedByURL(ctx context.Context, url string) (*domain.Mess
 		First(&embed).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, repository.ErrNotFound
+			return nil, msgerrors.ErrNotFound
 		}
 		return nil, err
 	}

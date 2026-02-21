@@ -3,7 +3,7 @@ package oauth
 import (
 	"fmt"
 
-	"project-website/backend/internal/common/auth"
+	"github.com/JadenRazo/Project-Website/backend/internal/common/auth"
 )
 
 type OAuthManager struct {

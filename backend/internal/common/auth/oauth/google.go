@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -34,14 +35,35 @@ func (p *GoogleProvider) GetName() string {
 	return "google"
 }
 
-// GetAuthURL generates the OAuth authorization URL
-func (p *GoogleProvider) GetAuthURL(state string) string {
-	return p.config.AuthCodeURL(state, oauth2.AccessTypeOffline, oauth2.ApprovalForce)
+// GetAuthURL generates the OAuth authorization URL with PKCE and nonce
+func (p *GoogleProvider) GetAuthURL(state, nonce string) (*AuthURLResponse, error) {
+	verifier := oauth2.GenerateVerifier()
+
+	url := p.config.AuthCodeURL(
+		state,
+		oauth2.AccessTypeOffline,
+		oauth2.ApprovalForce,
+		oauth2.S256ChallengeOption(verifier),
+		oauth2.SetAuthURLParam("nonce", nonce),
+	)
+
+	return &AuthURLResponse{
+		URL:      url,
+		Verifier: verifier,
+	}, nil
 }
 
-// ExchangeCode exchanges the authorization code for tokens
-func (p *GoogleProvider) ExchangeCode(ctx context.Context, code string) (*TokenResponse, error) {
-	token, err := p.config.Exchange(ctx, code)
+// ExchangeCode exchanges the authorization code for tokens with PKCE verification
+func (p *GoogleProvider) ExchangeCode(ctx context.Context, code, verifier string) (*TokenResponse, error) {
+	var token *oauth2.Token
+	var err error
+
+	if verifier != "" {
+		token, err = p.config.Exchange(ctx, code, oauth2.VerifierOption(verifier))
+	} else {
+		token, err = p.config.Exchange(ctx, code)
+	}
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to exchange code: %w", err)
 	}
@@ -49,7 +71,7 @@ func (p *GoogleProvider) ExchangeCode(ctx context.Context, code string) (*TokenR
 	return &TokenResponse{
 		AccessToken:  token.AccessToken,
 		RefreshToken: token.RefreshToken,
-		ExpiresIn:    int64(token.Expiry.Sub(token.Expiry).Seconds()),
+		ExpiresIn:    int64(time.Until(token.Expiry).Seconds()),
 		TokenType:    token.TokenType,
 	}, nil
 }
@@ -113,7 +135,7 @@ func (p *GoogleProvider) RefreshToken(ctx context.Context, refreshToken string) 
 	return &TokenResponse{
 		AccessToken:  newToken.AccessToken,
 		RefreshToken: newToken.RefreshToken,
-		ExpiresIn:    int64(newToken.Expiry.Sub(newToken.Expiry).Seconds()),
+		ExpiresIn:    int64(time.Until(newToken.Expiry).Seconds()),
 		TokenType:    newToken.TokenType,
 	}, nil
 }

@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/JadenRazo/Project-Website/backend/internal/common/response"
 	"github.com/JadenRazo/Project-Website/backend/internal/core"
 	"github.com/JadenRazo/Project-Website/backend/internal/devpanel/project"
 	projectservice "github.com/JadenRazo/Project-Website/backend/internal/projects/service"
@@ -131,10 +132,10 @@ func (s *Service) RegisterRoutes(router *gin.RouterGroup) {
 func (s *Service) getSystemStats(c *gin.Context) {
 	stats, err := s.collectSystemStats()
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		response.SendInternalError(c, "Failed to collect system stats", err)
 		return
 	}
-	c.JSON(200, stats)
+	response.SendSuccess(c, stats)
 }
 
 // getServices returns information about all services
@@ -150,7 +151,7 @@ func (s *Service) getServices(c *gin.Context) {
 		stats = append(stats, serviceStats)
 	}
 
-	c.JSON(200, stats)
+	response.SendSuccess(c, stats)
 }
 
 // getServiceStats returns detailed statistics for a specific service
@@ -159,17 +160,17 @@ func (s *Service) getServiceStats(c *gin.Context) {
 	services := s.serviceManager.GetAllServices()
 	service, exists := services[name]
 	if !exists {
-		c.JSON(404, gin.H{"error": "service not found"})
+		response.SendError(c, 404, "service not found", nil)
 		return
 	}
 
 	stats, err := s.collectServiceStats(name, service)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		response.SendInternalError(c, "Failed to collect service stats", err)
 		return
 	}
 
-	c.JSON(200, stats)
+	response.SendSuccess(c, stats)
 }
 
 // collectSystemStats gathers real system-wide statistics

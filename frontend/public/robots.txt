@@ -1,3 +1,8 @@
-# https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /devpanel
+Disallow: /messaging
+Disallow: /urlshortener
+Disallow: /api/
+
+Sitemap: https://jadenrazo.dev/sitemap.xml

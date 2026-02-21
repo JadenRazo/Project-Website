@@ -3,6 +3,7 @@ package auth
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/smtp"
@@ -34,9 +35,12 @@ type AdminLoginRequest struct {
 }
 
 type AdminLoginResponse struct {
-	Token     string     `json:"token"`
-	User      *AdminUser `json:"user"`
-	ExpiresIn int64      `json:"expires_in"`
+	Token       string     `json:"token,omitempty"`
+	User        *AdminUser `json:"user,omitempty"`
+	ExpiresIn   int64      `json:"expires_in,omitempty"`
+	RequiresMFA bool       `json:"requires_mfa"`
+	MFAType     string     `json:"mfa_type,omitempty"`
+	TempToken   string     `json:"temp_token,omitempty"`
 }
 
 type AdminUser struct {
@@ -53,11 +57,16 @@ type SetupRequest struct {
 	SetupToken      string `json:"setup_token" binding:"required"`
 }
 
+type MFAVerificationRequest struct {
+	TempToken    string `json:"temp_token" binding:"required"`
+	MFACode      string `json:"mfa_code" binding:"required"`
+	IsBackupCode bool   `json:"is_backup_code"`
+}
+
 func NewAdminAuth(db *gorm.DB) *AdminAuth {
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
-		// Fallback to a default secret (not recommended for production)
-		jwtSecret = "default-secret-change-in-production"
+		panic("JWT_SECRET environment variable is required but not set")
 	}
 	return &AdminAuth{
 		db:        db,
@@ -108,6 +117,20 @@ func (a *AdminAuth) Login(req *AdminLoginRequest) (*AdminLoginResponse, error) {
 		return nil, errors.New("invalid credentials")
 	}
 
+	// Check if TOTP MFA is enabled
+	if user.TOTPEnabled {
+		tempToken, err := a.GenerateTempToken(&user)
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate temp token: %v", err)
+		}
+
+		return &AdminLoginResponse{
+			RequiresMFA: true,
+			MFAType:     "totp",
+			TempToken:   tempToken,
+		}, nil
+	}
+
 	// Generate JWT token
 	token, expiresIn, err := a.GenerateToken(&user)
 	if err != nil {
@@ -119,8 +142,9 @@ func (a *AdminAuth) Login(req *AdminLoginRequest) (*AdminLoginResponse, error) {
 	a.db.Save(&user)
 
 	return &AdminLoginResponse{
-		Token:     token,
-		ExpiresIn: expiresIn,
+		RequiresMFA: false,
+		Token:       token,
+		ExpiresIn:   expiresIn,
 		User: &AdminUser{
 			ID:       user.ID.String(),
 			Email:    user.Email,
@@ -230,13 +254,15 @@ func (a *AdminAuth) CompleteSetup(req *SetupRequest) error {
 		return errors.New("passwords do not match")
 	}
 
-	// Verify setup token (in production, store tokens in database with expiration)
-	// For now, we'll use a simple validation
-	if len(req.SetupToken) < 20 {
+	expectedToken := os.Getenv("ADMIN_SETUP_TOKEN")
+	if expectedToken == "" {
+		return errors.New("admin setup is disabled")
+	}
+
+	if req.SetupToken != expectedToken {
 		return errors.New("invalid setup token")
 	}
 
-	// Check if admin already exists
 	var existingUser entity.User
 	err := a.db.Where("email = ?", req.Email).First(&existingUser).Error
 	if err == nil {
@@ -246,7 +272,6 @@ func (a *AdminAuth) CompleteSetup(req *SetupRequest) error {
 		return fmt.Errorf("database error: %v", err)
 	}
 
-	// Create admin user
 	username := strings.Split(req.Email, "@")[0]
 	user, err := entity.NewUser(req.Email, username, req.Password, "Administrator")
 	if err != nil {
@@ -271,4 +296,129 @@ func (a *AdminAuth) HasAdminAccount() (bool, error) {
 		return false, err
 	}
 	return count > 0, nil
+}
+
+func (a *AdminAuth) GenerateTempToken(user *entity.User) (string, error) {
+	expiresIn := 5 * time.Minute
+	claims := &AdminClaims{
+		UserID:  user.ID.String(),
+		Email:   user.Email,
+		Role:    string(user.Role),
+		IsAdmin: false,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(expiresIn).Unix(),
+			IssuedAt:  time.Now().Unix(),
+			Subject:   "mfa-pending",
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString([]byte(a.jwtSecret))
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
+}
+
+func (a *AdminAuth) VerifyMFAAndLogin(req *MFAVerificationRequest, totpService interface {
+	ValidateToken(secret, token string) bool
+	ValidateBackupCode(hashedCodesJSON, inputCode string) (int, bool)
+	MarkBackupCodeUsed(hashedCodesJSON string, index int) (string, error)
+}, encryptor interface {
+	Decrypt(encoded string) (string, error)
+}) (*AdminLoginResponse, error) {
+	claims, err := a.ValidateToken(req.TempToken)
+	if err != nil {
+		return nil, errors.New("invalid or expired temp token")
+	}
+
+	if claims.Subject != "mfa-pending" {
+		return nil, errors.New("invalid temp token type")
+	}
+
+	var user entity.User
+	err = a.db.Where("id = ?", claims.UserID).First(&user).Error
+	if err != nil {
+		return nil, errors.New("user not found")
+	}
+
+	if !user.TOTPEnabled || user.TOTPSecret == nil {
+		return nil, errors.New("MFA not enabled for this account")
+	}
+
+	decryptedSecret, err := encryptor.Decrypt(*user.TOTPSecret)
+	if err != nil {
+		return nil, errors.New("failed to decrypt TOTP secret")
+	}
+
+	var verified bool
+	if req.IsBackupCode {
+		if user.TOTPBackupCodes == nil {
+			return nil, errors.New("no backup codes available")
+		}
+
+		index, valid := totpService.ValidateBackupCode(*user.TOTPBackupCodes, req.MFACode)
+		if !valid {
+			a.logMFAEvent(user.ID.String(), "recovery_failed", true)
+			return nil, errors.New("invalid backup code")
+		}
+
+		updatedCodes, err := totpService.MarkBackupCodeUsed(*user.TOTPBackupCodes, index)
+		if err != nil {
+			return nil, errors.New("failed to mark backup code as used")
+		}
+
+		user.TOTPBackupCodes = &updatedCodes
+		user.TOTPRecoveryUsed++
+		a.db.Save(&user)
+
+		a.logMFAEvent(user.ID.String(), "recovery_used", true)
+		verified = true
+	} else {
+		verified = totpService.ValidateToken(decryptedSecret, req.MFACode)
+		if !verified {
+			a.logMFAEvent(user.ID.String(), "failed", false)
+			return nil, errors.New("invalid TOTP code")
+		}
+		a.logMFAEvent(user.ID.String(), "verified", true)
+	}
+
+	if !verified {
+		return nil, errors.New("MFA verification failed")
+	}
+
+	token, expiresIn, err := a.GenerateToken(&user)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate token: %v", err)
+	}
+
+	user.RecordLogin()
+	a.db.Save(&user)
+
+	return &AdminLoginResponse{
+		RequiresMFA: false,
+		Token:       token,
+		ExpiresIn:   expiresIn,
+		User: &AdminUser{
+			ID:       user.ID.String(),
+			Email:    user.Email,
+			IsAdmin:  user.IsAdmin(),
+			Username: user.Username,
+		},
+	}, nil
+}
+
+func (a *AdminAuth) logMFAEvent(userID, eventType string, success bool) {
+	metadataJSON, _ := json.Marshal(map[string]interface{}{})
+
+	event := map[string]interface{}{
+		"user_id":    userID,
+		"event_type": eventType,
+		"success":    success,
+		"metadata":   metadataJSON,
+		"created_at": time.Now(),
+	}
+
+	a.db.Table("mfa_events").Create(event)
 }

@@ -13,8 +13,7 @@ alerting:
 
 # Load rules once and periodically evaluate them
 rule_files:
-  # - "first_rules.yml"
-  # - "second_rules.yml"
+  - "alerts.yml"
 
 # Scrape configurations
 scrape_configs:
@@ -23,40 +22,49 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
-  # Backend API metrics
+  # API Service metrics
   - job_name: 'backend-api'
     metrics_path: '/metrics'
     static_configs:
-      - targets: ['backend:8080']
+      - targets: ['api:8080']
         labels:
           service: 'api'
           environment: 'production'
 
-  # DevPanel metrics
+  # DevPanel Service metrics
   - job_name: 'backend-devpanel'
     metrics_path: '/metrics'
     static_configs:
-      - targets: ['backend:8081']
+      - targets: ['devpanel:8081']
         labels:
           service: 'devpanel'
           environment: 'production'
 
-  # Messaging service metrics
+  # Messaging Service metrics
   - job_name: 'backend-messaging'
     metrics_path: '/metrics'
     static_configs:
-      - targets: ['backend:8082']
+      - targets: ['messaging:8082']
         labels:
           service: 'messaging'
           environment: 'production'
 
-  # URL Shortener metrics
+  # URL Shortener Service metrics
   - job_name: 'backend-urlshortener'
     metrics_path: '/metrics'
     static_configs:
-      - targets: ['backend:8083']
+      - targets: ['urlshortener:8083']
         labels:
           service: 'urlshortener'
+          environment: 'production'
+
+  # Worker Service metrics
+  - job_name: 'backend-worker'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['worker:8084']
+        labels:
+          service: 'worker'
           environment: 'production'
 
   # Redis metrics (if Redis exporter is used)

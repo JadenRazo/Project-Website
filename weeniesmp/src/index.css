@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-weenie-darker text-white antialiased;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-black;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-white/20 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-white/30;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-5 py-2.5 bg-weenie-gradient rounded-lg
+           text-sm font-medium text-white transition-all duration-200
+           hover:opacity-90 hover:shadow-lg hover:shadow-weenie-red/20;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center px-5 py-2.5 rounded-lg
+           text-sm font-medium text-white bg-white/10 border border-white/10
+           transition-all duration-200 hover:bg-white/15 hover:border-white/20;
+  }
+
+  .card {
+    @apply bg-white/[0.03] backdrop-blur-sm rounded-xl border border-white/5 p-5
+           transition-all duration-200 hover:border-white/10;
+  }
+
+  .gradient-text {
+    @apply bg-weenie-gradient bg-clip-text text-transparent;
+  }
+}

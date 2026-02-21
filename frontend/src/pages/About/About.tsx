@@ -4,9 +4,8 @@ import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import Badge from '../../components/common/Badge';
 import { useScrollTo } from '../../hooks/useScrollTo';
-
-// Import the image using require
-const headshot = require('../../assets/images/headshot.webp');
+import headshot from '../../assets/images/headshot.webp';
+import SEO from '../../components/common/SEO';
 
 const AboutContainer = styled.div`
   min-height: calc(100vh - 200px);
@@ -79,10 +78,11 @@ const Name = styled(motion.h1)`
   margin-bottom: ${({ theme }) => theme.spacing.sm};
 `;
 
-const Title = styled(motion.h2)`
+const Title = styled(motion.p)`
   color: ${({ theme }) => theme.colors.textSecondary};
   font-size: 1.2rem;
   margin-bottom: ${({ theme }) => theme.spacing.md};
+  font-weight: 600;
 `;
 
 const MainContent = styled.div`
@@ -105,7 +105,7 @@ const Section = styled(motion.section)`
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 `;
 
-const SectionTitle = styled.h3`
+const SectionTitle = styled.h2`
   color: ${({ theme }) => theme.colors.primary};
   font-size: 1.5rem;
   margin-bottom: ${({ theme }) => theme.spacing.lg};
@@ -163,13 +163,13 @@ const ExperienceItem = styled(motion.div)`
   }
 `;
 
-const ExperienceTitle = styled.h4`
+const ExperienceTitle = styled.h3`
   color: ${({ theme }) => theme.colors.text};
   font-size: 1.2rem;
   margin-bottom: ${({ theme }) => theme.spacing.xs};
 `;
 
-const ExperienceCompany = styled.h5`
+const ExperienceCompany = styled.h4`
   color: ${({ theme }) => theme.colors.primary};
   font-size: 1.1rem;
   margin-bottom: ${({ theme }) => theme.spacing.xs};
@@ -255,7 +255,7 @@ const CertificationCard = styled(motion.div)`
   }
 `;
 
-const CertificationName = styled.h4`
+const CertificationName = styled.h3`
   color: ${({ theme }) => theme.colors.text};
   font-size: 1.1rem;
   margin-bottom: ${({ theme }) => theme.spacing.xs};
@@ -333,10 +333,10 @@ const experienceItemVariants = {
 const ExperienceSection = () => {
   // Experience lines data
   const experienceLines = useMemo(() => [
-    "• Developed and maintained multiple full-stack SaaS applications using React, HTML, CSS, TypeScript, Python, and Go",
-    "• Implemented microservices architecture for scalable backend solutions",
-    "• Created efficient CI/CD pipelines using GitHub Actions and Docker",
-    "• Designed and implemented RESTful APIs and WebSocket services"
+    "• Built client booking platform (Showers Auto Detail) with Square payment integration and admin dashboard",
+    "• Architected 5-microservice backend with Go, PostgreSQL, Redis, and WebSocket real-time features",
+    "• Deployed production applications with Docker, Nginx, TLS, and Prometheus monitoring",
+    "• Integrated LLM APIs (OpenAI, Claude, Gemini) into Discord bot serving multiple communities"
   ], []);
   
   // State for typing animation
@@ -425,7 +425,7 @@ const ExperienceSection = () => {
       <SectionContent>
         <ExperienceItem variants={experienceItemVariants}>
           <ExperienceTitle>Full Stack Developer</ExperienceTitle>
-          <ExperienceCompany>Personal Projects & Freelance</ExperienceCompany>
+          <ExperienceCompany>Freelance Developer & Independent Projects</ExperienceCompany>
           <ExperienceDate>2020 - Present</ExperienceDate>
           <ExperienceDescription>
             {experienceLines.map((line, lineIndex) => (
@@ -525,8 +525,14 @@ const About: React.FC = () => {
   };
 
   return (
-    <AboutContainer>
-      <ContentWrapper>
+    <>
+      <SEO
+        title="About Jaden Razo | Full Stack Developer Experience & Skills"
+        description="Learn about Jaden Razo's experience as a Full Stack Developer, including expertise in JavaScript, TypeScript, React, Go, Python, Docker, Kubernetes, AWS, and cloud computing technologies."
+        path="/about"
+      />
+      <AboutContainer>
+        <ContentWrapper>
         {/* Profile and Certifications Section */}
         <ProfileSectionWrapper>
           <ProfileSection
@@ -703,7 +709,7 @@ const About: React.FC = () => {
               <ExperienceItem variants={itemVariants}>
                 <ExperienceTitle>B.S Cloud Computing</ExperienceTitle>
                 <ExperienceCompany>Western Governors University</ExperienceCompany>
-                <ExperienceDate>Present</ExperienceDate>
+                <ExperienceDate>2025 - Expected 2026</ExperienceDate>
                 <ExperienceDescription>
                   Focused on cloud computing, cybersecurity and distributed systems. Studying for A+, Security+, Network+.
                 </ExperienceDescription>
@@ -721,6 +727,7 @@ const About: React.FC = () => {
         </MainContent>
       </ContentWrapper>
     </AboutContainer>
+    </>
   );
 };
 

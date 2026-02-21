@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { devtools } from 'zustand/middleware';
+import { devtools, persist } from 'zustand/middleware';
 import { captureMemoryMetrics, monitorMemoryUsage } from '../utils/performance';
 import type { PerformanceState, PerformanceMetrics, ApplicationState } from './types';
 
@@ -27,7 +27,8 @@ let monitoringInterval: NodeJS.Timeout | null = null;
 
 export const usePerformanceStore = create<PerformanceStore>()(
   devtools(
-    (set, get) => ({
+    persist(
+      (set, get) => ({
       memoryUsage: { timestamp: Date.now() },
       isMemoryConstrained: false,
       applicationState: {
@@ -199,7 +200,14 @@ export const usePerformanceStore = create<PerformanceStore>()(
           monitoringInterval = null;
         }
       },
-    }),
+      }),
+      {
+        name: 'performance-settings',
+        partialize: (state) => ({
+          applicationState: state.applicationState,
+        }),
+      }
+    ),
     { name: 'performance-store' }
   )
 );

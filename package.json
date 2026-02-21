@@ -15,17 +15,25 @@
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
-    "npm-watch": "^0.13.0"  
+    "npm-watch": "^0.13.0"
   },
   "watch": {
     "build": {
-      "patterns": ["frontend/src", "frontend/components", "frontend/pages"],
+      "patterns": [
+        "frontend/src",
+        "frontend/components",
+        "frontend/pages"
+      ],
       "extensions": "ts,tsx",
-      "ignore": ["node_modules", ".next", "dist", "build"],
+      "ignore": [
+        "node_modules",
+        ".next",
+        "dist",
+        "build"
+      ],
       "quiet": false,
       "legacyWatch": true,
       "delay": 1000
     }
   }
 }
-

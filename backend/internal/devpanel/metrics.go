@@ -11,9 +11,10 @@ import (
 
 // MetricsCollector handles collection and storage of service metrics
 type MetricsCollector struct {
-	metrics map[string][]MetricPoint
-	mu      sync.RWMutex
-	config  Config
+	metrics  map[string][]MetricPoint
+	mu       sync.RWMutex
+	config   Config
+	stopChan chan struct{}
 }
 
 // MetricPoint represents a single metric data point
@@ -26,8 +27,9 @@ type MetricPoint struct {
 // NewMetricsCollector creates a new metrics collector
 func NewMetricsCollector(config Config) *MetricsCollector {
 	return &MetricsCollector{
-		metrics: make(map[string][]MetricPoint),
-		config:  config,
+		metrics:  make(map[string][]MetricPoint),
+		config:   config,
+		stopChan: make(chan struct{}),
 	}
 }
 
@@ -139,15 +141,25 @@ func (mc *MetricsCollector) StartCollecting(serviceManager *core.ServiceManager)
 		ticker := time.NewTicker(mc.config.MetricsInterval)
 		defer ticker.Stop()
 
-		for range ticker.C {
-			for name, service := range serviceManager.GetAllServices() {
-				if status, err := serviceManager.GetServiceStatus(name); err == nil && status.Running {
-					metrics := mc.collectServiceMetrics(service)
-					mc.Collect(name, metrics)
+		for {
+			select {
+			case <-ticker.C:
+				for name, service := range serviceManager.GetAllServices() {
+					if status, err := serviceManager.GetServiceStatus(name); err == nil && status.Running {
+						metrics := mc.collectServiceMetrics(service)
+						mc.Collect(name, metrics)
+					}
 				}
+			case <-mc.stopChan:
+				return
 			}
 		}
 	}()
+}
+
+// StopCollecting stops the metrics collection goroutine
+func (mc *MetricsCollector) StopCollecting() {
+	close(mc.stopChan)
 }
 
 // collectServiceMetrics gathers metrics for a specific service

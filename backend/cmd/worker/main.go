@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"sync"
@@ -386,6 +387,21 @@ func main() {
 	// Set up signal handling for graceful shutdown
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	// Start minimal health check HTTP server for Docker healthcheck
+	go func() {
+		mux := http.NewServeMux()
+		mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`{"status":"healthy","service":"worker"}`))
+		})
+		healthSrv := &http.Server{Addr: ":8084", Handler: mux}
+		logger.Info("Worker health endpoint listening on :8084/health")
+		if err := healthSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.Warn("Health check server error", "error", err)
+		}
+	}()
 
 	// Start worker in background
 	go func() {

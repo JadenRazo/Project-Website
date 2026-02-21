@@ -32,6 +32,7 @@ type Config struct {
 	URLShortener   URLShortenerConfig // Populated from loaderConfig.URLShortener
 	Messaging      MessagingConfig    // Populated from loaderConfig.Messaging
 	DevPanel       DevPanelCoreConfig // Specific core config for DevPanel service params
+	Contact        ContactConfig
 	EnablePprof    bool
 }
 
@@ -181,6 +182,15 @@ type DevPanelCoreConfig struct {
 	LogRetention    time.Duration // Parsed from loaderConfig.DevPanel.LogRetention
 }
 
+type ContactConfig struct {
+	SMTPHost       string
+	SMTPPort       int
+	SMTPUser       string
+	SMTPPass       string
+	FromEmail      string
+	ContactToEmail string
+}
+
 // GetConfig loads and returns the application configuration
 // using the actual loader and maps it to the local core.Config struct.
 func GetConfig() *Config {
@@ -275,6 +285,14 @@ func GetConfig() *Config {
 			MetricsInterval: devPanelMetricsInterval,
 			MaxLogLines:     cfgFromLoader.DevPanel.MaxLogLines,
 			LogRetention:    devPanelLogRetention,
+		},
+		Contact: ContactConfig{
+			SMTPHost:       cfgFromLoader.Contact.SMTPHost,
+			SMTPPort:       cfgFromLoader.Contact.SMTPPort,
+			SMTPUser:       cfgFromLoader.Contact.SMTPUser,
+			SMTPPass:       cfgFromLoader.Contact.SMTPPass,
+			FromEmail:      cfgFromLoader.Contact.FromEmail,
+			ContactToEmail: cfgFromLoader.Contact.ContactToEmail,
 		},
 	}
 

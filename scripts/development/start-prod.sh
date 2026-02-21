@@ -300,8 +300,14 @@ test_database_connection() {
     # Environment variables are already loaded at script start
     if [ -f "$BACKEND_DIR/.env.production" ]; then
         verbose "Using production environment variables from backend/.env.production"
+        set -a
+        source "$BACKEND_DIR/.env.production"
+        set +a
     elif [ -f "$BACKEND_DIR/.env" ]; then
         verbose "Using environment variables from backend/.env"
+        set -a
+        source "$BACKEND_DIR/.env"
+        set +a
     fi
 
     # Try to connect to the database using environment variables or defaults
@@ -317,14 +323,13 @@ test_database_connection() {
     verbose "  Port: $db_port"
     verbose "  Database: $db_name"
     verbose "  User: $db_user"
-    verbose "  Password: $db_password"
 
-    # Wait for PostgreSQL to be ready
-    local max_attempts=3
+    # Wait for PostgreSQL to be ready (increased attempts for production)
+    local max_attempts=15
     local attempt=0
-    log "Waiting for database to become available..."
+    log "Waiting for database to become available (max ${max_attempts} attempts)..."
     while true; do
-        psql_error=$(PGPASSWORD="$db_password" timeout 2 psql -h "$db_host" -p "$db_port" -U "$db_user" -d "$db_name" -c '\q' 2>&1)
+        psql_error=$(PGPASSWORD="$db_password" timeout 5 psql -h "$db_host" -p "$db_port" -U "$db_user" -d "$db_name" -c '\q' 2>&1)
         if [ $? -eq 0 ]; then
             break
         fi
@@ -335,9 +340,9 @@ test_database_connection() {
             return 1
         fi
 
-        verbose "Attempting to connect to database (attempt $((attempt+1)) of $max_attempts)..."
+        log "Database not ready, retrying in 2 seconds (attempt $((attempt+1)) of $max_attempts)..."
         verbose "psql error: $psql_error"
-        sleep 1
+        sleep 2
         attempt=$((attempt+1))
     done
 
@@ -402,7 +407,8 @@ setup_frontend() {
         log "Clearing frontend caches..."
         npm run clear-cache 2>/dev/null || {
             log "Manual cache clearing..."
-            rm -rf node_modules/.cache 2>/dev/null || true
+            rm -rf node_modules/.vite 2>/dev/null || true
+            rm -rf .vite 2>/dev/null || true
             rm -rf build 2>/dev/null || true
             rm -f .eslintcache 2>/dev/null || true
             rm -f tsconfig.tsbuildinfo 2>/dev/null || true
@@ -599,59 +605,59 @@ start_backend() {
     cd "$PROJECT_ROOT"
     success "Backend services built successfully"
 
-    tmux new-session -d -s "$BACKEND_SESSION" -c "$PROJECT_ROOT"
+    tmux new-session -d -s "$BACKEND_SESSION" -c "$BACKEND_DIR"
 
-    # Create windows for each service
+    # Create windows for each service (all start in backend directory)
     tmux rename-window -t "$BACKEND_SESSION:0" "api"
-    tmux new-window -t "$BACKEND_SESSION" -n "devpanel" -c "$PROJECT_ROOT"
-    tmux new-window -t "$BACKEND_SESSION" -n "messaging" -c "$PROJECT_ROOT"
-    tmux new-window -t "$BACKEND_SESSION" -n "urlshortener" -c "$PROJECT_ROOT"
-    tmux new-window -t "$BACKEND_SESSION" -n "worker" -c "$PROJECT_ROOT"
+    tmux new-window -t "$BACKEND_SESSION" -n "devpanel" -c "$BACKEND_DIR"
+    tmux new-window -t "$BACKEND_SESSION" -n "messaging" -c "$BACKEND_DIR"
+    tmux new-window -t "$BACKEND_SESSION" -n "urlshortener" -c "$BACKEND_DIR"
+    tmux new-window -t "$BACKEND_SESSION" -n "worker" -c "$BACKEND_DIR"
 
     # Start API service
     tmux send-keys -t "$BACKEND_SESSION:api" "clear" Enter
     tmux send-keys -t "$BACKEND_SESSION:api" "echo 'Starting API Service on port $API_PORT...'" Enter
-    tmux send-keys -t "$BACKEND_SESSION:api" "cd $PROJECT_ROOT" Enter
-    tmux send-keys -t "$BACKEND_SESSION:api" "set -a && source $BACKEND_DIR/.env.production && set +a" Enter
-    tmux send-keys -t "$BACKEND_SESSION:api" "export API_PORT=$API_PORT" Enter
-    tmux send-keys -t "$BACKEND_SESSION:api" "export NODE_ENV=production && export ENVIRONMENT=production" Enter
-    tmux send-keys -t "$BACKEND_SESSION:api" "$BACKEND_DIR/bin/api" Enter
+    tmux send-keys -t "$BACKEND_SESSION:api" "cd $BACKEND_DIR" Enter
+    tmux send-keys -t "$BACKEND_SESSION:api" "set -a && source .env.production 2>/dev/null || source .env 2>/dev/null && set +a" Enter
+    tmux send-keys -t "$BACKEND_SESSION:api" "export API_PORT=$API_PORT PORT=$API_PORT" Enter
+    tmux send-keys -t "$BACKEND_SESSION:api" "export NODE_ENV=production ENVIRONMENT=production" Enter
+    tmux send-keys -t "$BACKEND_SESSION:api" "./bin/api" Enter
 
     # Start DevPanel service
     tmux send-keys -t "$BACKEND_SESSION:devpanel" "clear" Enter
     tmux send-keys -t "$BACKEND_SESSION:devpanel" "echo 'Starting DevPanel Service on port $DEVPANEL_PORT...'" Enter
-    tmux send-keys -t "$BACKEND_SESSION:devpanel" "cd $PROJECT_ROOT" Enter
-    tmux send-keys -t "$BACKEND_SESSION:devpanel" "set -a && source $BACKEND_DIR/.env.production && set +a" Enter
-    tmux send-keys -t "$BACKEND_SESSION:devpanel" "export DEVPANEL_PORT=$DEVPANEL_PORT" Enter
-    tmux send-keys -t "$BACKEND_SESSION:devpanel" "export NODE_ENV=production && export ENVIRONMENT=production" Enter
-    tmux send-keys -t "$BACKEND_SESSION:devpanel" "$BACKEND_DIR/bin/devpanel" Enter
+    tmux send-keys -t "$BACKEND_SESSION:devpanel" "cd $BACKEND_DIR" Enter
+    tmux send-keys -t "$BACKEND_SESSION:devpanel" "set -a && source .env.production 2>/dev/null || source .env 2>/dev/null && set +a" Enter
+    tmux send-keys -t "$BACKEND_SESSION:devpanel" "export DEVPANEL_PORT=$DEVPANEL_PORT PORT=$DEVPANEL_PORT" Enter
+    tmux send-keys -t "$BACKEND_SESSION:devpanel" "export NODE_ENV=production ENVIRONMENT=production" Enter
+    tmux send-keys -t "$BACKEND_SESSION:devpanel" "./bin/devpanel" Enter
 
     # Start Messaging service
     tmux send-keys -t "$BACKEND_SESSION:messaging" "clear" Enter
     tmux send-keys -t "$BACKEND_SESSION:messaging" "echo 'Starting Messaging Service on port $MESSAGING_PORT...'" Enter
-    tmux send-keys -t "$BACKEND_SESSION:messaging" "cd $PROJECT_ROOT" Enter
-    tmux send-keys -t "$BACKEND_SESSION:messaging" "set -a && source $BACKEND_DIR/.env.production && set +a" Enter
-    tmux send-keys -t "$BACKEND_SESSION:messaging" "export MESSAGING_PORT=$MESSAGING_PORT" Enter
-    tmux send-keys -t "$BACKEND_SESSION:messaging" "export NODE_ENV=production && export ENVIRONMENT=production" Enter
-    tmux send-keys -t "$BACKEND_SESSION:messaging" "$BACKEND_DIR/bin/messaging" Enter
+    tmux send-keys -t "$BACKEND_SESSION:messaging" "cd $BACKEND_DIR" Enter
+    tmux send-keys -t "$BACKEND_SESSION:messaging" "set -a && source .env.production 2>/dev/null || source .env 2>/dev/null && set +a" Enter
+    tmux send-keys -t "$BACKEND_SESSION:messaging" "export MESSAGING_PORT=$MESSAGING_PORT PORT=$MESSAGING_PORT" Enter
+    tmux send-keys -t "$BACKEND_SESSION:messaging" "export NODE_ENV=production ENVIRONMENT=production" Enter
+    tmux send-keys -t "$BACKEND_SESSION:messaging" "./bin/messaging" Enter
 
     # Start URL Shortener service
     tmux send-keys -t "$BACKEND_SESSION:urlshortener" "clear" Enter
     tmux send-keys -t "$BACKEND_SESSION:urlshortener" "echo 'Starting URL Shortener Service on port $URLSHORTENER_PORT...'" Enter
-    tmux send-keys -t "$BACKEND_SESSION:urlshortener" "cd $PROJECT_ROOT" Enter
-    tmux send-keys -t "$BACKEND_SESSION:urlshortener" "set -a && source $BACKEND_DIR/.env.production && set +a" Enter
-    tmux send-keys -t "$BACKEND_SESSION:urlshortener" "export URLSHORTENER_PORT=$URLSHORTENER_PORT" Enter
-    tmux send-keys -t "$BACKEND_SESSION:urlshortener" "export NODE_ENV=production && export ENVIRONMENT=production" Enter
-    tmux send-keys -t "$BACKEND_SESSION:urlshortener" "$BACKEND_DIR/bin/urlshortener" Enter
+    tmux send-keys -t "$BACKEND_SESSION:urlshortener" "cd $BACKEND_DIR" Enter
+    tmux send-keys -t "$BACKEND_SESSION:urlshortener" "set -a && source .env.production 2>/dev/null || source .env 2>/dev/null && set +a" Enter
+    tmux send-keys -t "$BACKEND_SESSION:urlshortener" "export URLSHORTENER_PORT=$URLSHORTENER_PORT PORT=$URLSHORTENER_PORT" Enter
+    tmux send-keys -t "$BACKEND_SESSION:urlshortener" "export NODE_ENV=production ENVIRONMENT=production" Enter
+    tmux send-keys -t "$BACKEND_SESSION:urlshortener" "./bin/urlshortener" Enter
 
     # Start Worker service
     tmux send-keys -t "$BACKEND_SESSION:worker" "clear" Enter
     tmux send-keys -t "$BACKEND_SESSION:worker" "echo 'Starting Worker Service on port $WORKER_PORT...'" Enter
-    tmux send-keys -t "$BACKEND_SESSION:worker" "cd $PROJECT_ROOT" Enter
-    tmux send-keys -t "$BACKEND_SESSION:worker" "set -a && source $BACKEND_DIR/.env.production && set +a" Enter
-    tmux send-keys -t "$BACKEND_SESSION:worker" "export WORKER_PORT=$WORKER_PORT" Enter
-    tmux send-keys -t "$BACKEND_SESSION:worker" "export NODE_ENV=production && export ENVIRONMENT=production" Enter
-    tmux send-keys -t "$BACKEND_SESSION:worker" "$BACKEND_DIR/bin/worker" Enter
+    tmux send-keys -t "$BACKEND_SESSION:worker" "cd $BACKEND_DIR" Enter
+    tmux send-keys -t "$BACKEND_SESSION:worker" "set -a && source .env.production 2>/dev/null || source .env 2>/dev/null && set +a" Enter
+    tmux send-keys -t "$BACKEND_SESSION:worker" "export WORKER_PORT=$WORKER_PORT PORT=$WORKER_PORT" Enter
+    tmux send-keys -t "$BACKEND_SESSION:worker" "export NODE_ENV=production ENVIRONMENT=production" Enter
+    tmux send-keys -t "$BACKEND_SESSION:worker" "./bin/worker" Enter
 
     # Focus on the API window
     tmux select-window -t "$BACKEND_SESSION:api"

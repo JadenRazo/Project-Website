@@ -1,5 +1,6 @@
 import React, { Suspense, lazy, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import { ThemeProvider as StyledThemeProvider } from 'styled-components';
 import { GlobalStyles } from './styles/GlobalStyles';
 import NavigationBar from './components/NavigationBar/NavigationBar';
@@ -20,10 +21,11 @@ import AuthModal from './components/auth/AuthModal';
 import { useAuthStore } from './stores/authStore';
 import PageTransition from './components/navigation/PageTransition';
 import { useVisitorTracking } from './hooks/useVisitorTracking';
+import PortfolioLayout from './components/layout/PortfolioLayout';
+import LenisProvider from './providers/LenisProvider';
+import ErrorBoundary from './components/common/ErrorBoundary';
 
-const Hero = lazy(() => import('./components/sections/Hero').then(module => ({ default: module.Hero })));
-const About = lazy(() => import('./components/sections/About').then(module => ({ default: module.About })));
-const SkillsSection = lazy(() => import('./components/sections/SkillsSection').then(module => ({ default: module.SkillsSection })));
+const PortfolioHome = lazy(() => import('./pages/PortfolioHome'));
 const Contact = lazy(() => import('./pages/Contact/Contact'));
 const DevPanel = lazy(() => import('./pages/devpanel/DevPanel'));
 const Messaging = lazy(() => import('./pages/messaging/Messaging'));
@@ -49,84 +51,66 @@ const AppContainer = styled.div`
   --content-max-width: 1000px;
 `;
 
-const HomePage = () => (
-  <>
-    <Suspense fallback={<SmartSkeleton type="hero" />}>
-      <Hero />
-    </Suspense>
-    <Suspense fallback={<SmartSkeleton type="skills" />}>
-      <SkillsSection />
-    </Suspense>
-    <Suspense fallback={<SmartSkeleton type="about" />}>
-      <About />
-    </Suspense>
-  </>
-);
+const SkipLink = styled.a`
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 10000;
+  background: ${({ theme }) => theme.colors.primary};
+  color: white;
+  padding: 1rem;
+  border-radius: ${({ theme }) => theme.borderRadius.small};
+  text-decoration: none;
+  font-weight: 500;
+  transform: translateY(-200%);
+  transition: transform 0.3s ease;
 
-function AppContent() {
+  &:focus {
+    transform: translateY(0);
+  }
+`;
+
+function PortfolioPage() {
+  const { theme } = useTheme();
+
+  return (
+    <StyledThemeProvider theme={theme}>
+      <GlobalStyles theme={theme} />
+      <LenisProvider>
+        <PortfolioLayout>
+          <Suspense fallback={<SmartSkeleton type="hero" />}>
+            <PortfolioHome />
+          </Suspense>
+        </PortfolioLayout>
+      </LenisProvider>
+    </StyledThemeProvider>
+  );
+}
+
+function StandardLayout({ children }: { children: React.ReactNode }) {
   const { theme, themeMode, toggleTheme } = useTheme();
-
   const { authModalOpen, authModalMode, setAuthModalOpen } = useAuthStore();
 
-  useVisitorTracking();
-
-  usePreloader({
-    enableSmartPreloading: true,
-    enableRoutePreloading: true,
-    enableHoverPreloading: true,
-    preloadDelay: 150
-  });
-  
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      devCacheManager.setupDevTools();
-      const hasInitialized = sessionStorage.getItem('dev-cache-initialized');
-      if (!hasInitialized) {
-        devCacheManager.clearAllCaches();
-        sessionStorage.setItem('dev-cache-initialized', 'true');
-      }
-    }
-  }, []);
-  
   return (
     <StyledThemeProvider theme={theme}>
       <Layout>
         <PageTop />
+        <SkipLink href="#main-content">Skip to content</SkipLink>
         <AppContainer>
           <GlobalStyles theme={theme} />
           <ErrorNotification />
-          <NavigationBar 
-            themeMode={themeMode} 
-            toggleTheme={toggleTheme} 
+          <NavigationBar
+            themeMode={themeMode}
+            toggleTheme={toggleTheme}
           />
           <ScrollProgressIndicator hideThreshold={50} />
-          
-          <div className="content">
+          <div id="main-content" className="content">
             <PageTransition>
-              <Suspense fallback={<SmartSkeleton />}>
-                <Routes>
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/about" element={<AboutPage />} />
-                  <Route path="/contact" element={<Contact />} />
-                  <Route path="/projects" element={<ProjectsPage />} />
-                  <Route path="/portfolio" element={<ProjectsPage />} />
-                  <Route path="/skills" element={<SkillsSection />} />
-                  <Route path="/home" element={<Home />} />
-
-                  <Route path="/devpanel" element={<DevPanel />} />
-                  <Route path="/urlshortener" element={<UrlShortener />} />
-                  <Route path="/messaging" element={<Messaging />} />
-                  <Route path="/status" element={<Status />} />
-                  
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Suspense>
+              {children}
             </PageTransition>
           </div>
-          
           <Footer />
           <ScrollToTopButton />
-          
           <AuthModal
             isOpen={authModalOpen}
             onClose={() => setAuthModalOpen(false)}
@@ -138,14 +122,68 @@ function AppContent() {
   );
 }
 
+function AppContent() {
+  const location = useLocation();
+  const isPortfolioHome = location.pathname === '/';
+
+  useVisitorTracking();
+
+  usePreloader({
+    enableSmartPreloading: true,
+    enableRoutePreloading: true,
+    enableHoverPreloading: true,
+    preloadDelay: 150
+  });
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      devCacheManager.setupDevTools();
+      const hasInitialized = sessionStorage.getItem('dev-cache-initialized');
+      if (!hasInitialized) {
+        devCacheManager.clearAllCaches();
+        sessionStorage.setItem('dev-cache-initialized', 'true');
+      }
+    }
+  }, []);
+
+  if (isPortfolioHome) {
+    return <PortfolioPage />;
+  }
+
+  return (
+    <StandardLayout>
+      <ErrorBoundary>
+        <Suspense fallback={<SmartSkeleton />}>
+          <Routes>
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/projects" element={<ProjectsPage />} />
+            <Route path="/portfolio" element={<ProjectsPage />} />
+            <Route path="/home" element={<Home />} />
+
+            <Route path="/devpanel" element={<DevPanel />} />
+            <Route path="/urlshortener" element={<UrlShortener />} />
+            <Route path="/messaging" element={<Messaging />} />
+            <Route path="/status" element={<Status />} />
+
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </ErrorBoundary>
+    </StandardLayout>
+  );
+}
+
 function App() {
   return (
-    <StoreInitializer>
-      <Router>
-        <ScrollToTop />
-        <AppContent />
-      </Router>
-    </StoreInitializer>
+    <HelmetProvider>
+      <StoreInitializer>
+        <Router>
+          <ScrollToTop />
+          <AppContent />
+        </Router>
+      </StoreInitializer>
+    </HelmetProvider>
   );
 }
 

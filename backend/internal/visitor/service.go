@@ -102,14 +102,21 @@ func (s *Service) TrackPageView(ctx context.Context, r *http.Request, path strin
 
 	// Broadcast page view event
 	go func() {
-		realtimeCount := s.GetRealTimeCount(ctx)
+		broadcastCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		realtimeCount := s.GetRealTimeCount(broadcastCtx)
 		message, err := json.Marshal(map[string]interface{}{
 			"type":      "pageview",
 			"path":      path,
 			"realtime":  realtimeCount,
 		})
 		if err == nil {
-			s.hub.broadcast <- message
+			select {
+			case s.hub.broadcast <- message:
+			case <-broadcastCtx.Done():
+				return
+			}
 		}
 	}()
 

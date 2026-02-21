@@ -80,8 +80,8 @@ const NavLinks = styled.div<{ $isOpen: boolean }>`
 `;
 
 const NavLink = styled(Link)<{ $isActive?: boolean }>`
-  color: ${({ theme, $isActive }) => 
-    $isActive ? theme.colors.primary : theme.colors.text};
+  color: ${({ theme, $isActive }) =>
+    $isActive ? '#13f178' : theme.colors.text};
   text-decoration: none;
   padding: ${({ theme }) => `${theme.spacing.xs} ${theme.spacing.sm}`};
   border-radius: ${({ theme }) => theme.borderRadius.small};
@@ -89,14 +89,46 @@ const NavLink = styled(Link)<{ $isActive?: boolean }>`
   font-weight: 500;
   width: 100%;
   text-align: left;
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    width: ${({ $isActive }) => $isActive ? '100%' : '0%'};
+    height: 2px;
+    background: #13f178;
+    transform: translateX(-50%);
+    transition: width 0.3s ease;
+    box-shadow: ${({ $isActive }) => $isActive ? '0 0 10px rgba(19, 241, 120, 0.5)' : 'none'};
+    border-radius: 1px;
+  }
 
   &:hover {
-    color: ${({ theme }) => theme.colors.primary};
+    color: #13f178;
     background: ${({ theme }) => theme.colors.primaryLight};
+
+    &::after {
+      width: 100%;
+      box-shadow: 0 0 10px rgba(19, 241, 120, 0.5);
+    }
   }
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     padding: ${({ theme }) => `${theme.spacing.sm} ${theme.spacing.md}`};
+
+    &::after {
+      bottom: 0;
+      left: 0;
+      width: ${({ $isActive }) => $isActive ? '3px' : '0px'};
+      height: 100%;
+      transform: none;
+    }
+
+    &:hover::after {
+      width: 3px;
+    }
   }
 `;
 
@@ -391,6 +423,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ themeMode, toggleTheme })
             <AnimatePresence>
               {isServicesOpen && (
                 <ServiceStatusDropdown
+                  role="menu"
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
@@ -442,15 +475,30 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ themeMode, toggleTheme })
             </AnimatePresence>
           </div>
 
-          <NavLink to="/about" $isActive={isActive('/about')} onClick={handleLinkClick}>
+          <NavLink
+            to="/about"
+            $isActive={isActive('/about')}
+            onClick={handleLinkClick}
+            aria-current={isActive('/about') ? 'page' : undefined}
+          >
             About
           </NavLink>
 
-          <NavLink to="/contact" $isActive={isActive('/contact')} onClick={handleLinkClick}>
+          <NavLink
+            to="/contact"
+            $isActive={isActive('/contact')}
+            onClick={handleLinkClick}
+            aria-current={isActive('/contact') ? 'page' : undefined}
+          >
             Contact
           </NavLink>
 
-          <NavLink to="/portfolio" $isActive={isActive('/portfolio')} onClick={handleLinkClick}>
+          <NavLink
+            to="/portfolio"
+            $isActive={isActive('/portfolio')}
+            onClick={handleLinkClick}
+            aria-current={isActive('/portfolio') ? 'page' : undefined}
+          >
             Portfolio
           </NavLink>
 

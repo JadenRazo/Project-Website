@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/JadenRazo/Project-Website/backend/internal/app/config"
+	"github.com/glebarez/sqlite"
 	"gorm.io/driver/postgres"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )

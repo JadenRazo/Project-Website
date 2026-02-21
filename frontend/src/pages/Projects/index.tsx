@@ -8,6 +8,7 @@ import {
 } from 'react-icons/fa';
 import styled from 'styled-components';
 import { mockProjects } from '../../data/projects';
+import SEO from '../../components/common/SEO';
 
 // --- Types ---
 interface Project {
@@ -605,7 +606,7 @@ const cardVariants = {
 };
 
 // Expandable Card component
-const ProjectCard: React.FC<ProjectCardProps> = React.memo(({ 
+const ProjectCard = React.memo<ProjectCardProps>(({ 
   project, 
   expanded, 
   onClick, 
@@ -981,8 +982,14 @@ const Projects: React.FC = () => {
   }, []);
 
   return (
-    <ProjectsContainer>
-      <PageHeader>
+    <>
+      <SEO
+        title="Projects | Jaden Razo - Portfolio of Web Applications & APIs"
+        description="Explore Jaden Razo's portfolio of full-stack web applications, microservices, and APIs built with React, TypeScript, Go, Python, and modern cloud technologies."
+        path="/projects"
+      />
+      <ProjectsContainer>
+        <PageHeader>
         <PageTitle>My Projects</PageTitle>
         <PageDescription>
           Here's a showcase of my recent work. Each project represents different skills and technologies
@@ -1033,6 +1040,7 @@ const Projects: React.FC = () => {
         </ProjectsGrid>
       )}
     </ProjectsContainer>
+    </>
   );
 };
 

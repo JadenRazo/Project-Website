@@ -12,6 +12,14 @@
 bin/
 build/
 
+# Go compiled binaries (backend services)
+backend/api
+backend/main
+backend/devpanel
+backend/messaging
+backend/urlshortener
+backend/worker
+
 # Database files
 *.db
 *.sql
@@ -23,8 +31,7 @@ node_modules/
 vendor/
 
 # Build cache files
-.tsbuildinfo
-frontend/.tsbuildinfo
+*.tsbuildinfo
 
 # Test binary, built with `go test -c`
 *.test

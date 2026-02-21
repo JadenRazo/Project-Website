@@ -24,17 +24,27 @@ const (
 
 // User represents a user in the system
 type User struct {
-	ID             uuid.UUID  `json:"id" db:"id" gorm:"column:id;type:uuid;primaryKey"`
-	Email          string     `json:"email" db:"email" gorm:"column:email;type:citext;uniqueIndex"`
-	Username       string     `json:"username" db:"username" gorm:"column:username;type:citext;uniqueIndex"`
-	HashedPassword string     `json:"-" db:"password_hash" gorm:"column:password_hash"`
-	FullName       string     `json:"full_name" db:"full_name" gorm:"column:full_name"`
-	Role           Role       `json:"role" db:"role" gorm:"column:role"`
-	IsActive       bool       `json:"is_active" db:"is_active" gorm:"column:is_active"`
-	IsVerified     bool       `json:"is_verified" db:"is_verified" gorm:"column:is_verified"`
-	LastLogin      *time.Time `json:"last_login,omitempty" db:"last_login" gorm:"column:last_login_at"`
-	CreatedAt      time.Time  `json:"created_at" db:"created_at" gorm:"column:created_at"`
-	UpdatedAt      time.Time  `json:"updated_at" db:"updated_at" gorm:"column:updated_at"`
+	ID                  uuid.UUID  `json:"id" db:"id" gorm:"column:id;type:uuid;primaryKey"`
+	Email               string     `json:"email" db:"email" gorm:"column:email;type:citext;uniqueIndex"`
+	Username            string     `json:"username" db:"username" gorm:"column:username;type:citext;uniqueIndex"`
+	HashedPassword      string     `json:"-" db:"password_hash" gorm:"column:password_hash"`
+	FullName            string     `json:"full_name" db:"full_name" gorm:"column:full_name"`
+	AvatarURL           string     `json:"avatar_url,omitempty" db:"avatar_url" gorm:"column:avatar_url"`
+	Role                Role       `json:"role" db:"role" gorm:"column:role"`
+	IsActive            bool       `json:"is_active" db:"is_active" gorm:"column:is_active"`
+	IsVerified          bool       `json:"is_verified" db:"is_verified" gorm:"column:is_verified"`
+	TwoFactorEnabled    bool       `json:"two_factor_enabled" db:"two_factor_enabled" gorm:"column:two_factor_enabled"`
+	TwoFactorProvider   *string    `json:"two_factor_provider,omitempty" db:"two_factor_provider" gorm:"column:two_factor_provider"`
+	TwoFactorProviderID *string    `json:"two_factor_provider_id,omitempty" db:"two_factor_provider_id" gorm:"column:two_factor_provider_id"`
+	TOTPSecret          *string    `json:"-" db:"totp_secret" gorm:"column:totp_secret"`
+	TOTPEnabled         bool       `json:"totp_enabled" db:"totp_enabled" gorm:"column:totp_enabled"`
+	TOTPVerified        bool       `json:"totp_verified" db:"totp_verified" gorm:"column:totp_verified"`
+	TOTPBackupCodes     *string    `json:"-" db:"totp_backup_codes" gorm:"column:totp_backup_codes"`
+	TOTPRecoveryUsed    int        `json:"totp_recovery_used" db:"totp_recovery_used" gorm:"column:totp_recovery_used"`
+	TOTPEnabledAt       *time.Time `json:"totp_enabled_at,omitempty" db:"totp_enabled_at" gorm:"column:totp_enabled_at"`
+	LastLogin           *time.Time `json:"last_login,omitempty" db:"last_login" gorm:"column:last_login_at"`
+	CreatedAt           time.Time  `json:"created_at" db:"created_at" gorm:"column:created_at"`
+	UpdatedAt           time.Time  `json:"updated_at" db:"updated_at" gorm:"column:updated_at"`
 }
 
 // TableName specifies the table name for GORM

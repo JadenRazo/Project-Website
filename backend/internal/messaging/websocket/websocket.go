@@ -6,12 +6,39 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"os"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/JadenRazo/Project-Website/backend/internal/common/response"
 	"github.com/gorilla/websocket"
 )
+
+var allowedOrigins []string
+
+func init() {
+	origins := os.Getenv("ALLOWED_ORIGINS")
+	if origins != "" {
+		allowedOrigins = strings.Split(origins, ",")
+	} else if os.Getenv("APP_ENV") == "production" {
+		allowedOrigins = []string{"https://jadenrazo.dev", "https://www.jadenrazo.dev"}
+	} else {
+		allowedOrigins = []string{"http://localhost:3000", "http://localhost:5173"}
+	}
+}
+
+func isOriginAllowed(origin string) bool {
+	if origin == "" {
+		return false
+	}
+	for _, allowed := range allowedOrigins {
+		if strings.TrimSpace(allowed) == origin {
+			return true
+		}
+	}
+	return false
+}
 
 // Common errors
 var (
@@ -119,28 +146,33 @@ func (h *Hub) Run() {
 			h.mutex.Unlock()
 
 		case message := <-h.broadcast:
-			// Validate message before broadcasting
 			if !isValidMessage(message) {
 				log.Printf("Invalid message format, skipping broadcast")
 				continue
 			}
 
+			var toRemove []*Client
 			h.mutex.RLock()
 			for client := range h.clients {
 				select {
 				case client.send <- message:
 				default:
-					// Channel full, client can't keep up
-					h.mutex.RUnlock()
-					h.mutex.Lock()
-					delete(h.clients, client)
-					close(client.send)
-					client.cancel()
-					h.mutex.Unlock()
-					h.mutex.RLock()
+					toRemove = append(toRemove, client)
 				}
 			}
 			h.mutex.RUnlock()
+
+			if len(toRemove) > 0 {
+				h.mutex.Lock()
+				for _, client := range toRemove {
+					if _, ok := h.clients[client]; ok {
+						delete(h.clients, client)
+						close(client.send)
+						client.cancel()
+					}
+				}
+				h.mutex.Unlock()
+			}
 		}
 	}
 }
@@ -173,17 +205,13 @@ func isValidMessage(message []byte) bool {
 
 // ServeWs handles websocket requests from clients
 func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request, userID string) {
-	// Configure upgrader with security settings
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
-		// Origin checking for security
 		CheckOrigin: func(r *http.Request) bool {
 			origin := r.Header.Get("Origin")
-			// In production, validate against allowed origins
-			return origin != ""
+			return isOriginAllowed(origin)
 		},
-		// Add handshake timeout
 		HandshakeTimeout: 10 * time.Second,
 	}
 

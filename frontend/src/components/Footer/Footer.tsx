@@ -212,14 +212,14 @@ const Footer: React.FC = () => {
           <FooterLink to="/devpanel" onClick={handleLinkClick} $isNavigating={navigatingTo === '/devpanel'}>Developer Panel</FooterLink>
           <FooterLink to="/urlshortener" onClick={handleLinkClick} $isNavigating={navigatingTo === '/urlshortener'}>URL Shortener</FooterLink>
           <FooterLink to="/messaging" onClick={handleLinkClick} $isNavigating={navigatingTo === '/messaging'}>Real-time Messaging</FooterLink>
-          <FooterLink to="/home" onClick={handleLinkClick} $isNavigating={navigatingTo === '/home'}>View All Projects</FooterLink>
+          <FooterLink to="/projects" onClick={handleLinkClick} $isNavigating={navigatingTo === '/projects'}>View All Projects</FooterLink>
         </FooterSection>
 
         <FooterSection>
           <FooterTitle>Connect</FooterTitle>
           <SocialLinks>
-            <FooterExternalLink 
-              href="https://github.com/JadenRazo" 
+            <FooterExternalLink
+              href="https://github.com/JadenRazo"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -228,8 +228,8 @@ const Footer: React.FC = () => {
               </svg>
               GitHub
             </FooterExternalLink>
-            <FooterExternalLink 
-              href="https://linkedin.com/in/jadenrazo" 
+            <FooterExternalLink
+              href="https://jadenrazo.dev/s/linkedin"
               target="_blank"
               rel="noopener noreferrer"
             >

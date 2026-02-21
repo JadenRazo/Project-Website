@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { motion } from 'framer-motion';
+import SEO from '../../components/common/SEO';
+import { api } from '../../utils/apiConfig';
 
 const ContactContainer = styled.div`
-  min-height: calc(100vh - 200px); // Account for header and footer
+  min-height: calc(100vh - 200px);
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: ${({ theme }) => theme.spacing.xxl} ${({ theme }) => theme.spacing.xl};
-  padding-top: calc(${({ theme }) => theme.spacing.xxl} + 70px); // Add extra padding for navbar
+  padding-top: calc(${({ theme }) => theme.spacing.xxl} + 70px);
   background: ${({ theme }) => theme.colors.background};
-  margin-top: 60px; // Add margin to push content below navbar
+  margin-top: 60px;
 `;
 
 const ContactContent = styled.div`
@@ -67,6 +69,11 @@ const Input = styled.input`
     outline: none;
     border-color: ${({ theme }) => theme.colors.primary};
   }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 `;
 
 const TextArea = styled.textarea`
@@ -84,6 +91,11 @@ const TextArea = styled.textarea`
     outline: none;
     border-color: ${({ theme }) => theme.colors.primary};
   }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 `;
 
 const SubmitButton = styled(motion.button)`
@@ -96,6 +108,10 @@ const SubmitButton = styled(motion.button)`
   cursor: pointer;
   transition: transform 0.2s ease;
   margin-top: ${({ theme }) => theme.spacing.md};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 
   &:hover {
     transform: scale(1.02);
@@ -104,10 +120,70 @@ const SubmitButton = styled(motion.button)`
   &:disabled {
     opacity: 0.7;
     cursor: not-allowed;
+    transform: none;
   }
 `;
 
+const spin = keyframes`
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+`;
 
+const Spinner = styled.span`
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: ${spin} 0.6s linear infinite;
+`;
+
+const ErrorMessage = styled.div`
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: ${({ theme }) => theme.borderRadius.small};
+  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
+  color: #ef4444;
+  font-size: 0.9rem;
+`;
+
+const SuccessContainer = styled(motion.div)`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: ${({ theme }) => theme.spacing.xxl};
+  background: ${({ theme }) => theme.colors.surface};
+  border-radius: ${({ theme }) => theme.borderRadius.large};
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+`;
+
+const SuccessIcon = styled.div`
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: ${({ theme }) => `${theme.colors.primary}20`};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
+  color: ${({ theme }) => theme.colors.primary};
+  font-size: 2rem;
+`;
+
+const SuccessTitle = styled.h2`
+  color: ${({ theme }) => theme.colors.text};
+  font-size: 1.5rem;
+  margin-bottom: ${({ theme }) => theme.spacing.sm};
+`;
+
+const SuccessText = styled.p`
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: 1rem;
+  line-height: 1.6;
+`;
 
 const Contact: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -115,23 +191,54 @@ const Contact: React.FC = () => {
     email: '',
     subject: '',
     message: '',
+    website: '',
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // For now, we'll just open the default email client
-    const mailtoLink = `mailto:contact@jadenrazo.dev?subject=${encodeURIComponent(formData.subject)}&body=${encodeURIComponent(`Name: ${formData.name}\nEmail: ${formData.email}\n\n${formData.message}`)}`;
-    window.location.href = mailtoLink;
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      await api.post('/api/v1/contact', {
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject,
+        message: formData.message,
+        website: formData.website,
+      }, { skipAuth: true });
+
+      setIsSubmitted(true);
+      setFormData({ name: '', email: '', subject: '', message: '', website: '' });
+    } catch (err) {
+      setError(
+        err instanceof Error && err.message !== 'Request failed'
+          ? err.message
+          : 'Failed to send message. Please try again later.'
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    if (error) setError(null);
   };
 
   return (
-    <ContactContainer>
-      <ContactContent>
+    <>
+      <SEO
+        title="Contact Jaden Razo | Full Stack Developer"
+        description="Get in touch with Jaden Razo for collaboration opportunities, project inquiries, or questions about full-stack development and cloud technologies."
+        path="/contact"
+      />
+      <ContactContainer>
+        <ContactContent>
         <Title
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -147,70 +254,110 @@ const Contact: React.FC = () => {
           Have a question or want to work together? I'd love to hear from you.
         </Subtitle>
 
-        <Form
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          onSubmit={handleSubmit}
-        >
-          <InputGroup>
-            <Label htmlFor="name">Name</Label>
-            <Input
-              type="text"
-              id="name"
-              name="name"
-              required
-              value={formData.name}
-              onChange={handleChange}
-            />
-          </InputGroup>
-
-          <InputGroup>
-            <Label htmlFor="email">Email</Label>
-            <Input
-              type="email"
-              id="email"
-              name="email"
-              required
-              value={formData.email}
-              onChange={handleChange}
-            />
-          </InputGroup>
-
-          <InputGroup>
-            <Label htmlFor="subject">Subject</Label>
-            <Input
-              type="text"
-              id="subject"
-              name="subject"
-              required
-              value={formData.subject}
-              onChange={handleChange}
-            />
-          </InputGroup>
-
-          <InputGroup>
-            <Label htmlFor="message">Message</Label>
-            <TextArea
-              id="message"
-              name="message"
-              required
-              value={formData.message}
-              onChange={handleChange}
-            />
-          </InputGroup>
-
-          <SubmitButton
-            type="submit"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+        {isSubmitted ? (
+          <SuccessContainer
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4 }}
           >
-            Send Message
-          </SubmitButton>
-        </Form>
+            <SuccessIcon>&#10003;</SuccessIcon>
+            <SuccessTitle>Message Sent!</SuccessTitle>
+            <SuccessText>
+              Thanks for reaching out. I'll get back to you as soon as possible.
+            </SuccessText>
+          </SuccessContainer>
+        ) : (
+          <Form
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            onSubmit={handleSubmit}
+          >
+            {error && <ErrorMessage>{error}</ErrorMessage>}
+
+            <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', opacity: 0, height: 0, overflow: 'hidden' }}>
+              <input
+                type="text"
+                name="website"
+                value={formData.website}
+                onChange={handleChange}
+                tabIndex={-1}
+                autoComplete="off"
+              />
+            </div>
+
+            <InputGroup>
+              <Label htmlFor="name">Name</Label>
+              <Input
+                type="text"
+                id="name"
+                name="name"
+                required
+                disabled={isLoading}
+                value={formData.name}
+                onChange={handleChange}
+              />
+            </InputGroup>
+
+            <InputGroup>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                type="email"
+                id="email"
+                name="email"
+                required
+                disabled={isLoading}
+                value={formData.email}
+                onChange={handleChange}
+              />
+            </InputGroup>
+
+            <InputGroup>
+              <Label htmlFor="subject">Subject</Label>
+              <Input
+                type="text"
+                id="subject"
+                name="subject"
+                required
+                disabled={isLoading}
+                value={formData.subject}
+                onChange={handleChange}
+              />
+            </InputGroup>
+
+            <InputGroup>
+              <Label htmlFor="message">Message</Label>
+              <TextArea
+                id="message"
+                name="message"
+                required
+                disabled={isLoading}
+                value={formData.message}
+                onChange={handleChange}
+              />
+            </InputGroup>
+
+            <SubmitButton
+              type="submit"
+              disabled={isLoading}
+              whileHover={isLoading ? {} : { scale: 1.02 }}
+              whileTap={isLoading ? {} : { scale: 0.98 }}
+            >
+              {isLoading ? (
+                <>
+                  <Spinner />
+                  Sending...
+                </>
+              ) : (
+                'Send Message'
+              )}
+            </SubmitButton>
+          </Form>
+        )}
       </ContactContent>
     </ContactContainer>
+    </>
   );
 };
 
-export default Contact; 
+export default Contact;
