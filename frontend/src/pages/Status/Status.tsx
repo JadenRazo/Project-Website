@@ -3,6 +3,7 @@ import styled, { keyframes } from 'styled-components';
 import { motion, useAnimation } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import SystemMetrics from '../../components/metrics/SystemMetrics';
+import SEO from '../../components/common/SEO';
 
 // Types
 interface ServiceStatus {
@@ -516,8 +517,14 @@ const Status: React.FC = () => {
   }
 
   return (
-    <StatusContainer>
-      <ContentWrapper>
+    <>
+      <SEO
+        title="System Status | Jaden Razo - Service Health Monitoring"
+        description="Real-time monitoring and status updates for all backend services and infrastructure powering jadenrazo.dev, including API, database, and microservices health."
+        path="/status"
+      />
+      <StatusContainer>
+        <ContentWrapper>
         <PageHeader
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -635,6 +642,7 @@ const Status: React.FC = () => {
         </motion.div>
       </ContentWrapper>
     </StatusContainer>
+    </>
   );
 };
 

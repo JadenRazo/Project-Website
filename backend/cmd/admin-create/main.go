@@ -10,7 +10,7 @@ import (
 	"syscall"
 
 	"golang.org/x/term"
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 
 	"github.com/JadenRazo/Project-Website/backend/internal/common/auth"

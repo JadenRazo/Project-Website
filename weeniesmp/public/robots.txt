@@ -1,0 +1,6 @@
+# robots.txt for WeenieSMP Website
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://weeniesmp.net/sitemap.xml

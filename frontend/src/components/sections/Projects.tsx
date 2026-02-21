@@ -5,15 +5,15 @@ import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import useDeviceCapabilities from '../../hooks/useDeviceCapabilities';
 import usePerformanceOptimizations from '../../hooks/usePerformanceOptimizations';
-import { ProjectCard } from '../ui/ProjectCard';
+import { EnhancedProjectCard } from '../ui/EnhancedProjectCard';
 import LanguageFilter from '../ui/LanguageFilter';
-import { mockProjects } from '../../data/projects';
+import { mockProjects, ProjectData, TechCategory } from '../../data/projects';
 
 // Types
 interface Project {
   id: string;
   name: string;
-  title?: string; // For backward compatibility
+  title?: string;
   description: string;
   image?: string;
   link?: string;
@@ -21,7 +21,10 @@ interface Project {
   live_url?: string;
   language?: string;
   tags?: string[];
+  techCategories?: TechCategory;
   status: string;
+  mediaType?: 'image' | 'video' | 'component';
+  badges?: Array<'live' | 'demo' | 'client' | 'internal'>;
 }
 
 interface ProjectsProps {
@@ -117,22 +120,27 @@ const Subtitle = styled(motion.p)`
 // Project grid with responsive layout
 const ProjectsGrid = styled(motion.div)`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: clamp(1.5rem, 3vw, 2.5rem);
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: clamp(2rem, 3vw, 3rem);
   margin-top: 2rem;
   width: 100%;
   justify-items: center;
   box-sizing: border-box;
-  
+
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 2rem;
+  }
+
   @media (max-width: 768px) {
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: 1fr;
+    gap: 2rem;
     padding: 0;
   }
-  
+
   @media (max-width: 480px) {
     grid-template-columns: 1fr;
-    gap: 1.25rem;
+    gap: 1.5rem;
   }
 `;
 
@@ -167,15 +175,14 @@ const EmptyState = styled(motion.div)`
 // Project card wrapper for consistent sizing and animation
 const ProjectCardWrapper = styled(motion.div)`
   width: 100%;
-  max-width: 280px;
   display: flex;
   justify-content: center;
-  transform-style: flat; // Prevent 3D transforms from affecting layout
+  transform-style: flat;
   box-sizing: border-box;
-  
+
   @media (max-width: 480px) {
     max-width: 100%;
-    padding: 0 0.5rem;
+    padding: 0;
   }
 `;
 
@@ -244,43 +251,73 @@ export const Projects: React.FC<ProjectsProps> = ({
           const data = await response.json();
           const fetchedProjects = data.projects || [];
           
-          // Transform backend data to match frontend interface
-          const transformedProjects = fetchedProjects.map((proj: any) => ({
-            id: proj.id,
-            name: proj.name,
-            title: proj.name, // Map name to title for compatibility
-            description: proj.description,
-            language: proj.tags?.[0] || 'Other', // Use first tag as language
-            link: proj.live_url || proj.repo_url, // Prefer live URL
-            image: '/favicon-32x32.png', // Placeholder image
-            repo_url: proj.repo_url,
-            live_url: proj.live_url,
-            tags: proj.tags || [],
-            status: proj.status,
-          }));
-          
-          setProjects(transformedProjects);
+          // Transform backend data and merge with mockProjects for media
+          const transformedProjects = fetchedProjects.map((proj: any) => {
+            const mockProject = mockProjects.find(m => m.name === proj.name);
+            return {
+              id: proj.id,
+              name: proj.name,
+              title: proj.name,
+              description: proj.description,
+              language: proj.tags?.[0] || 'Other',
+              link: proj.live_url || proj.repo_url,
+              image: mockProject?.mediaUrl || '/favicon-32x32.png',
+              repo_url: proj.repo_url,
+              live_url: proj.live_url,
+              tags: proj.tags || [],
+              techCategories: mockProject?.techCategories,
+              status: proj.status,
+              mediaType: mockProject?.mediaType || 'image',
+              badges: mockProject?.badges,
+            };
+          });
+
+          // If we got fewer than 6 projects from API, use mockProjects instead
+          if (transformedProjects.length < 6) {
+            const transformedMockProjects = mockProjects.slice(0, 8).map((proj: ProjectData) => ({
+              id: proj.id,
+              name: proj.name,
+              title: proj.name,
+              description: proj.description,
+              language: proj.tags?.[0] || 'Other',
+              link: proj.live_url || proj.repo_url,
+              image: proj.mediaUrl || '/favicon-32x32.png',
+              repo_url: proj.repo_url,
+              live_url: proj.live_url,
+              tags: proj.tags || [],
+              techCategories: proj.techCategories,
+              status: proj.status,
+              mediaType: proj.mediaType || 'image',
+              badges: proj.badges,
+            }));
+            setProjects(transformedMockProjects);
+          } else {
+            setProjects(transformedProjects);
+          }
         } catch (err) {
           console.error('Error fetching projects:', err);
           setError(err instanceof Error ? err.message : 'Failed to load projects');
           
           // Fallback to mock data on error
-          const transformedMockProjects = mockProjects.map((proj: any) => ({
+          const transformedMockProjects = mockProjects.slice(0, 8).map((proj: ProjectData) => ({
             id: proj.id,
             name: proj.name,
             title: proj.name,
             description: proj.description,
             language: proj.tags?.[0] || 'Other',
             link: proj.live_url || proj.repo_url,
-            image: '/favicon-32x32.png',
+            image: proj.mediaUrl || '/favicon-32x32.png',
             repo_url: proj.repo_url,
             live_url: proj.live_url,
             tags: proj.tags || [],
+            techCategories: proj.techCategories,
             status: proj.status,
+            mediaType: proj.mediaType || 'image',
+            badges: proj.badges,
           }));
-          
+
           setProjects(transformedMockProjects);
-          setError(null); // Clear error since we have fallback data
+          setError(null);
         } finally {
           setLoading(false);
         }
@@ -444,15 +481,15 @@ export const Projects: React.FC<ProjectsProps> = ({
                     custom={index}
                     layoutId={`project-${project.id || index}`}
                   >
-                    <ProjectCard 
-                      id={project.id}
+                    <EnhancedProjectCard
                       title={project.title || project.name}
                       description={project.description}
                       image={project.image || '/favicon-32x32.png'}
-                      link={project.link || project.live_url || project.repo_url || '#'}
-                      language={project.language}
-                      useSimplifiedEffects={shouldUseSimplifiedAnimation}
-                      supportsBackdropFilter={supportsBackdropFilter}
+                      repoLink={project.repo_url || '#'}
+                      liveLink={project.live_url || project.link || '#'}
+                      techCategories={project.techCategories}
+                      mediaType={project.mediaType || 'image'}
+                      badges={project.badges}
                     />
                   </ProjectCardWrapper>
                 ))}

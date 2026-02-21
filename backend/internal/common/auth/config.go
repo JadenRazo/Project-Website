@@ -54,6 +54,7 @@ type OAuth2Config struct {
 	Google            OAuth2ProviderConfig
 	GitHub            OAuth2ProviderConfig
 	Microsoft         OAuth2ProviderConfig
+	Discord           OAuth2ProviderConfig
 	EncryptionKey     []byte
 	AllowedEmails     []string
 	StateExpiry       time.Duration
@@ -97,6 +98,13 @@ func GetOAuth2Config() *OAuth2Config {
 			RedirectURL:  getEnvOrDefault("MICROSOFT_REDIRECT_URL", "http://localhost:8080/api/v1/auth/admin/2fa/callback/microsoft"),
 			Scopes:       []string{"openid", "email", "profile"},
 			Enabled:      os.Getenv("MICROSOFT_CLIENT_ID") != "",
+		},
+		Discord: OAuth2ProviderConfig{
+			ClientID:     os.Getenv("DISCORD_CLIENT_ID"),
+			ClientSecret: os.Getenv("DISCORD_CLIENT_SECRET"),
+			RedirectURL:  getEnvOrDefault("DISCORD_REDIRECT_URL", "http://localhost:8080/api/v1/discord/callback"),
+			Scopes:       []string{"identify", "role_connections.write"},
+			Enabled:      os.Getenv("DISCORD_CLIENT_ID") != "",
 		},
 		EncryptionKey:   []byte(encryptionKey),
 		AllowedEmails:   allowedEmails,

@@ -49,6 +49,11 @@ func main() {
 	// Set up router
 	router := gin.Default()
 
+	// Health check endpoint (for Docker healthcheck)
+	router.GET("/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"status": "healthy", "service": "messaging"})
+	})
+
 	// Create a router group for the service
 	routerGroup := router.Group("/")
 

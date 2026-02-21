@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/JadenRazo/Project-Website/backend/internal/domain"
-	"github.com/JadenRazo/Project-Website/backend/internal/messaging/repository"
+	msgerrors "github.com/JadenRazo/Project-Website/backend/internal/messaging/errors"
 	"gorm.io/gorm"
 )
 
@@ -16,7 +16,7 @@ type MessageRepo struct {
 }
 
 // NewMessageRepository creates a new PostgreSQL message repository
-func NewMessageRepository(db *gorm.DB) repository.MessageRepository {
+func NewMessageRepository(db *gorm.DB) *MessageRepo {
 	return &MessageRepo{
 		db: db,
 	}
@@ -44,7 +44,7 @@ func (r *MessageRepo) FindByID(ctx context.Context, id uint) (*domain.MessagingM
 		First(&message, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, repository.ErrNotFound
+			return nil, msgerrors.ErrNotFound
 		}
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func (r *MessageRepo) Delete(ctx context.Context, id uint) error {
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
-		return repository.ErrNotFound
+		return msgerrors.ErrNotFound
 	}
 	return nil
 }
@@ -206,7 +206,7 @@ func (r *MessageRepo) RemoveReaction(ctx context.Context, reactionID uint) error
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
-		return repository.ErrNotFound
+		return msgerrors.ErrNotFound
 	}
 	return nil
 }

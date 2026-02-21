@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/JadenRazo/Project-Website/backend/internal/common/response"
 	"github.com/gin-gonic/gin"
 )
 
@@ -41,7 +42,7 @@ func (s *Service) handleTrackPageView(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		response.SendError(c, http.StatusBadRequest, "Invalid request", nil)
 		return
 	}
 
@@ -49,13 +50,12 @@ func (s *Service) handleTrackPageView(c *gin.Context) {
 	defer cancel()
 
 	if err := s.TrackPageView(ctx, c.Request, req.Path); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to track page view"})
+		response.SendInternalError(c, "Failed to track page view", err)
 		return
 	}
 
 	realtimeCount := s.GetRealTimeCount(ctx)
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
+	response.SendSuccess(c, gin.H{
 		"activeVisitors": realtimeCount,
 	})
 }
@@ -68,82 +68,75 @@ func (s *Service) handleRecordConsent(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		response.SendError(c, http.StatusBadRequest, "Invalid request", nil)
 		return
 	}
 
-	// Record each consent type
 	for consentType, granted := range req.Consents {
 		if err := s.RecordConsent(c.Request.Context(), req.SessionHash, consentType, granted); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to record consent"})
+			response.SendInternalError(c, "Failed to record consent", err)
 			return
 		}
 	}
 
-	// Set consent cookie
 	c.SetCookie(
 		"privacy_consent",
 		"granted",
-		86400*365, // 1 year
+		86400*365,
 		"/",
 		"",
-		true,  // Secure
-		true,  // HttpOnly
+		true,
+		true,
 	)
 
-	c.JSON(http.StatusOK, gin.H{"success": true})
+	response.SendSuccess(c, nil)
 }
 
 // handleGetConsent gets consent status for a session
 func (s *Service) handleGetConsent(c *gin.Context) {
 	sessionID := c.Param("sessionId")
-	
+
 	status, err := s.GetConsentStatus(c.Request.Context(), sessionID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Consent not found"})
+		response.SendError(c, http.StatusNotFound, "Consent not found", nil)
 		return
 	}
 
-	c.JSON(http.StatusOK, status)
+	response.SendSuccess(c, status)
 }
 
 // handleDataErasure handles GDPR right to erasure requests
 func (s *Service) handleDataErasure(c *gin.Context) {
 	sessionID := c.Param("sessionId")
-	
-	// Delete all data associated with the session
+
 	if err := s.EraseSessionData(c.Request.Context(), sessionID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to erase data"})
+		response.SendInternalError(c, "Failed to erase data", err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "All data associated with this session has been erased",
-	})
+	response.SendSuccessWithMessage(c, nil, "All data associated with this session has been erased")
 }
 
 // handleGetOverview returns visitor statistics overview
 func (s *Service) handleGetOverview(c *gin.Context) {
 	stats, err := s.GetVisitorStats(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get statistics"})
+		response.SendInternalError(c, "Failed to get statistics", err)
 		return
 	}
 
-	c.JSON(http.StatusOK, stats)
+	response.SendSuccess(c, stats)
 }
 
 // handleGetRealtime returns real-time visitor data
 func (s *Service) handleGetRealtime(c *gin.Context) {
 	count := s.GetRealTimeCount(c.Request.Context())
-	
-	// Get current active pages
+
 	var activePages []struct {
 		Page  string `json:"page"`
 		Count int    `json:"count"`
 	}
-	
+
 	s.db.Raw(`
 		SELECT current_page as page, COUNT(*) as count
 		FROM visitor_realtime
@@ -153,7 +146,7 @@ func (s *Service) handleGetRealtime(c *gin.Context) {
 		LIMIT 10
 	`, time.Now().Add(-5*time.Minute)).Scan(&activePages)
 
-	c.JSON(http.StatusOK, gin.H{
+	response.SendSuccess(c, gin.H{
 		"activeVisitors": count,
 		"activePages":    activePages,
 		"timestamp":      time.Now(),
@@ -164,14 +157,14 @@ func (s *Service) handleGetRealtime(c *gin.Context) {
 func (s *Service) handleGetTimeline(c *gin.Context) {
 	period := c.DefaultQuery("period", "7d")
 	interval := c.DefaultQuery("interval", "day")
-	
+
 	data, err := s.GetTimelineData(c.Request.Context(), period, interval)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get timeline data"})
+		response.SendInternalError(c, "Failed to get timeline data", err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	response.SendSuccess(c, gin.H{
 		"period":   period,
 		"interval": interval,
 		"data":     data,
@@ -181,14 +174,14 @@ func (s *Service) handleGetTimeline(c *gin.Context) {
 // handleGetLocations returns visitor location distribution
 func (s *Service) handleGetLocations(c *gin.Context) {
 	period := c.DefaultQuery("period", "30d")
-	
+
 	locations, err := s.GetLocationDistribution(c.Request.Context(), period)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get location data"})
+		response.SendInternalError(c, "Failed to get location data", err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	response.SendSuccess(c, gin.H{
 		"period":    period,
 		"locations": locations,
 	})
@@ -197,14 +190,14 @@ func (s *Service) handleGetLocations(c *gin.Context) {
 // handleGetDevices returns device and browser statistics
 func (s *Service) handleGetDevices(c *gin.Context) {
 	period := c.DefaultQuery("period", "30d")
-	
+
 	stats, err := s.GetDeviceBrowserStats(c.Request.Context(), period)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get device statistics"})
+		response.SendInternalError(c, "Failed to get device statistics", err)
 		return
 	}
 
-	c.JSON(http.StatusOK, stats)
+	response.SendSuccess(c, stats)
 }
 
 // EraseSessionData erases all data for a session (GDPR compliance)

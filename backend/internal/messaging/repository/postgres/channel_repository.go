@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/JadenRazo/Project-Website/backend/internal/domain"
-	"github.com/JadenRazo/Project-Website/backend/internal/messaging/repository"
+	msgerrors "github.com/JadenRazo/Project-Website/backend/internal/messaging/errors"
 	"gorm.io/gorm"
 )
 
@@ -16,7 +16,7 @@ type ChannelRepo struct {
 }
 
 // NewChannelRepository creates a new PostgreSQL channel repository
-func NewChannelRepository(db *gorm.DB) repository.ChannelRepository {
+func NewChannelRepository(db *gorm.DB) *ChannelRepo {
 	return &ChannelRepo{
 		db: db,
 	}
@@ -42,7 +42,7 @@ func (r *ChannelRepo) FindByID(ctx context.Context, id uint) (*domain.MessagingC
 		First(&channel, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, repository.ErrNotFound
+			return nil, msgerrors.ErrNotFound
 		}
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func (r *ChannelRepo) Delete(ctx context.Context, id uint) error {
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
-		return repository.ErrNotFound
+		return msgerrors.ErrNotFound
 	}
 	return nil
 }
@@ -93,7 +93,7 @@ func (r *ChannelRepo) RemoveMember(ctx context.Context, channelID uint, userID u
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
-		return repository.ErrNotFound
+		return msgerrors.ErrNotFound
 	}
 	return nil
 }
@@ -134,7 +134,7 @@ func (r *ChannelRepo) UnpinMessage(ctx context.Context, channelID uint, messageI
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
-		return repository.ErrNotFound
+		return msgerrors.ErrNotFound
 	}
 	return nil
 }

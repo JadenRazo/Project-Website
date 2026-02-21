@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
+import { lockScroll, unlockScroll } from '../../utils/scrollLock';
 
 interface ScrollableModalProps {
   isOpen: boolean;
@@ -64,35 +65,31 @@ export const ScrollableModal: React.FC<ScrollableModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      // Store the currently focused element
       previousActiveElement.current = document.activeElement as HTMLElement;
-      
-      // Focus management with delay for animation
+
       const focusTimer = setTimeout(() => {
         if (autoFocus && modalRef.current) {
           const firstFocusable = modalRef.current.querySelector<HTMLElement>(
             'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
           );
-          
+
           if (firstFocusable) {
             firstFocusable.focus();
           } else {
             modalRef.current.focus();
           }
         }
-      }, 100); // Small delay for animation
-      
-      // Prevent body scroll when modal is open
-      document.body.style.overflow = 'hidden';
-      
+      }, 100);
+
+      lockScroll();
+
       return () => {
         clearTimeout(focusTimer);
+        unlockScroll();
       };
     } else {
-      // Restore body scroll
-      document.body.style.overflow = '';
-      
-      // Return focus to previous element
+      unlockScroll();
+
       if (previousActiveElement.current && previousActiveElement.current.focus) {
         previousActiveElement.current.focus();
       }
@@ -118,6 +115,7 @@ export const ScrollableModal: React.FC<ScrollableModalProps> = ({
             aria-modal="true"
             aria-label={ariaLabel}
             tabIndex={-1}
+            data-scroll-lock-scrollable
           >
             {children}
           </ModalContent>

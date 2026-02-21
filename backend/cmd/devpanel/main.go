@@ -147,6 +147,11 @@ func main() {
 	config.AllowCredentials = true
 	router.Use(cors.New(config))
 
+	// Health check endpoint (for Docker healthcheck)
+	router.GET("/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"status": "healthy", "service": "devpanel"})
+	})
+
 	// Create auth routes (public)
 	authGroup := router.Group("/api/v1/auth")
 	{

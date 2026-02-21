@@ -2,7 +2,7 @@ package visitor
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -24,7 +24,7 @@ func TrackingMiddleware(service *Service) gin.HandlerFunc {
 
 			path := c.Request.URL.Path
 			if err := service.TrackPageView(ctx, c.Request, path); err != nil {
-				fmt.Printf("[VISITOR TRACKING ERROR] Path: %s | Error: %v\n", path, err)
+				log.Printf("[VISITOR TRACKING ERROR] Path: %s | Error: %v", path, err)
 
 				if service.metrics != nil {
 					service.metrics.RecordLatency(0, "/visitor/error")

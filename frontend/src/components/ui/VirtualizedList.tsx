@@ -1,16 +1,7 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import styled from 'styled-components';
 import { useDebounce } from '../../utils/performance';
-
-// Try to import react-window, but have fallback if not available
-let FixedSizeList: any;
-try {
-  const ReactWindow = require('react-window');
-  FixedSizeList = ReactWindow.FixedSizeList;
-} catch (error) {
-  // react-window not available, will use fallback implementation
-  console.debug('react-window not available, using fallback virtualization');
-}
+import { FixedSizeList } from 'react-window';
 
 interface VirtualizedListProps<T> {
   data: T[];

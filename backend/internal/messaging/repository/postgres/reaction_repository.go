@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/JadenRazo/Project-Website/backend/internal/domain"
-	"github.com/JadenRazo/Project-Website/backend/internal/messaging/repository"
+	msgerrors "github.com/JadenRazo/Project-Website/backend/internal/messaging/errors"
 	"gorm.io/gorm"
 )
 
@@ -16,7 +16,7 @@ type ReactionRepo struct {
 }
 
 // NewReactionRepository creates a new PostgreSQL reaction repository
-func NewReactionRepository(db *gorm.DB) repository.ReactionRepository {
+func NewReactionRepository(db *gorm.DB) *ReactionRepo {
 	return &ReactionRepo{
 		db: db,
 	}
@@ -42,7 +42,7 @@ func (r *ReactionRepo) FindByID(ctx context.Context, id uint) (*domain.Messaging
 		First(&reaction, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, repository.ErrNotFound
+			return nil, msgerrors.ErrNotFound
 		}
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func (r *ReactionRepo) Delete(ctx context.Context, id uint) error {
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
-		return repository.ErrNotFound
+		return msgerrors.ErrNotFound
 	}
 	return nil
 }
@@ -115,7 +115,7 @@ func (r *ReactionRepo) GetReactionByEmoji(ctx context.Context, messageID uint, e
 		First(&reaction).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, repository.ErrNotFound
+			return nil, msgerrors.ErrNotFound
 		}
 		return nil, err
 	}
@@ -130,7 +130,7 @@ func (r *ReactionRepo) GetReactionByUser(ctx context.Context, messageID uint, us
 		First(&reaction).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, repository.ErrNotFound
+			return nil, msgerrors.ErrNotFound
 		}
 		return nil, err
 	}

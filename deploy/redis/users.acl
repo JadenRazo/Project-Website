@@ -1,8 +1,8 @@
 # Redis ACL Configuration
 # Define user permissions for secure access
 
-# Default user (disabled for security)
-user default on nopass ~* &* -@all
+# Default user (Docker internal network provides isolation)
+user default on nopass ~* &* +@all -@dangerous -flushdb -flushall -shutdown -config -acl -module -debug -slaveof -replicaof
 
 # Application user with limited permissions
 # Password will be replaced by environment variable

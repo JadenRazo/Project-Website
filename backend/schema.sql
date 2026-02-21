@@ -30,9 +30,15 @@ CREATE TABLE IF NOT EXISTS users (
     failed_login_attempts INTEGER DEFAULT 0,
     locked_until TIMESTAMP WITH TIME ZONE,
     two_factor_enabled BOOLEAN DEFAULT false,
-    two_factor_provider VARCHAR(50) CHECK (two_factor_provider IS NULL OR two_factor_provider IN ('google', 'github', 'microsoft')),
+    two_factor_provider VARCHAR(50) CHECK (two_factor_provider IS NULL OR two_factor_provider IN ('google', 'github', 'microsoft', 'discord')),
     two_factor_provider_id VARCHAR(255),
     two_factor_backup_codes TEXT,
+    totp_secret TEXT,
+    totp_enabled BOOLEAN DEFAULT false,
+    totp_verified BOOLEAN DEFAULT false,
+    totp_backup_codes TEXT,
+    totp_recovery_used INTEGER DEFAULT 0,
+    totp_enabled_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP WITH TIME ZONE
@@ -106,13 +112,32 @@ CREATE TABLE IF NOT EXISTS api_keys (
 CREATE TABLE IF NOT EXISTS oauth_tokens (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    provider VARCHAR(50) NOT NULL CHECK (provider IN ('google', 'github', 'microsoft')),
+    provider VARCHAR(50) NOT NULL CHECK (provider IN ('google', 'github', 'microsoft', 'discord')),
     encrypted_access_token TEXT NOT NULL,
     encrypted_refresh_token TEXT,
     token_expiry TIMESTAMP WITH TIME ZONE,
+    token_family_id UUID,
+    parent_token_id UUID,
+    rotation_count INTEGER DEFAULT 0 CHECK (rotation_count <= 10),
+    last_rotated_at TIMESTAMP WITH TIME ZONE,
+    revoked_at TIMESTAMP WITH TIME ZONE,
+    revocation_reason VARCHAR(255),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(user_id, provider)
+);
+
+-- Discord connections for linked roles (public, non-admin users)
+CREATE TABLE IF NOT EXISTS discord_connections (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    discord_user_id VARCHAR(255) NOT NULL UNIQUE,
+    discord_username VARCHAR(255),
+    encrypted_access_token TEXT NOT NULL,
+    encrypted_refresh_token TEXT,
+    token_expiry TIMESTAMP WITH TIME ZONE,
+    metadata_pushed_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- =============================================
@@ -130,6 +155,18 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     new_values JSONB,
     ip_address INET,
     user_agent TEXT,
+    metadata JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- MFA events for security tracking (TOTP two-factor authentication)
+CREATE TABLE IF NOT EXISTS mfa_events (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    event_type VARCHAR(50) NOT NULL CHECK (event_type IN ('enabled', 'disabled', 'verified', 'failed', 'recovery_used', 'backup_regenerated')),
+    ip_address INET,
+    user_agent TEXT,
+    success BOOLEAN DEFAULT true,
     metadata JSONB,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -163,6 +200,7 @@ CREATE TABLE IF NOT EXISTS shortened_urls (
     max_clicks INTEGER,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
     CONSTRAINT chk_short_code_length CHECK (char_length(short_code) >= 3 AND char_length(short_code) <= 20),
     CONSTRAINT chk_original_url_length CHECK (char_length(original_url) >= 10 AND char_length(original_url) <= 2048)
 );
@@ -601,6 +639,13 @@ CREATE INDEX idx_user_sessions_expires_at ON user_sessions(expires_at);
 CREATE INDEX idx_oauth_tokens_user_id ON oauth_tokens(user_id);
 CREATE INDEX idx_oauth_tokens_user_provider ON oauth_tokens(user_id, provider);
 CREATE INDEX idx_oauth_tokens_expiry ON oauth_tokens(token_expiry);
+CREATE INDEX idx_oauth_tokens_family_id ON oauth_tokens(token_family_id);
+CREATE INDEX idx_oauth_tokens_parent_id ON oauth_tokens(parent_token_id);
+CREATE INDEX idx_oauth_tokens_revoked ON oauth_tokens(revoked_at) WHERE revoked_at IS NOT NULL;
+
+-- Discord connections indexes
+CREATE INDEX idx_discord_connections_user_id ON discord_connections(discord_user_id);
+CREATE INDEX idx_discord_connections_expiry ON discord_connections(token_expiry);
 
 -- URL shortener indexes
 CREATE INDEX idx_shortened_urls_short_code ON shortened_urls(short_code) WHERE is_active = true;
@@ -618,6 +663,9 @@ CREATE INDEX idx_messaging_read_receipts_user_channel ON messaging_read_receipts
 CREATE INDEX idx_audit_logs_user_id ON audit_logs(user_id);
 CREATE INDEX idx_audit_logs_entity ON audit_logs(entity_type, entity_id);
 CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at);
+CREATE INDEX idx_mfa_events_user_id ON mfa_events(user_id);
+CREATE INDEX idx_mfa_events_created_at ON mfa_events(created_at DESC);
+CREATE INDEX idx_mfa_events_event_type ON mfa_events(event_type);
 
 -- Metrics indexes
 CREATE INDEX idx_metric_data_timestamp ON metric_data(timestamp DESC);
@@ -666,6 +714,10 @@ CREATE INDEX idx_certifications_is_featured ON certifications(is_featured);
 CREATE INDEX idx_certifications_sort_order ON certifications(sort_order);
 CREATE INDEX idx_certification_categories_is_visible ON certification_categories(is_visible);
 CREATE INDEX idx_certification_categories_sort_order ON certification_categories(sort_order);
+
+-- Contact submissions indexes
+CREATE INDEX idx_contact_submissions_created_at ON contact_submissions(created_at);
+CREATE INDEX idx_contact_submissions_email ON contact_submissions(email);
 
 -- Project paths indexes
 CREATE INDEX idx_project_paths_name ON project_paths(name) WHERE deleted_at IS NULL;
@@ -738,6 +790,9 @@ CREATE TRIGGER update_skill_categories_updated_at BEFORE UPDATE ON skill_categor
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_oauth_tokens_updated_at BEFORE UPDATE ON oauth_tokens
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_discord_connections_updated_at BEFORE UPDATE ON discord_connections
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- =============================================

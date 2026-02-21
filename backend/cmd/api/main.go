@@ -24,11 +24,14 @@ import (
 
 	appconfig "github.com/JadenRazo/Project-Website/backend/internal/app/config"
 	"github.com/JadenRazo/Project-Website/backend/internal/codestats"
+	"github.com/JadenRazo/Project-Website/backend/internal/contact"
 	codeStatsHTTP "github.com/JadenRazo/Project-Website/backend/internal/codestats/delivery/http"
 	"github.com/JadenRazo/Project-Website/backend/internal/codestats/projectpath"
 	projectPathHTTP "github.com/JadenRazo/Project-Website/backend/internal/codestats/projectpath/delivery/http"
 	projectPathRepo "github.com/JadenRazo/Project-Website/backend/internal/codestats/projectpath/repository"
 	"github.com/JadenRazo/Project-Website/backend/internal/common/auth"
+	"github.com/JadenRazo/Project-Website/backend/internal/common/auth/oauth"
+	"github.com/JadenRazo/Project-Website/backend/internal/common/auth/totp"
 	"github.com/JadenRazo/Project-Website/backend/internal/common/cache"
 	"github.com/JadenRazo/Project-Website/backend/internal/common/logger"
 	"github.com/JadenRazo/Project-Website/backend/internal/common/metrics"
@@ -249,6 +252,22 @@ func main() {
 	logger.Info("Admin auth handlers initialized")
 	fmt.Println("Admin auth handlers initialized.")
 
+	fmt.Println("Initializing OAuth providers...")
+	oauth2Config := auth.GetOAuth2Config()
+	oauthManager := oauth.NewOAuthManager(oauth2Config)
+	jwtManager := auth.NewJWTManager(authConfig)
+	oauthHandlers := oauth.NewOAuthHandlers(oauthManager, secureCacheInstance, gormDB, jwtManager, oauth2Config)
+	logger.Info("OAuth handlers initialized", "providers", len(oauthManager.GetEnabledProviders()))
+	fmt.Printf("OAuth initialized with %d providers.\n", len(oauthManager.GetEnabledProviders()))
+
+	// Discord handlers disabled - implementation pending
+	// var discordHandlers *oauth.DiscordHandlers
+	// if oauth2Config.Discord.Enabled {
+	// 	discordProvider := oauth.NewDiscordProvider(...)
+	// 	discordHandlers = oauth.NewDiscordHandlers(...)
+	// }
+	_ = oauth2Config.Discord // Silence unused warning
+
 	logger.Info("Initializing services")
 	fmt.Println("Initializing services...")
 
@@ -308,6 +327,18 @@ func main() {
 
 	// Now create the service with the properly configured config
 	visitorService := visitor.NewService(gormDB, secureCacheInstance, metricsManager, visitorConfig)
+
+	contactEmailConfig := &contact.EmailConfig{
+		ResendAPIKey: os.Getenv("RESEND_API_KEY"),
+		FromEmail:    cfg.Contact.FromEmail,
+		ToEmail:      cfg.Contact.ContactToEmail,
+	}
+	contactHandler := contact.NewHandler(gormDB, contactEmailConfig)
+	if contactEmailConfig.IsConfigured() {
+		logger.Info("Contact form email configured via Resend API")
+	} else {
+		logger.Info("Contact form email not configured, submissions will be logged only")
+	}
 
 	workerService := worker.NewService(gormDB)
 
@@ -394,6 +425,7 @@ func main() {
 	if cfg.Environment == "development" || cfg.EnablePprof {
 		logger.Info("Enabling profiling endpoints")
 		pprofGroup := apiGateway.GetRouter().Group("/debug/pprof")
+		pprofGroup.Use(adminAuthHandlers.AuthMiddleware())
 		{
 			pprofGroup.GET("/", gin.WrapF(pprof.Index))
 			pprofGroup.GET("/cmdline", gin.WrapF(pprof.Cmdline))
@@ -434,6 +466,9 @@ func main() {
 
 	router := apiGateway.GetRouter()
 
+	router.Use(middleware.SecurityHeaders())
+	logger.Info("Security headers middleware registered")
+
 	router.GET("/ws/analytics", func(c *gin.Context) {
 		visitorService.ServeWs(visitorService.GetHub(), c)
 	})
@@ -442,18 +477,48 @@ func main() {
 
 	logger.Info("Registering service routes")
 	fmt.Println("Registering service routes...")
+	totpHandlers := totp.NewTOTPHandlers(gormDB)
+
 	apiGateway.RegisterService("auth", func(rg *gin.RouterGroup) {
 		authService.RegisterUserRoutes(rg)
 
 		admin := rg.Group("/admin")
 		{
-			admin.POST("/login", adminAuthHandlers.Login)
+			admin.POST("/login", middleware.StrictRateLimiter(), adminAuthHandlers.Login)
 			admin.POST("/validate", adminAuthHandlers.ValidateToken)
-			admin.POST("/setup/request", adminAuthHandlers.RequestSetup)
-			admin.POST("/setup/complete", adminAuthHandlers.CompleteSetup)
+			admin.POST("/setup/request", middleware.StrictRateLimiter(), adminAuthHandlers.RequestSetup)
+			admin.POST("/setup/complete", middleware.StrictRateLimiter(), adminAuthHandlers.CompleteSetup)
 			admin.GET("/setup/status", adminAuthHandlers.CheckSetupStatus)
+			admin.POST("/mfa/verify", middleware.StrictRateLimiter(), adminAuthHandlers.VerifyMFA)
+
+			oauth := admin.Group("/oauth")
+			{
+				oauth.GET("/login/:provider", oauthHandlers.InitiateOAuth)
+				oauth.GET("/callback/:provider", oauthHandlers.HandleCallback)
+			}
+
+			protected := admin.Group("/mfa")
+			protected.Use(adminAuthHandlers.AuthMiddleware())
+			{
+				protected.POST("/totp/setup", totpHandlers.SetupTOTP)
+				protected.POST("/totp/verify", middleware.StrictRateLimiter(), totpHandlers.VerifyTOTP)
+				protected.POST("/totp/disable", totpHandlers.DisableTOTP)
+				protected.GET("/status", totpHandlers.GetMFAStatus)
+				protected.POST("/backup/regenerate", totpHandlers.RegenerateBackupCodes)
+			}
 		}
 	})
+
+	// Discord routes disabled - implementation pending
+	// if discordHandlers != nil {
+	// 	apiGateway.RegisterService("discord", func(rg *gin.RouterGroup) {
+	// 		rg.GET("/connect", discordHandlers.InitiateConnect)
+	// 		rg.GET("/callback", discordHandlers.HandleCallback)
+	// 		rg.GET("/stats", discordHandlers.GetConnectionStats)
+	// 	})
+	// 	logger.Info("Discord linked roles routes registered")
+	// }
+
 	apiGateway.RegisterService("urls", urlShortenerService.RegisterRoutes)
 	apiGateway.RegisterService("messaging", messagingService.RegisterRoutes)
 	apiGateway.RegisterService("devpanel", devpanelService.RegisterRoutes)
@@ -470,6 +535,8 @@ func main() {
 	apiGateway.RegisterService("status", statusService.RegisterRoutes)
 
 	apiGateway.RegisterService("visitor", visitorService.RegisterRoutes)
+
+	apiGateway.RegisterService("contact", contactHandler.RegisterRoutes)
 
 	apiGateway.RegisterHealthCheck()
 
@@ -516,14 +583,21 @@ func main() {
 
 	logger.Info("Starting all registered services")
 	fmt.Println("Starting all registered services...")
+	var failedServices []string
 	for _, service := range serviceManager.GetAllServices() {
 		if err := service.Start(); err != nil {
-			logger.Warn("Failed to start service", "service", service.Name(), "error", err)
+			logger.Error("Failed to start service", "service", service.Name(), "error", err)
+			failedServices = append(failedServices, service.Name())
 		} else {
 			logger.Info("Service started", "service", service.Name())
 		}
 	}
-	fmt.Println("All services started.")
+	if len(failedServices) > 0 {
+		logger.Error("Some services failed to start", "failed_services", failedServices)
+		fmt.Printf("WARNING: Failed to start services: %v\n", failedServices)
+	} else {
+		fmt.Println("All services started successfully.")
+	}
 
 	serviceManager.StartHealthChecks()
 

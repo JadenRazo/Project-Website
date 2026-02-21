@@ -16,18 +16,21 @@ const Card = styled(motion.div)<{ $isHovered: boolean; $isReducedMotion?: boolea
   margin: 0 auto;
   box-sizing: border-box;
   cursor: pointer;
-  transform-style: flat;
+  transform-style: preserve-3d;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
   display: flex;
   flex-direction: column;
   min-height: 420px;
-  
+  will-change: transform;
+
   ${props => !props.$isReducedMotion && props.$isHovered && css`
-    transform: scale(1.02);
+    transform: scale(1.02) translateZ(0);
     box-shadow: ${({ theme }) => theme.shadows.large};
   `}
-  
+
   &:active {
-    transform: scale(0.98);
+    transform: scale(0.98) translateZ(0);
   }
   
   @media (max-width: 768px) {
@@ -71,12 +74,36 @@ const ProjectContent = styled.div<{ $isHovered: boolean; $isReducedMotion?: bool
 
 
 
+// Media container
+const MediaContainer = styled.div`
+  width: 100%;
+  height: 180px;
+  overflow: hidden;
+  position: relative;
+  background: ${({ theme }) => theme.colors.surface};
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+
+  @media (max-width: 768px) {
+    height: 200px;
+  }
+`;
+
 // Image component with proper styling
 const ProjectImage = styled.img`
   width: 100%;
-  height: 180px;
+  height: 100%;
   object-fit: cover;
-  transition: transform 0.5s ease;
+  transition: transform 0.5s ease, opacity 0.3s ease;
+`;
+
+// Video component with proper styling
+const ProjectVideo = styled.video`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease, opacity 0.3s ease;
 `;
 
 // Gradient overlay for hover effects
@@ -197,17 +224,19 @@ interface ProjectCardProps {
   image: string;
   link: string;
   language?: string;
-  useSimplifiedEffects?: boolean; 
+  useSimplifiedEffects?: boolean;
   supportsBackdropFilter?: boolean;
+  mediaType?: 'image' | 'video';
 }
 
-export const ProjectCard: React.FC<ProjectCardProps> = ({ 
-  title, 
-  description, 
-  image, 
+export const ProjectCard: React.FC<ProjectCardProps> = ({
+  title,
+  description,
+  image,
   link,
   useSimplifiedEffects = false,
-  supportsBackdropFilter = true
+  supportsBackdropFilter = true,
+  mediaType = 'image'
 }) => {
   // Motion values for 3D effect
   const x = useMotionValue(0);
@@ -306,17 +335,47 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
       animate={controls}
       initial={{ scale: 0.98, opacity: 0.8 }}
     >
-      <GradientOverlay 
+      <GradientOverlay
         initial={{ opacity: 0 }}
-        whileHover={{ opacity: supportsBackdropFilter ? 1 : 0.5 }} 
+        whileHover={{ opacity: supportsBackdropFilter ? 1 : 0.5 }}
       />
-      <ProjectImage 
-        src={image} 
-        alt={title} 
-        loading="lazy"
-        onLoad={handleImageLoad}
-        style={{ opacity: imageLoaded ? 1 : 0, transition: 'opacity 0.3s ease' }}
-      />
+      <MediaContainer>
+        {mediaType === 'video' ? (
+          <ProjectVideo
+            src={image}
+            poster={image.replace('.mp4', '_poster.jpg').replace('_optimized.mp4', '_poster.jpg')}
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="metadata"
+            onLoadedData={handleImageLoad}
+            onCanPlay={(e) => {
+              const video = e.currentTarget;
+              if (video.readyState >= 3) {
+                handleImageLoad();
+              }
+            }}
+            style={{ opacity: imageLoaded ? 1 : 0 }}
+            aria-label={`${title} demo video`}
+          />
+        ) : (
+          <picture>
+            <source
+              srcSet={image.replace('.jpg', '.webp').replace('.png', '.webp')}
+              type="image/webp"
+            />
+            <ProjectImage
+              src={image}
+              alt={title}
+              loading="lazy"
+              onLoad={handleImageLoad}
+              style={{ opacity: imageLoaded ? 1 : 0 }}
+              decoding="async"
+            />
+          </picture>
+        )}
+      </MediaContainer>
       <ProjectContent $isHovered={isHovered} $isReducedMotion={isReducedMotion}>
         <ProjectInfo>
           <ProjectTitle>{title}</ProjectTitle>

@@ -36,6 +36,7 @@ type Config struct {
 	URLShortener      URLShortenerConfig `yaml:"urlShortener"`
 	Messaging         MessagingConfig    `yaml:"messaging"`
 	DevPanel          DevPanelConfig     `yaml:"devPanel"`
+	Contact           ContactConfig      `yaml:"contact"`
 }
 
 type RedisConfig struct {
@@ -69,6 +70,15 @@ type DevPanelConfig struct {
 	MetricsInterval string `yaml:"metricsInterval"` // e.g., "30s"
 	MaxLogLines     int    `yaml:"maxLogLines"`
 	LogRetention    string `yaml:"logRetention"` // e.g., "168h" (for 7 days)
+}
+
+type ContactConfig struct {
+	SMTPHost       string `yaml:"smtpHost"`
+	SMTPPort       int    `yaml:"smtpPort"`
+	SMTPUser       string `yaml:"smtpUser" sensitive:"true"`
+	SMTPPass       string `yaml:"smtpPass" sensitive:"true"`
+	FromEmail      string `yaml:"fromEmail"`
+	ContactToEmail string `yaml:"contactToEmail"`
 }
 
 type LogFilter struct {
@@ -115,6 +125,12 @@ const (
 	EnvDevPanelMetricsInterval = "DEV_PANEL_METRICS_INTERVAL"
 	EnvDevPanelMaxLogLines     = "DEV_PANEL_MAX_LOG_LINES"
 	EnvDevPanelLogRetention    = "DEV_PANEL_LOG_RETENTION"
+	EnvSMTPHost                = "SMTP_HOST"
+	EnvSMTPPort                = "SMTP_PORT"
+	EnvSMTPUser                = "SMTP_USER"
+	EnvSMTPPass                = "SMTP_PASS"
+	EnvFromEmail               = "FROM_EMAIL"
+	EnvContactToEmail          = "CONTACT_TO_EMAIL"
 )
 
 func LoadConfig() (*Config, error) {
@@ -270,6 +286,27 @@ func LoadConfig() (*Config, error) {
 		config.DevPanel.LogRetention = retention
 	}
 
+	if host := os.Getenv(EnvSMTPHost); host != "" {
+		config.Contact.SMTPHost = host
+	}
+	if portStr := os.Getenv(EnvSMTPPort); portStr != "" {
+		if port, err := strconv.Atoi(portStr); err == nil {
+			config.Contact.SMTPPort = port
+		}
+	}
+	if user := os.Getenv(EnvSMTPUser); user != "" {
+		config.Contact.SMTPUser = user
+	}
+	if pass := os.Getenv(EnvSMTPPass); pass != "" {
+		config.Contact.SMTPPass = pass
+	}
+	if from := os.Getenv(EnvFromEmail); from != "" {
+		config.Contact.FromEmail = from
+	}
+	if to := os.Getenv(EnvContactToEmail); to != "" {
+		config.Contact.ContactToEmail = to
+	}
+
 	setDefaults(config)
 
 	if err := validateConfig(config); err != nil {
@@ -408,6 +445,13 @@ func setDefaults(config *Config) {
 	}
 	if config.DevPanel.LogRetention == "" {
 		config.DevPanel.LogRetention = "168h"
+	}
+
+	if config.Contact.SMTPPort == 0 {
+		config.Contact.SMTPPort = 587
+	}
+	if config.Contact.ContactToEmail == "" {
+		config.Contact.ContactToEmail = "jadenrazo@yahoo.com"
 	}
 
 	if len(config.AllowedOrigins) == 0 {

@@ -79,14 +79,6 @@ export const MemoryManagerProvider: React.FC<MemoryManagerProviderProps> = ({
 
   // Free up memory (with API checks)
   const freeMemory = useCallback(() => {
-    // Clear image cache (works in all browsers)
-    const images = document.querySelectorAll('img[data-src]');
-    images.forEach(img => {
-      if (!img.classList.contains('critical-image')) {
-        (img as HTMLImageElement).src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-      }
-    });
-    
     // Clear any application caches (only if available)
     if (isCachesApiAvailable) {
       caches.keys().then(cacheNames => {

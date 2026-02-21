@@ -116,60 +116,75 @@ const HeroContainer = styled.div`
   min-height: 100vh;
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 60px 40px 40px;
+  justify-content: flex-start;
+  padding: 60px 80px 40px;
   position: relative;
   overflow: hidden;
   margin-top: 60px;
-  text-align: center;
+  text-align: left;
   background: ${({ theme }) => theme.colors.background};
+
+  @media (max-width: ${breakpoints.laptop}) {
+    padding: 60px 48px 40px;
+  }
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     padding: 40px 32px 32px;
     min-height: calc(100vh - 60px);
+    text-align: center;
+    justify-content: center;
   }
-  
+
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     padding: 32px 20px 24px;
   }
 `;
 
 const ContentWrapper = styled(motion.div)<StyledMotionProps>`
-  max-width: 1200px;
-  width: 100%;
+  max-width: 1400px;
+  width: 60%;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 48px;
   z-index: 1;
-  align-items: center;
-  text-align: center;
+  align-items: flex-start;
+  text-align: left;
+
+  @media (max-width: ${breakpoints.laptop}) {
+    width: 70%;
+    gap: 40px;
+  }
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    gap: 28px;
+    width: 100%;
+    gap: 32px;
     align-items: center;
-    justify-content: center;
+    text-align: center;
   }
-  
+
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     gap: 24px;
   }
 `;
 
 
-const Name = styled(motion.h2)<StyledMotionProps>`
-  font-size: 4rem;
-  color: ${({ theme }) => theme.colors.primary};
+const Name = styled(motion.h1)<StyledMotionProps>`
+  font-size: clamp(3rem, 8vw, 8rem);
+  color: ${({ theme }) => theme.colors.text};
   margin: 0;
-  line-height: 1.2;
-  transform: ${({ $isHovered }) => $isHovered ? 'scale(1.05)' : 'scale(1)'};
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-family: var(--font-display);
+  transform: ${({ $isHovered }) => $isHovered ? 'scale(1.02)' : 'scale(1)'};
   transition: transform 0.3s ease;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    font-size: 3rem;
+    font-size: clamp(2.5rem, 10vw, 5rem);
   }
 
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    font-size: 2.5rem;
+    font-size: clamp(2rem, 12vw, 3.5rem);
   }
 `;
 
@@ -412,87 +427,83 @@ const ProjectList = styled(motion.ul)`
 // Enhanced CTA button with animated gradient border on hover
 const CTAButton = styled(motion.button)`
   display: inline-block;
-  background-color: ${({ theme }) => theme.colors.primary};
-  border: 1px solid ${({ theme }) => theme.colors.primary};
-  border-radius: 8px;
-  color: #fff;
-  font-family: ${systemFonts.mono};
-  font-size: clamp(14px, 2vw, 16px);
-  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, var(--color-neon) 0%, #00a86b 100%);
+  border: 2px solid var(--color-neon);
+  border-radius: 12px;
+  color: #050911;
+  font-family: ${systemFonts.sans};
+  font-size: clamp(15px, 2vw, 18px);
+  padding: 1.25rem 2.5rem;
   text-decoration: none;
   position: relative;
   overflow: hidden;
   pointer-events: auto;
   transition: all 0.3s ease;
-  max-width: 200px;
+  max-width: 280px;
   text-align: center;
-  margin: 0 auto;
-  font-weight: 500;
+  font-weight: 700;
   cursor: pointer;
-  
-  &:after {
+  box-shadow: 0 0 30px var(--color-neon-glow);
+  letter-spacing: 0.02em;
+
+  &:before {
     content: '';
     position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: ${({ theme }) => `linear-gradient(
-      90deg,
-      transparent,
-      ${theme.colors.primary}20,
-      transparent
-    )`};
-    transition: left 0.7s ease;
-    z-index: -1;
+    inset: 0;
+    background: radial-gradient(circle at center, var(--color-neon) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
   }
-  
+
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    background-color: ${({ theme }) => theme.colors.backgroundAlt};
-    color: ${({ theme }) => theme.colors.primary};
-    
-    &:after {
-      left: 200%;
+    transform: translateY(-4px);
+    box-shadow: 0 0 50px var(--color-neon-glow), 0 8px 24px rgba(0, 0, 0, 0.3);
+    border-color: var(--color-neon);
+
+    &:before {
+      opacity: 0.3;
     }
   }
-  
+
+  &:active {
+    transform: translateY(-2px);
+  }
+
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     width: 100%;
-    max-width: 250px;
-    padding: 1rem 1.5rem;
+    max-width: 300px;
+    padding: 1.125rem 2rem;
     margin: 0 auto;
   }
-  
+
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    padding: 0.8rem 1.2rem;
-    font-size: 13px;
+    padding: 1rem 1.75rem;
+    font-size: 15px;
   }
 `;
 
 // Enhanced skill data with icon references
 const SKILLS: Record<string, Skill> = {
-  'ui': {
-    id: 'ui',
-    name: 'UI Designer',
-    description: 'Creating intuitive and visually appealing user interfaces that prioritize user experience and accessibility. Proficient in design principles, color theory, and responsive layouts.',
-    icon: 'design',
-    projects: ['Portfolio Website Redesign', 'Discord Bot styling', 'Dashboard Interface for Analytics Platform']
-  },
-  'api': {
-    id: 'api',
-    name: 'API Coding',
-    description: 'Building robust and secure APIs that connect front-end applications to back-end services. Experience with RESTful design principles, authentication, and data handling.',
+  'fullstack': {
+    id: 'fullstack',
+    name: 'Full-Stack Architecture',
+    description: 'Designing and building complete web applications from database to user interface. Specializing in React/TypeScript frontends, Go microservices, and scalable system design.',
     icon: 'code',
-    projects: ['Developing Microservices Architecture', 'Discord Python Bot API', 'ChatGPT, Claude, Gemini API Integration']
+    projects: ['Portfolio Website with 5 Microservices', 'Showers Auto Detail Booking Platform', 'WeenieSMP Minecraft Server Ecosystem']
   },
-  'db': {
-    id: 'db',
-    name: 'Database Management',
-    description: 'Designing efficient database structures and managing data storage solutions. Skilled in SQL and NoSQL databases, query optimization, and data security practices.',
+  'realtime': {
+    id: 'realtime',
+    name: 'Real-Time Systems',
+    description: 'Building WebSocket-powered applications for instant communication and live data. Experience with presence systems, live updates, and event-driven architectures.',
     icon: 'database',
-    projects: ['Diverse SQL Querys', 'Asyncpg in Python', 'Turning Data into Insights']
+    projects: ['Real-Time Messaging Platform', 'Live Service Status Dashboard', 'Discord Bot with LLM Integration']
+  },
+  'devops': {
+    id: 'devops',
+    name: 'Cloud & DevOps',
+    description: 'Deploying and managing production systems with Docker, Nginx, and monitoring tools. Implementing CI/CD pipelines, security best practices, and infrastructure automation.',
+    icon: 'design',
+    projects: ['Multi-Service Docker Orchestration', 'Prometheus/Grafana Monitoring Stack', 'Automated SSL & Security Hardening']
   }
 };
 
@@ -804,12 +815,12 @@ const BioItem = styled(motion.button)<BioItemProps>`
   hyphens: auto;
   
   /* Visual design */
-  color: ${({ theme, $active }) => $active ? '#fff' : theme.colors.text};
-  background-color: ${({ theme, $active }) => $active 
-    ? theme.colors.primary 
+  color: ${({ theme, $active }) => $active ? '#050911' : theme.colors.text};
+  background-color: ${({ theme, $active }) => $active
+    ? 'var(--color-neon)'
     : 'rgba(255, 255, 255, 0.08)'};
-  border: 2px solid ${({ theme, $active }) => $active 
-    ? theme.colors.primary 
+  border: 2px solid ${({ theme, $active }) => $active
+    ? 'var(--color-neon)'
     : 'rgba(255, 255, 255, 0.12)'};
   border-radius: 14px;
   backdrop-filter: blur(10px);
@@ -846,13 +857,15 @@ const BioItem = styled(motion.button)<BioItemProps>`
   }
 
   &:hover {
-    background-color: ${({ theme, $active }) => $active 
-      ? theme.colors.primary 
+    background-color: ${({ theme, $active }) => $active
+      ? 'var(--color-neon)'
       : 'rgba(255, 255, 255, 0.12)'};
-    border-color: ${({ theme }) => theme.colors.primary};
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    border-color: ${({ $active }) => $active ? 'var(--color-neon)' : 'var(--color-primary)'};
+    box-shadow: ${({ $active }) => $active
+      ? '0 0 30px var(--color-neon-glow), 0 8px 32px rgba(0, 0, 0, 0.2)'
+      : '0 8px 32px rgba(0, 0, 0, 0.2)'};
     transform: translateY(-2px);
-    
+
     &::before {
       left: 100%;
     }
@@ -896,16 +909,20 @@ const TypewriterContainer = styled.div`
   position: relative;
   display: block;
   width: 100%;
-  text-align: center;
+  text-align: left;
   word-break: normal;
   white-space: normal;
-  letter-spacing: 0.05em;
+  letter-spacing: -0.03em;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    text-align: center;
+  }
 
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     span.word {
       font-size: 2.2rem;
     }
-    
+
     span:nth-child(2) {
       &::after {
         content: '';
@@ -915,7 +932,7 @@ const TypewriterContainer = styled.div`
       }
     }
   }
-  
+
   @media (max-width: 375px) {
     span.word {
       font-size: 1.8rem;
@@ -923,11 +940,19 @@ const TypewriterContainer = styled.div`
   }
 `;
 
-const WordWrapper = styled.span`
+const WordWrapper = styled.span<{ $isLastWord?: boolean }>`
   display: inline-block;
   white-space: nowrap;
-  margin-right: 12px;
+  margin-right: ${({ $isLastWord }) => $isLastWord ? '0' : '0.3em'};
   margin-bottom: 5px;
+
+  ${({ $isLastWord }) => $isLastWord && `
+    background: linear-gradient(135deg, #f8fafc 0%, var(--color-neon) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 30px var(--color-neon-glow));
+  `}
 `;
 
 const TypewriterCharacter = styled(motion.span)<{ $isSlash?: boolean }>`
@@ -1098,12 +1123,12 @@ export const Hero: React.FC = () => {
   
   // Clean bio items with skill mapping
   const bioItems = useMemo(() => [
-    { label: 'UI Designer', skillId: 'ui' },
-    { label: 'API Development & Integration', skillId: 'api' },
-    { label: 'Database Management', skillId: 'db' }
+    { label: 'Full-Stack Architecture', skillId: 'fullstack' },
+    { label: 'Real-Time Systems', skillId: 'realtime' },
+    { label: 'Cloud & DevOps', skillId: 'devops' }
   ], []);
 
-  const nameText = "Hi there, I'm Jaden Razo/";
+  const nameText = "Hi there, I'm Jaden Razo";
   const nameCharacters = nameText.split('');
   const [typedCount, setTypedCount] = useState(0);
   const [showCursor, setShowCursor] = useState(true);
@@ -1237,23 +1262,27 @@ export const Hero: React.FC = () => {
           onMouseLeave={handleNameMouseLeave}
         >
           <TypewriterContainer>
-            {/* Process typed text word by word with explicit space handling */}
-            {nameText.substring(0, typedCount).split(' ').map((word, wordIndex) => {
-              // Skip empty words
+            {nameText.substring(0, typedCount).split(' ').map((word, wordIndex, wordsArray) => {
               if (word === '') return null;
-              
+
+              const isLastWord = wordIndex === wordsArray.length - 1 && typedCount >= nameText.length;
+
               return (
-                <WordWrapper 
+                <WordWrapper
                   key={`word-${wordIndex}`}
                   className="word"
+                  $isLastWord={isLastWord}
                 >
                   {word.split('').map((char, charIndex) => (
                     <TypewriterCharacter
                       key={`${wordIndex}-${charIndex}`}
-                      $isSlash={char === '/'}
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.1 }}
+                      initial={{ opacity: 0, y: 20, rotateX: -90 }}
+                      animate={{ opacity: 1, y: 0, rotateX: 0 }}
+                      transition={{
+                        duration: 0.4,
+                        delay: charIndex * 0.05,
+                        ease: [0.25, 0.46, 0.45, 0.94]
+                      }}
                     >
                       {char}
                     </TypewriterCharacter>
@@ -1287,10 +1316,10 @@ export const Hero: React.FC = () => {
                   $enablePulse={!performanceSettings?.reduceMotion}
                   animate={isActive ? {
                     scale: 1.02,
-                    backgroundColor: theme.colors.primary,
-                    color: '#fff',
-                    boxShadow: '0 12px 40px rgba(0,0,0,0.3)',
-                    borderColor: theme.colors.primary,
+                    backgroundColor: 'var(--color-neon)',
+                    color: '#050911',
+                    boxShadow: '0 0 30px var(--color-neon-glow), 0 12px 40px rgba(0,0,0,0.3)',
+                    borderColor: 'var(--color-neon)',
                   } : {
                     scale: 1,
                     backgroundColor: 'rgba(255, 255, 255, 0.08)',
@@ -1323,10 +1352,10 @@ export const Hero: React.FC = () => {
                   $enablePulse={!performanceSettings?.reduceMotion}
                   animate={isActive ? {
                     scale: 1.02,
-                    backgroundColor: theme.colors.primary,
-                    color: '#fff',
-                    boxShadow: '0 12px 40px rgba(0,0,0,0.3)',
-                    borderColor: theme.colors.primary,
+                    backgroundColor: 'var(--color-neon)',
+                    color: '#050911',
+                    boxShadow: '0 0 30px var(--color-neon-glow), 0 12px 40px rgba(0,0,0,0.3)',
+                    borderColor: 'var(--color-neon)',
                   } : {
                     scale: 1,
                     backgroundColor: 'rgba(255, 255, 255, 0.08)',
@@ -1370,6 +1399,131 @@ export const Hero: React.FC = () => {
         >
           View My Portfolio
         </CTAButton>
+
+        <motion.div
+          variants={animationVariants.item}
+          style={{
+            display: 'flex',
+            gap: '24px',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginTop: '32px',
+            flexWrap: 'wrap'
+          }}
+        >
+          <motion.a
+            href="https://github.com/JadenRazo"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              color: theme.colors.text,
+              textDecoration: 'none',
+              fontSize: '15px',
+              fontWeight: 500,
+              transition: 'color 0.3s ease, transform 0.3s ease'
+            }}
+            whileHover={{
+              color: 'var(--color-neon)',
+              scale: 1.05
+            }}
+            whileTap={{ scale: 0.95 }}
+            aria-label="GitHub Profile"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
+            </svg>
+            <span>GitHub</span>
+          </motion.a>
+
+          <div style={{ width: '1px', height: '20px', backgroundColor: theme.colors.border }} />
+
+          <motion.a
+            href="https://jadenrazo.dev/s/linkedin"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              color: theme.colors.text,
+              textDecoration: 'none',
+              fontSize: '15px',
+              fontWeight: 500,
+              transition: 'color 0.3s ease, transform 0.3s ease'
+            }}
+            whileHover={{
+              color: 'var(--color-neon)',
+              scale: 1.05
+            }}
+            whileTap={{ scale: 0.95 }}
+            aria-label="LinkedIn Profile"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+              <rect x="2" y="9" width="4" height="12" />
+              <circle cx="4" cy="4" r="2" />
+            </svg>
+            <span>LinkedIn</span>
+          </motion.a>
+
+          <div style={{ width: '1px', height: '20px', backgroundColor: theme.colors.border }} />
+
+          <motion.a
+            href="mailto:contact@jadenrazo.dev"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              color: theme.colors.text,
+              textDecoration: 'none',
+              fontSize: '15px',
+              fontWeight: 500,
+              transition: 'color 0.3s ease, transform 0.3s ease'
+            }}
+            whileHover={{
+              color: 'var(--color-neon)',
+              scale: 1.05
+            }}
+            whileTap={{ scale: 0.95 }}
+            aria-label="Email Contact"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+              <polyline points="22,6 12,13 2,6" />
+            </svg>
+            <span>Email</span>
+          </motion.a>
+        </motion.div>
         </ContentWrapper>
       </HeroContainer>
     </>

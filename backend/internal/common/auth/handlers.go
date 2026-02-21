@@ -2,10 +2,13 @@ package auth
 
 import (
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+
+	"github.com/JadenRazo/Project-Website/backend/internal/common/auth/totp"
 )
 
 type AdminAuthHandlers struct {
@@ -163,6 +166,32 @@ func (h *AdminAuthHandlers) AuthMiddleware() gin.HandlerFunc {
 		}
 
 		c.Set("user", claims)
+		c.Set("user_id", claims.UserID)
 		c.Next()
 	}
+}
+
+func (h *AdminAuthHandlers) VerifyMFA(c *gin.Context) {
+	var req MFAVerificationRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	encryptionKey := os.Getenv("JWT_SECRET")
+	if encryptionKey == "" {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Server configuration error"})
+		return
+	}
+
+	totpSvc := totp.NewTOTPService("Portfolio-DevPanel")
+	encryptor := totp.NewEncryptor(encryptionKey)
+
+	resp, err := h.adminAuth.VerifyMFAAndLogin(&req, totpSvc, encryptor)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
 }

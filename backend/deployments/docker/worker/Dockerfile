@@ -1,4 +1,4 @@
-FROM golang:1.20-alpine AS builder
+FROM golang:1.24-alpine AS builder
 
 # Set working directory
 WORKDIR /build
@@ -35,7 +35,7 @@ RUN addgroup -g 1000 appuser && \
     chown -R appuser:appuser /app
 
 # Install runtime dependencies
-RUN apk add --no-cache ca-certificates tzdata && \
+RUN apk add --no-cache ca-certificates tzdata curl && \
     update-ca-certificates
 
 # Copy the binary from builder
@@ -47,10 +47,17 @@ COPY --chown=appuser:appuser ./config/production.yaml /app/config/production.yam
 # Switch to non-root user
 USER appuser
 
+# Expose Worker port
+EXPOSE 8084
+
 # Set environment variables
 ENV ENVIRONMENT=production \
     TZ=UTC \
     CONFIG_PATH=/app/config/production.yaml
+
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8084/health || exit 1
 
 # Run the worker
 CMD ["/app/worker"]

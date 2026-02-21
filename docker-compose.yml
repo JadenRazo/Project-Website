@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # Secure Redis Service
+  # Secure Redis Service with TLS 1.3
   redis:
     image: redis:7-alpine
     container_name: portfolio_redis_secure
@@ -9,21 +9,25 @@ services:
     command: redis-server /usr/local/etc/redis/redis.conf
     volumes:
       - ./deploy/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
-      - ./deploy/redis/users.acl:/usr/local/etc/redis/users.acl:ro
+      - ./deploy/redis/users.acl:/etc/redis/users.acl:ro
+      - ./deploy/redis/certs:/etc/redis/certs:ro
       - redis_data:/data
-      - redis_socket:/var/run/redis
     networks:
       - internal_network
     security_opt:
       - no-new-privileges:true
-    read_only: true
-    tmpfs:
-      - /tmp
-    # NO PORTS EXPOSED - Only accessible via internal network or socket
     environment:
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_APP_PASSWORD=${REDIS_APP_PASSWORD}
+      - REDIS_MONITOR_PASSWORD=${REDIS_MONITOR_PASSWORD}
+      - REDIS_WORKER_PASSWORD=${REDIS_WORKER_PASSWORD}
+      - REDIS_HEALTH_PASSWORD=${REDIS_HEALTH_PASSWORD}
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
     healthcheck:
-      test: ["CMD", "redis-cli", "-s", "/var/run/redis/redis.sock", "--user", "health", "-a", "${REDIS_HEALTH_PASSWORD}", "ping"]
+      test: ["CMD", "redis-cli", "-h", "127.0.0.1", "ping"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -44,12 +48,302 @@ services:
     networks:
       - internal_network
     ports:
-      - "127.0.0.1:5432:5432"  # Only expose to localhost
+      - "127.0.0.1:5432:5432"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-portfolio}"]
       interval: 30s
       timeout: 10s
       retries: 5
+
+  # API Service (Port 8080)
+  api:
+    build:
+      context: ./backend
+      dockerfile: deployments/docker/api/Dockerfile
+    container_name: portfolio_api
+    restart: unless-stopped
+    environment:
+      - ENVIRONMENT=production
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-portfolio}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME:-portfolio}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=${JWT_SECRET}
+      - ADMIN_TOKEN=${ADMIN_TOKEN}
+      - OAUTH_ENCRYPTION_KEY=${OAUTH_ENCRYPTION_KEY}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - FROM_EMAIL=${FROM_EMAIL}
+      - CONTACT_TO_EMAIL=${CONTACT_TO_EMAIL}
+      - METRICS_ENABLED=true
+      - VISITOR_TRACKING_ENABLED=true
+      - PRIVACY_MODE=balanced
+      - PORT=8080
+    volumes:
+      - ./deploy/redis/certs:/app/certs:ro
+      - ./backend/config:/app/config:ro
+    networks:
+      - internal_network
+      - external_network
+      - monitoring_network
+    ports:
+      - "127.0.0.1:8090:8080"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+
+  # DevPanel Service (Port 8081)
+  devpanel:
+    build:
+      context: ./backend
+      dockerfile: deployments/docker/devpanel/Dockerfile
+    container_name: portfolio_devpanel
+    restart: unless-stopped
+    environment:
+      - ENVIRONMENT=production
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-portfolio}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME:-portfolio}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_MONITOR_PASSWORD}
+      - REDIS_USERNAME=monitor
+      - REDIS_TLS_ENABLED=true
+      - REDIS_TLS_CA_CERT=/app/certs/ca.crt
+      - JWT_SECRET=${JWT_SECRET}
+      - ADMIN_TOKEN=${ADMIN_TOKEN}
+      - PORT=8081
+    volumes:
+      - ./deploy/redis/certs:/app/certs:ro
+      - ./backend/config:/app/config:ro
+    networks:
+      - internal_network
+      - external_network
+      - monitoring_network
+    ports:
+      - "127.0.0.1:8081:8081"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Messaging Service (Port 8082)
+  messaging:
+    build:
+      context: ./backend
+      dockerfile: deployments/docker/messaging/Dockerfile
+    container_name: portfolio_messaging
+    restart: unless-stopped
+    environment:
+      - ENVIRONMENT=production
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-portfolio}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME:-portfolio}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_APP_PASSWORD}
+      - REDIS_USERNAME=app
+      - REDIS_TLS_ENABLED=true
+      - REDIS_TLS_CA_CERT=/app/certs/ca.crt
+      - JWT_SECRET=${JWT_SECRET}
+      - PORT=8082
+    volumes:
+      - ./deploy/redis/certs:/app/certs:ro
+      - ./backend/config:/app/config:ro
+    networks:
+      - internal_network
+      - external_network
+      - monitoring_network
+    ports:
+      - "127.0.0.1:8082:8082"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 384M
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # URL Shortener Service (Port 8083)
+  urlshortener:
+    build:
+      context: ./backend
+      dockerfile: deployments/docker/urlshortener/Dockerfile
+    container_name: portfolio_urlshortener
+    restart: unless-stopped
+    environment:
+      - ENVIRONMENT=production
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-portfolio}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME:-portfolio}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_APP_PASSWORD}
+      - REDIS_USERNAME=app
+      - REDIS_TLS_ENABLED=true
+      - REDIS_TLS_CA_CERT=/app/certs/ca.crt
+      - PORT=8083
+    volumes:
+      - ./deploy/redis/certs:/app/certs:ro
+      - ./backend/config:/app/config:ro
+    networks:
+      - internal_network
+      - external_network
+      - monitoring_network
+    ports:
+      - "127.0.0.1:8083:8083"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Worker Service (Port 8084)
+  worker:
+    build:
+      context: ./backend
+      dockerfile: deployments/docker/worker/Dockerfile
+    container_name: portfolio_worker
+    restart: unless-stopped
+    environment:
+      - ENVIRONMENT=production
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-portfolio}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME:-portfolio}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_WORKER_PASSWORD}
+      - REDIS_USERNAME=worker
+      - REDIS_TLS_ENABLED=true
+      - REDIS_TLS_CA_CERT=/app/certs/ca.crt
+      - PORT=8084
+    volumes:
+      - ./deploy/redis/certs:/app/certs:ro
+      - ./backend/config:/app/config:ro
+    networks:
+      - internal_network
+      - monitoring_network
+    ports:
+      - "127.0.0.1:8084:8084"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8084/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: portfolio_frontend
+    restart: unless-stopped
+    networks:
+      - external_network
+    ports:
+      - "3000:80"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+  # WeenieSMP Website
+  weeniesmp:
+    build:
+      context: ./weeniesmp
+      dockerfile: Dockerfile
+    container_name: weeniesmp_website
+    restart: unless-stopped
+    networks:
+      - external_network
+    ports:
+      - "127.0.0.1:3002:80"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
 
   # Prometheus for metrics
   prometheus:
@@ -66,12 +360,20 @@ services:
       - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
     networks:
-      - internal_network
       - monitoring_network
     ports:
-      - "127.0.0.1:9090:9090"  # Only expose to localhost
+      - "127.0.0.1:9090:9090"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
     depends_on:
-      - backend
+      - api
+      - devpanel
+      - messaging
+      - urlshortener
+      - worker
 
   # Grafana for visualization
   grafana:
@@ -90,71 +392,16 @@ services:
     networks:
       - monitoring_network
     ports:
-      - "127.0.0.1:3001:3000"  # Grafana on port 3001 to avoid conflict
+      - "127.0.0.1:3001:3000"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
     depends_on:
       - prometheus
 
-  # Backend API Service
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: portfolio_backend
-    restart: unless-stopped
-    environment:
-      - ENV=production
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_USER=${DB_USER:-portfolio}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_NAME=${DB_NAME:-portfolio}
-      - REDIS_SOCKET=/var/run/redis/redis.sock
-      - REDIS_PASSWORD=${REDIS_APP_PASSWORD}
-      - REDIS_USERNAME=app
-      - JWT_SECRET=${JWT_SECRET}
-      - ADMIN_TOKEN=${ADMIN_TOKEN}
-      - METRICS_ENABLED=true
-      - VISITOR_TRACKING_ENABLED=true
-      - PRIVACY_MODE=balanced
-    volumes:
-      - redis_socket:/var/run/redis
-      - ./backend/config:/app/config:ro
-    networks:
-      - internal_network
-      - external_network
-    ports:
-      - "127.0.0.1:8080:8080"   # Main API
-      - "127.0.0.1:8081:8081"   # DevPanel
-      - "127.0.0.1:8082:8082"   # Messaging
-      - "127.0.0.1:8083:8083"   # URL Shortener
-    depends_on:
-      - postgres
-      - redis
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # Frontend Service
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: portfolio_frontend
-    restart: unless-stopped
-    environment:
-      - NODE_ENV=production
-      - REACT_APP_API_URL=http://backend:8080
-      - REACT_APP_WS_URL=ws://backend:8082
-    networks:
-      - external_network
-    ports:
-      - "3000:3000"
-    depends_on:
-      - backend
-
-  # Nginx Reverse Proxy
+  # Nginx Reverse Proxy (Optional - for production routing)
   nginx:
     image: nginx:alpine
     container_name: portfolio_nginx
@@ -167,24 +414,28 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
     depends_on:
       - frontend
-      - backend
+      - api
+      - weeniesmp
 
 networks:
   internal_network:
     driver: bridge
-    internal: true  # No external access
+    internal: true
   external_network:
     driver: bridge
   monitoring_network:
     driver: bridge
-    internal: true  # Monitoring stack isolated
+    internal: true
 
 volumes:
   redis_data:
-    driver: local
-  redis_socket:
     driver: local
   postgres_data:
     driver: local

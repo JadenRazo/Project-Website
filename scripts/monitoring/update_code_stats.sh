@@ -7,7 +7,8 @@
 PROJECT_DIRECTORIES=( \
   "/quiz_bot" \
   "/main/Project-Website" \
-  # Add more FULL ABSOLUTE project paths here, each on a new line ending with \
+  "/showersautodetail" \
+  "/main/Project-Website/weeniesmp" \
 )
 
 # Directories to exclude

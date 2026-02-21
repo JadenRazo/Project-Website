@@ -97,7 +97,21 @@ func SendInternalError(c *gin.Context, message string, err error) {
 
 // SendSuccess sends a successful response with data
 func SendSuccess(c *gin.Context, data interface{}) {
-	c.JSON(http.StatusOK, data)
+	response := SuccessResponse{
+		Success: true,
+		Data:    data,
+	}
+	c.JSON(http.StatusOK, response)
+}
+
+// SendSuccessWithMessage sends a successful response with data and message
+func SendSuccessWithMessage(c *gin.Context, data interface{}, message string) {
+	response := SuccessResponse{
+		Success: true,
+		Data:    data,
+		Message: message,
+	}
+	c.JSON(http.StatusOK, response)
 }
 
 // SendCreated sends a 201 Created response with data

@@ -1,21 +1,47 @@
-
 package visitor
 
 import (
 	"fmt"
 	"net/http"
+	"os"
+	"strings"
 	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )
 
+var visitorAllowedOrigins []string
+
+func init() {
+	origins := os.Getenv("ALLOWED_ORIGINS")
+	if origins != "" {
+		visitorAllowedOrigins = strings.Split(origins, ",")
+	} else if os.Getenv("APP_ENV") == "production" {
+		visitorAllowedOrigins = []string{"https://jadenrazo.dev", "https://www.jadenrazo.dev"}
+	} else {
+		visitorAllowedOrigins = []string{"http://localhost:3000", "http://localhost:5173"}
+	}
+}
+
+func isVisitorOriginAllowed(origin string) bool {
+	if origin == "" {
+		return false
+	}
+	for _, allowed := range visitorAllowedOrigins {
+		if strings.TrimSpace(allowed) == origin {
+			return true
+		}
+	}
+	return false
+}
+
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
-		// Allow all connections for now
-		return true
+		origin := r.Header.Get("Origin")
+		return isVisitorOriginAllowed(origin)
 	},
 }
 
@@ -27,6 +53,7 @@ type Hub struct {
 	register   chan *websocket.Conn
 	unregister chan *websocket.Conn
 	mutex      sync.Mutex
+	done       chan struct{}
 }
 
 // NewHub creates a new Hub.
@@ -36,6 +63,7 @@ func NewHub() *Hub {
 		register:   make(chan *websocket.Conn),
 		unregister: make(chan *websocket.Conn),
 		clients:    make(map[*websocket.Conn]bool),
+		done:       make(chan struct{}),
 	}
 }
 
@@ -59,15 +87,26 @@ func (h *Hub) Run() {
 			for client := range h.clients {
 				err := client.WriteMessage(websocket.TextMessage, message)
 				if err != nil {
-					// Remove the client if there's an error
 					go func(c *websocket.Conn) {
 						h.unregister <- c
 					}(client)
 				}
 			}
 			h.mutex.Unlock()
+		case <-h.done:
+			h.mutex.Lock()
+			for client := range h.clients {
+				client.Close()
+			}
+			h.mutex.Unlock()
+			return
 		}
 	}
+}
+
+// Stop gracefully stops the hub and closes all connections
+func (h *Hub) Stop() {
+	close(h.done)
 }
 
 // ServeWs handles websocket requests from the peer.

@@ -82,17 +82,28 @@ func NewSecureRedisClient(cfg SecureRedisConfig) (*SecureRedisClient, error) {
 			MinIdleConns: 5,
 			TLSConfig:    cfg.TLSConfig,
 
-			// Security validation
 			Dialer: func(ctx context.Context, network, addr string) (net.Conn, error) {
-				// Only allow localhost connections
 				host, _, err := net.SplitHostPort(addr)
 				if err != nil {
 					return nil, err
 				}
-				if host != "127.0.0.1" && host != "localhost" && host != "::1" {
-					return nil, fmt.Errorf("only localhost connections allowed, got: %s", host)
+				ip := net.ParseIP(host)
+				if ip != nil {
+					if ip.IsLoopback() || ip.IsPrivate() {
+						return net.Dial(network, addr)
+					}
+					return nil, fmt.Errorf("only private/loopback connections allowed, got: %s", host)
 				}
-				return net.Dial(network, addr)
+				resolved, err := net.LookupIP(host)
+				if err != nil {
+					return nil, fmt.Errorf("failed to resolve host %s: %w", host, err)
+				}
+				for _, rip := range resolved {
+					if rip.IsLoopback() || rip.IsPrivate() {
+						return net.Dial(network, addr)
+					}
+				}
+				return nil, fmt.Errorf("only private/loopback connections allowed, got: %s", host)
 			},
 		})
 	} else {

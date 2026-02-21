@@ -17,6 +17,9 @@ export interface Theme {
     accent: string;
     accentLight: string;
     accentHover: string;
+    neon: string;
+    neonGlow: string;
+    neonSubtle: string;
     background: string;
     backgroundAlt: string;
     backgroundHover: string;

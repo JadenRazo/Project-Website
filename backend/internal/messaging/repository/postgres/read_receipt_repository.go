@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/JadenRazo/Project-Website/backend/internal/domain"
-	"github.com/JadenRazo/Project-Website/backend/internal/messaging/repository"
+	msgerrors "github.com/JadenRazo/Project-Website/backend/internal/messaging/errors"
 	"gorm.io/gorm"
 )
 
@@ -16,7 +16,7 @@ type ReadReceiptRepo struct {
 }
 
 // NewReadReceiptRepository creates a new PostgreSQL read receipt repository
-func NewReadReceiptRepository(db *gorm.DB) repository.ReadReceiptRepository {
+func NewReadReceiptRepository(db *gorm.DB) *ReadReceiptRepo {
 	return &ReadReceiptRepo{
 		db: db,
 	}
@@ -42,7 +42,7 @@ func (r *ReadReceiptRepo) FindByID(ctx context.Context, id uint) (*domain.Messag
 		First(&receipt, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, repository.ErrNotFound
+			return nil, msgerrors.ErrNotFound
 		}
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func (r *ReadReceiptRepo) Delete(ctx context.Context, id uint) error {
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
-		return repository.ErrNotFound
+		return msgerrors.ErrNotFound
 	}
 	return nil
 }

@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"os"
 	"regexp"
 	"time"
@@ -24,7 +23,7 @@ func getEnvWithDefault(key, defaultValue string) string {
 	return defaultValue
 }
 
-// GetDB returns the database connection
+// GetDB returns the database connection with retry logic for startup scenarios
 func GetDB() (*gorm.DB, error) {
 	if dbInstance != nil {
 		return dbInstance, nil
@@ -33,21 +32,18 @@ func GetDB() (*gorm.DB, error) {
 	// Build PostgreSQL DSN
 	var dsn string
 	if dbURL := os.Getenv("DATABASE_URL"); dbURL != "" {
-		// Use DATABASE_URL if provided
-		// Regex to validate DATABASE_URL format
 		re := regexp.MustCompile(`^postgres://(?:[^:@/]+(?::[^@/]*)?@)?(?:[^:/]+|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?/(?:[^?]+)(?:\?.*)?$`)
 		if !re.MatchString(dbURL) {
-			fmt.Printf("Warning: Invalid DATABASE_URL format, falling back to individual DB variables.")
+			fmt.Printf("Warning: Invalid DATABASE_URL format, falling back to individual DB variables.\n")
 		} else {
 			dsn = dbURL
 		}
 	}
 
 	if dsn == "" {
-		// Build from individual environment variables with proper URL encoding for password
-		password := url.QueryEscape(getEnvWithDefault("DB_PASSWORD", "postgres"))
-		dsn = fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-			getEnvWithDefault("DB_HOST", "195.201.136.53"),
+		password := getEnvWithDefault("DB_PASSWORD", "postgres")
+		dsn = fmt.Sprintf("host=%s port=%s user=%s password='%s' dbname=%s sslmode=%s",
+			getEnvWithDefault("DB_HOST", "localhost"),
 			getEnvWithDefault("DB_PORT", "5432"),
 			getEnvWithDefault("DB_USER", "postgres"),
 			password,
@@ -56,36 +52,49 @@ func GetDB() (*gorm.DB, error) {
 		)
 	}
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
-		// Enable security features
-		SkipDefaultTransaction: true,
-		PrepareStmt:            true,
-	})
+	maxRetries := 10
+	retryDelay := 3 * time.Second
 
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to database: %w", err)
+	var db *gorm.DB
+	var err error
+
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
+			Logger:                 logger.Default.LogMode(logger.Info),
+			SkipDefaultTransaction: true,
+			PrepareStmt:            true,
+		})
+
+		if err == nil {
+			sqlDB, sqlErr := db.DB()
+			if sqlErr == nil {
+				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+				pingErr := sqlDB.PingContext(ctx)
+				cancel()
+
+				if pingErr == nil {
+					sqlDB.SetMaxIdleConns(5)
+					sqlDB.SetMaxOpenConns(20)
+					sqlDB.SetConnMaxLifetime(time.Hour)
+					dbInstance = db
+					if attempt > 1 {
+						fmt.Printf("Database connection established after %d attempts\n", attempt)
+					}
+					return db, nil
+				}
+				err = pingErr
+			} else {
+				err = sqlErr
+			}
+		}
+
+		if attempt < maxRetries {
+			fmt.Printf("Database connection attempt %d/%d failed: %v. Retrying in %v...\n", attempt, maxRetries, err, retryDelay)
+			time.Sleep(retryDelay)
+		}
 	}
 
-	// Configure connection pool
-	sqlDB, err := db.DB()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get sql.DB: %w", err)
-	}
-
-	sqlDB.SetMaxIdleConns(5)
-	sqlDB.SetMaxOpenConns(20)
-	sqlDB.SetConnMaxLifetime(time.Hour)
-
-	// Verify connection
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	if err := sqlDB.PingContext(ctx); err != nil {
-		return nil, fmt.Errorf("database connection test failed: %w", err)
-	}
-
-	dbInstance = db
-	return db, nil
+	return nil, fmt.Errorf("failed to connect to database after %d attempts: %w", maxRetries, err)
 }
 
 // GetDBWithContext returns a DB connection with context

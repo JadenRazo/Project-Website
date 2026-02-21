@@ -15,6 +15,7 @@ type Config struct {
 	App         AppConfig         `yaml:"app"`
 	Server      ServerConfig      `yaml:"server"`
 	Database    DatabaseConfig    `yaml:"database"`
+	MariaDB     MariaDBConfig     `yaml:"mariadb"`
 	Cache       CacheConfig       `yaml:"cache"`
 	Auth        AuthConfig        `yaml:"auth"`
 	Logging     LoggingConfig     `yaml:"logging"`
@@ -139,6 +140,19 @@ type CompressionConfig struct {
 	BrotliQuality int      `yaml:"brotliQuality"`
 }
 
+// MariaDBConfig holds MariaDB configuration for Minecraft stats
+type MariaDBConfig struct {
+	Enabled                bool   `yaml:"enabled"`
+	Host                   string `yaml:"host"`
+	Port                   int    `yaml:"port"`
+	User                   string `yaml:"user"`
+	Password               string `yaml:"password"`
+	Database               string `yaml:"database"`
+	MaxIdleConns           int    `yaml:"maxIdleConns"`
+	MaxOpenConns           int    `yaml:"maxOpenConns"`
+	ConnMaxLifetimeMinutes int    `yaml:"connMaxLifetimeMinutes"`
+}
+
 // LoadConfig loads configuration from files
 func LoadConfig(path string) (*Config, error) {
 	// Load environment variables from .env file if it exists
@@ -237,6 +251,20 @@ func setDefaults(cfg *Config) {
 	// Set default app version if not specified
 	if cfg.App.Version == "" {
 		cfg.App.Version = "1.0.0"
+	}
+
+	// MariaDB defaults (for Minecraft stats)
+	if cfg.MariaDB.Port == 0 {
+		cfg.MariaDB.Port = 3306
+	}
+	if cfg.MariaDB.MaxIdleConns == 0 {
+		cfg.MariaDB.MaxIdleConns = 2
+	}
+	if cfg.MariaDB.MaxOpenConns == 0 {
+		cfg.MariaDB.MaxOpenConns = 5
+	}
+	if cfg.MariaDB.ConnMaxLifetimeMinutes == 0 {
+		cfg.MariaDB.ConnMaxLifetimeMinutes = 30
 	}
 }
 

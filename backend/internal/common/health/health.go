@@ -259,6 +259,38 @@ func (c *DiskChecker) Check(ctx context.Context) (Status, string) {
 	return StatusUp, fmt.Sprintf("%.2f%% free disk space", freeDiskPercentage)
 }
 
+// MariaDBChecker checks MariaDB connectivity
+type MariaDBChecker struct {
+	pinger func(ctx context.Context) error
+}
+
+// NewMariaDBChecker creates a new MariaDB health checker
+func NewMariaDBChecker(pinger func(ctx context.Context) error) *MariaDBChecker {
+	return &MariaDBChecker{pinger: pinger}
+}
+
+// Name returns the checker name
+func (c *MariaDBChecker) Name() string {
+	return "mariadb"
+}
+
+// Check performs the health check
+func (c *MariaDBChecker) Check(ctx context.Context) (Status, string) {
+	start := time.Now()
+	err := c.pinger(ctx)
+	duration := time.Since(start)
+
+	if err != nil {
+		return StatusDown, fmt.Sprintf("MariaDB connection failed: %v", err)
+	}
+
+	if duration > 500*time.Millisecond {
+		return StatusDegraded, fmt.Sprintf("MariaDB response time degraded: %v", duration)
+	}
+
+	return StatusUp, fmt.Sprintf("Response time: %v", duration)
+}
+
 // SetupHealthChecks initializes all health checks
 func SetupHealthChecks(cfg *config.Config, db database.Database, cacheClient cache.Cache) *Health {
 	health := NewHealth(cfg.App.Version)

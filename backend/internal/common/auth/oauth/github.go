@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
+	"time"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
@@ -31,11 +33,16 @@ func (p *GitHubProvider) GetName() string {
 	return "github"
 }
 
-func (p *GitHubProvider) GetAuthURL(state string) string {
-	return p.config.AuthCodeURL(state, oauth2.AccessTypeOffline)
+func (p *GitHubProvider) GetAuthURL(state, nonce string) (*AuthURLResponse, error) {
+	url := p.config.AuthCodeURL(state, oauth2.AccessTypeOffline)
+
+	return &AuthURLResponse{
+		URL:      url,
+		Verifier: "",
+	}, nil
 }
 
-func (p *GitHubProvider) ExchangeCode(ctx context.Context, code string) (*TokenResponse, error) {
+func (p *GitHubProvider) ExchangeCode(ctx context.Context, code, verifier string) (*TokenResponse, error) {
 	token, err := p.config.Exchange(ctx, code)
 	if err != nil {
 		return nil, fmt.Errorf("failed to exchange code: %w", err)
@@ -44,7 +51,7 @@ func (p *GitHubProvider) ExchangeCode(ctx context.Context, code string) (*TokenR
 	return &TokenResponse{
 		AccessToken:  token.AccessToken,
 		RefreshToken: token.RefreshToken,
-		ExpiresIn:    int64(token.Expiry.Sub(token.Expiry).Seconds()),
+		ExpiresIn:    int64(time.Until(token.Expiry).Seconds()),
 		TokenType:    token.TokenType,
 	}, nil
 }
@@ -158,11 +165,35 @@ func (p *GitHubProvider) RefreshToken(ctx context.Context, refreshToken string) 
 	return &TokenResponse{
 		AccessToken:  newToken.AccessToken,
 		RefreshToken: newToken.RefreshToken,
-		ExpiresIn:    int64(newToken.Expiry.Sub(newToken.Expiry).Seconds()),
+		ExpiresIn:    int64(time.Until(newToken.Expiry).Seconds()),
 		TokenType:    newToken.TokenType,
 	}, nil
 }
 
 func (p *GitHubProvider) RevokeToken(ctx context.Context, token string) error {
+	url := fmt.Sprintf("https://api.github.com/applications/%s/token", p.config.ClientID)
+
+	reqBody := fmt.Sprintf(`{"access_token":"%s"}`, token)
+	req, err := http.NewRequestWithContext(ctx, "DELETE", url, strings.NewReader(reqBody))
+	if err != nil {
+		return fmt.Errorf("failed to create revoke request: %w", err)
+	}
+
+	req.SetBasicAuth(p.config.ClientID, p.config.ClientSecret)
+	req.Header.Set("Accept", "application/vnd.github.v3+json")
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to revoke token: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusNoContent && resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("github revoke returned status %d: %s", resp.StatusCode, string(body))
+	}
+
 	return nil
 }

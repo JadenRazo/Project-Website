@@ -4,6 +4,7 @@ import styled, { css, keyframes } from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../hooks/useTheme';
 import type { ThemeMode } from '../../styles/theme.types';
+import { lockScroll, unlockScroll } from '../../utils/scrollLock';
 
 // Types and Interfaces
 interface MenuItem {
@@ -518,7 +519,7 @@ const SERVICES_ITEMS: MenuItem[] = [
 // External links
 const EXTERNAL_ITEMS: MenuItem[] = [
   { 
-    href: 'https://linkedin.com/in/jadenrazo',
+    href: 'https://jadenrazo.dev/s/linkedin',
     icon: Icons.LinkedIn,
     label: 'LinkedIn',
     delay: 0.8,
@@ -680,12 +681,12 @@ export const BurgerMenu: React.FC<BurgerMenuProps> = ({
       const handleEsc = (event: KeyboardEvent): void => {
         if (event.key === 'Escape') closeMenu();
       };
-      
-      document.body.style.overflow = 'hidden';
+
+      lockScroll();
       window.addEventListener('keydown', handleEsc);
-      
+
       return () => {
-        document.body.style.overflow = '';
+        unlockScroll();
         window.removeEventListener('keydown', handleEsc);
       };
     } catch (err) {

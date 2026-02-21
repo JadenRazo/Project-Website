@@ -11,6 +11,7 @@ import (
 	"github.com/JadenRazo/Project-Website/backend/internal/common/health"
 	"github.com/JadenRazo/Project-Website/backend/internal/common/logger"
 	"github.com/JadenRazo/Project-Website/backend/internal/common/ratelimit"
+	mcstatshttp "github.com/JadenRazo/Project-Website/backend/internal/mcstats/delivery/http"
 	"github.com/go-chi/chi/v5"
 	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 )
@@ -22,6 +23,7 @@ func SetupRouter(
 	cache cache.Cache,
 	healthChecker *health.Health,
 	rateLimiter ratelimit.RateLimiter,
+	mcStatsHandler *mcstatshttp.Handler,
 ) http.Handler {
 	r := chi.NewRouter()
 
@@ -62,6 +64,11 @@ func SetupRouter(
 
 		// URL shortener public routes
 		r.Get("/u/{code}", handleURLRedirect)
+
+		// MC Stats routes (public, no auth required)
+		if mcStatsHandler != nil {
+			mcStatsHandler.RegisterRoutes(r)
+		}
 	})
 
 	// Protected routes - require authentication

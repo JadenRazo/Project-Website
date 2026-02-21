@@ -1,3 +1,5 @@
+import headshotImage from '../assets/images/headshot.jpg';
+
 type ResourceType = 'script' | 'style' | 'image' | 'font' | 'audio' | 'video' | 'document' | 'fetch';
 
 interface PreloadResource {
@@ -109,7 +111,7 @@ export const preloader = new ResourcePreloader();
 
 // Import images that need preloading
 const preloadableImages = {
-  headshot: require('../assets/images/headshot.jpg')
+  headshot: headshotImage
 };
 
 // Route-based preloading
