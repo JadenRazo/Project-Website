@@ -100,7 +100,7 @@ function StandardLayout({ children }: { children: React.ReactNode }) {
             themeMode={themeMode}
             toggleTheme={toggleTheme}
           />
-          <ScrollProgressIndicator hideThreshold={50} />
+          <ScrollProgressIndicator />
           <div id="main-content" className="content">
             <PageTransition>
               {children}
