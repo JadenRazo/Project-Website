@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useScrollTo } from '../../hooks/useScrollTo';
 import { useOptimizedScrollHandler } from '../../hooks/useOptimizedScrollHandler';
+import { useLenis } from '../../providers/LenisProvider';
 
 const ButtonContainer = styled(motion.button)`
   position: fixed;
@@ -53,28 +53,21 @@ const ButtonContainer = styled(motion.button)`
 
 const ScrollToTopButton: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
-  const { scrollToTop } = useScrollTo();
-  
-  // Show button when scrolled down 300px
+  const { scrollTo } = useLenis();
+
   const handleScroll = () => {
     const scrolled = window.scrollY > 300;
     setIsVisible(scrolled);
   };
-  
-  // Use optimized scroll handler for better performance
+
   useOptimizedScrollHandler(handleScroll);
-  
-  // Check initial scroll position
+
   useEffect(() => {
     handleScroll();
   }, []);
-  
+
   const handleClick = () => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('ScrollToTopButton clicked!');
-      console.log('Current scroll position:', window.pageYOffset);
-    }
-    scrollToTop({ behavior: 'smooth' });
+    scrollTo(0);
   };
   
   return (
