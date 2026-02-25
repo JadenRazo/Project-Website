@@ -75,13 +75,11 @@ function PortfolioPage() {
   return (
     <StyledThemeProvider theme={theme}>
       <GlobalStyles theme={theme} />
-      <LenisProvider>
-        <PortfolioLayout>
-          <Suspense fallback={<SmartSkeleton type="hero" />}>
-            <PortfolioHome />
-          </Suspense>
-        </PortfolioLayout>
-      </LenisProvider>
+      <PortfolioLayout>
+        <Suspense fallback={<SmartSkeleton type="hero" />}>
+          <PortfolioHome />
+        </Suspense>
+      </PortfolioLayout>
     </StyledThemeProvider>
   );
 }
@@ -178,8 +176,10 @@ function App() {
     <HelmetProvider>
       <StoreInitializer>
         <Router>
-          <ScrollToTop />
-          <AppContent />
+          <LenisProvider>
+            <ScrollToTop />
+            <AppContent />
+          </LenisProvider>
         </Router>
       </StoreInitializer>
     </HelmetProvider>

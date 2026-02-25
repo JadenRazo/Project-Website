@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, ReactNode, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useCallback, ReactNode, useState } from 'react'
 import Lenis from 'lenis'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -7,7 +7,7 @@ gsap.registerPlugin(ScrollTrigger)
 
 interface LenisContextValue {
   lenis: Lenis | null
-  scrollTo: (target: string | number | HTMLElement) => void
+  scrollTo: (target: string | number | HTMLElement, options?: { immediate?: boolean }) => void
 }
 
 const LenisContext = createContext<LenisContextValue>({
@@ -23,6 +23,7 @@ interface LenisProviderProps {
 
 export default function LenisProvider({ children }: LenisProviderProps) {
   const lenisRef = useRef<Lenis | null>(null)
+  const rafIdRef = useRef<number | null>(null)
   const [isReady, setIsReady] = useState(false)
 
   useEffect(() => {
@@ -51,10 +52,10 @@ export default function LenisProvider({ children }: LenisProviderProps) {
 
     const raf = (time: number) => {
       lenis.raf(time)
-      requestAnimationFrame(raf)
+      rafIdRef.current = requestAnimationFrame(raf)
     }
 
-    requestAnimationFrame(raf)
+    rafIdRef.current = requestAnimationFrame(raf)
 
     setTimeout(() => {
       ScrollTrigger.refresh()
@@ -62,16 +63,20 @@ export default function LenisProvider({ children }: LenisProviderProps) {
     }, 100)
 
     return () => {
+      if (rafIdRef.current) {
+        cancelAnimationFrame(rafIdRef.current)
+      }
       lenis.destroy()
+      lenisRef.current = null
     }
   }, [])
 
-  const scrollTo = (target: string | number | HTMLElement) => {
+  const scrollTo = useCallback((target: string | number | HTMLElement, options?: { immediate?: boolean }) => {
     if (lenisRef.current) {
       lenisRef.current.scrollTo(target, {
         offset: 0,
-        immediate: false,
-        duration: 1.2,
+        immediate: options?.immediate ?? false,
+        duration: options?.immediate ? 0 : 1.2,
         easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
       })
     } else {
@@ -83,7 +88,7 @@ export default function LenisProvider({ children }: LenisProviderProps) {
         target.scrollIntoView({ behavior: 'smooth' })
       }
     }
-  }
+  }, [])
 
   return (
     <LenisContext.Provider value={{ lenis: lenisRef.current, scrollTo }}>
