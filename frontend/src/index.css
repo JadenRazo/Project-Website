@@ -172,9 +172,6 @@ html.lenis body {
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    /* Prevent overscroll bounce showing grey areas on iOS */
-    overscroll-behavior-y: none;
-    -webkit-overflow-scrolling: touch;
   }
 
   /* iOS Safari overscroll background fix */
@@ -874,7 +871,6 @@ html.lenis body {
 @media (max-width: 768px) {
   html, body {
     touch-action: pan-y;
-    -webkit-overflow-scrolling: touch;
   }
 }
 

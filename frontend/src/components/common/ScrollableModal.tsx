@@ -116,6 +116,7 @@ export const ScrollableModal: React.FC<ScrollableModalProps> = ({
             aria-label={ariaLabel}
             tabIndex={-1}
             data-scroll-lock-scrollable
+            data-lenis-prevent
           >
             {children}
           </ModalContent>
