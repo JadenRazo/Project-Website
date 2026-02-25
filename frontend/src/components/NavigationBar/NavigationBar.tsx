@@ -502,6 +502,15 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ themeMode, toggleTheme })
             Portfolio
           </NavLink>
 
+          <NavLink
+            to="/blog"
+            $isActive={isActive('/blog')}
+            onClick={handleLinkClick}
+            aria-current={isActive('/blog') ? 'page' : undefined}
+          >
+            Blog
+          </NavLink>
+
         </NavLinks>
       </NavContent>
     </NavContainer>

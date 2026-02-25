@@ -33,7 +33,6 @@ const DevPanel = lazy(() => import('./pages/devpanel/DevPanel'));
 const Messaging = lazy(() => import('./pages/messaging/Messaging'));
 const UrlShortener = lazy(() => import('./pages/urlshortener/UrlShortener'));
 const NotFound = lazy(() => import('./pages/NotFound/NotFound'));
-const Home = lazy(() => import('./pages/Home/Home'));
 const AboutPage = lazy(() => import('./pages/About/About'));
 const ProjectsPage = lazy(() => import('./pages/Projects'));
 const Status = lazy(() => import('./pages/Status/Status'));
@@ -166,8 +165,6 @@ function OptimizedAppContent() {
                 <Route path="/projects" element={<ProjectsPage />} />
                 <Route path="/portfolio" element={<ProjectsPage />} />
                 <Route path="/skills" element={<SkillsSection />} />
-                <Route path="/home" element={<Home />} />
-
                 {/* Application routes */}
                 <Route path="/devpanel" element={<DevPanel />} />
                 <Route path="/urlshortener" element={<UrlShortener />} />

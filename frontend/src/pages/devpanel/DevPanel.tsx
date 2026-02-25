@@ -5,6 +5,7 @@ import ProjectManager from '../../components/devpanel/ProjectManager';
 import ProjectPathsManager from '../../components/devpanel/ProjectPathsManager';
 import CertificationsManager from '../../components/devpanel/CertificationsManager';
 import PromptsManager from '../../components/devpanel/PromptsManager';
+import BlogManager from '../../components/devpanel/BlogManager';
 import VisitorAnalytics from '../../components/devpanel/VisitorAnalytics';
 import AdminLogin from '../../components/devpanel/AdminLogin';
 import DevPanelLoadingState from '../../components/devpanel/DevPanelLoadingState';
@@ -615,6 +616,7 @@ const DevPanel: React.FC = () => {
     projectPaths: boolean;
     certifications: boolean;
     prompts: boolean;
+    blog: boolean;
     visitorAnalytics: boolean;
   }>({
     system: true,
@@ -624,6 +626,7 @@ const DevPanel: React.FC = () => {
     projectPaths: true,
     certifications: true,
     prompts: true,
+    blog: true,
     visitorAnalytics: true,
   });
 
@@ -1117,6 +1120,26 @@ const DevPanel: React.FC = () => {
           >
             <SectionContent>
               <PromptsManager />
+            </SectionContent>
+          </Collapsible>
+          </CollapsibleSection>
+
+          <CollapsibleSection>
+            <Collapsible
+              id="section-blog"
+            trigger={
+              <SectionHeader onClick={() => toggleSection('blog')}>
+                <h2>Blog Management</h2>
+                <SectionIcon isOpen={openSections.blog}>▼</SectionIcon>
+              </SectionHeader>
+            }
+            open={openSections.blog}
+            onTriggerOpening={() => {}}
+            onTriggerClosing={() => {}}
+            transitionTime={200}
+          >
+            <SectionContent>
+              <BlogManager />
             </SectionContent>
           </Collapsible>
           </CollapsibleSection>

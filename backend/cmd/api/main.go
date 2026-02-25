@@ -23,6 +23,9 @@ import (
 	"gorm.io/gorm"
 
 	appconfig "github.com/JadenRazo/Project-Website/backend/internal/app/config"
+	"github.com/JadenRazo/Project-Website/backend/internal/blog"
+	blogHTTP "github.com/JadenRazo/Project-Website/backend/internal/blog/delivery/http"
+	blogRepo "github.com/JadenRazo/Project-Website/backend/internal/blog/repository"
 	"github.com/JadenRazo/Project-Website/backend/internal/codestats"
 	"github.com/JadenRazo/Project-Website/backend/internal/contact"
 	codeStatsHTTP "github.com/JadenRazo/Project-Website/backend/internal/codestats/delivery/http"
@@ -340,6 +343,10 @@ func main() {
 		logger.Info("Contact form email not configured, submissions will be logged only")
 	}
 
+	blogRepository := blogRepo.NewGormRepository(gormDB)
+	blogService := blog.NewService(blogRepository)
+	blogHandler := blogHTTP.NewHandler(blogService)
+
 	workerService := worker.NewService(gormDB)
 
 	metricsCollector := devpanel.NewMetricsCollector(devpanel.Config{
@@ -537,6 +544,12 @@ func main() {
 	apiGateway.RegisterService("visitor", visitorService.RegisterRoutes)
 
 	apiGateway.RegisterService("contact", contactHandler.RegisterRoutes)
+
+	apiGateway.RegisterService("blog", blogHandler.RegisterPublicRoutes)
+
+	blogAdminGroup := router.Group("/api/v1/blog/admin")
+	blogAdminGroup.Use(adminAuthHandlers.AuthMiddleware())
+	blogHandler.RegisterAdminRoutes(blogAdminGroup)
 
 	apiGateway.RegisterHealthCheck()
 

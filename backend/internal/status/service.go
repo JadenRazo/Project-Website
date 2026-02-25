@@ -50,6 +50,10 @@ type StatusHistory struct {
 	CheckedAt time.Time `json:"checked_at"`
 }
 
+func (StatusHistory) TableName() string {
+	return "status_history"
+}
+
 type Service struct {
 	db              *StatusDatabase
 	originalDB      *gorm.DB
