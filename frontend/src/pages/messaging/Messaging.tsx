@@ -575,7 +575,7 @@ const Messaging: React.FC = () => {
   };
 
   return (
-    <PageContainer>
+    <PageContainer data-lenis-prevent>
       <ChatContainer>
         <Sidebar>
           <SidebarHeader>

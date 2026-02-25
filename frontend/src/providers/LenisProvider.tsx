@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useRef, useCallback, ReactNode, u
 import Lenis from 'lenis'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { setLenisInstance } from '../utils/scrollLock'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -47,6 +48,7 @@ export default function LenisProvider({ children }: LenisProviderProps) {
     })
 
     lenisRef.current = lenis
+    setLenisInstance(lenis)
 
     lenis.on('scroll', ScrollTrigger.update)
 
@@ -68,6 +70,7 @@ export default function LenisProvider({ children }: LenisProviderProps) {
       }
       lenis.destroy()
       lenisRef.current = null
+      setLenisInstance(null)
     }
   }, [])
 
