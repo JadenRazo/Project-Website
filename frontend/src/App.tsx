@@ -40,7 +40,6 @@ const BlogPostPage = lazy(() => import('./pages/Blog/BlogPost'));
 const AppContainer = styled.div`
   max-width: 100vw;
   width: 100%;
-  overflow-x: hidden;
   position: relative;
   display: flex;
   flex-direction: column;
