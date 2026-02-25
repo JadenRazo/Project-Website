@@ -291,7 +291,7 @@ const BlogPost: React.FC = () => {
     const endpoint = apiUrl
       ? `${apiUrl}/api/v1/blog/${slug}/view`
       : `/api/v1/blog/${slug}/view`;
-    fetch(endpoint, { method: 'POST' })
+    fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
       .then((res) => {
         if (res.ok) {
           setPost((prev) => prev ? { ...prev, view_count: prev.view_count + 1 } : prev);

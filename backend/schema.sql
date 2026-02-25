@@ -1250,3 +1250,31 @@ VALUES ('default', true, 'balanced',
     '{"requireExplicitConsent": false, "consentCategories": ["necessary", "analytics", "functional"], "defaultConsent": "opt-out", "consentDuration": 365, "showBanner": false, "bannerPosition": "bottom", "allowGranularControl": true, "minimumAge": 13}'
 )
 ON CONFLICT (id) DO NOTHING;
+
+-- =============================================
+-- BLOG SCHEMA
+-- =============================================
+
+CREATE TABLE IF NOT EXISTS posts (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) UNIQUE NOT NULL,
+    content TEXT,
+    excerpt TEXT,
+    featured_image VARCHAR(500),
+    author_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    status VARCHAR(50) DEFAULT 'draft',
+    published_at TIMESTAMP,
+    tags TEXT[],
+    view_count INTEGER DEFAULT 0,
+    read_time_minutes INTEGER DEFAULT 1,
+    is_featured BOOLEAN DEFAULT false,
+    is_visible BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_posts_slug ON posts(slug);
+CREATE INDEX IF NOT EXISTS idx_posts_status ON posts(status);
+CREATE INDEX IF NOT EXISTS idx_posts_published_at ON posts(published_at DESC);
+CREATE INDEX IF NOT EXISTS idx_posts_is_featured ON posts(is_featured) WHERE is_featured = true;
