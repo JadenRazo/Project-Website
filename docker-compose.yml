@@ -158,7 +158,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      start_period: 30s
+      retries: 5
 
   # Messaging Service (Port 8082)
   messaging:
@@ -190,7 +191,7 @@ services:
       - external_network
       - monitoring_network
     ports:
-      - "127.0.0.1:8082:8082"
+      - "127.0.0.1:8182:8082"
     deploy:
       resources:
         limits:
@@ -205,7 +206,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8082/health"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      start_period: 30s
+      retries: 5
 
   # URL Shortener Service (Port 8083)
   urlshortener:
@@ -251,7 +253,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8083/health"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      start_period: 30s
+      retries: 5
 
   # Worker Service (Port 8084)
   worker:
@@ -296,7 +299,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8084/health"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      start_period: 30s
+      retries: 5
 
   # Frontend Service
   frontend:

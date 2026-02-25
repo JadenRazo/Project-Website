@@ -63,8 +63,17 @@ func main() {
 	// In production, load this from environment or config
 	copy(encryptionKey, []byte("devpanel-secure-encryption-key!"))
 
+	redisHost := os.Getenv("REDIS_HOST")
+	if redisHost == "" {
+		redisHost = "localhost"
+	}
+	redisPort := os.Getenv("REDIS_PORT")
+	if redisPort == "" {
+		redisPort = "6379"
+	}
+
 	redisClient, err := cache.NewSecureRedisClient(cache.SecureRedisConfig{
-		NetworkAddr:   "localhost:6379", // Or from cfg if available
+		NetworkAddr:   fmt.Sprintf("%s:%s", redisHost, redisPort),
 		MaxRetries:    3,
 		EncryptionKey: encryptionKey,
 	})

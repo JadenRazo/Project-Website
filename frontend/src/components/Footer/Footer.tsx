@@ -213,6 +213,7 @@ const Footer: React.FC = () => {
           <FooterLink to="/urlshortener" onClick={handleLinkClick} $isNavigating={navigatingTo === '/urlshortener'}>URL Shortener</FooterLink>
           <FooterLink to="/messaging" onClick={handleLinkClick} $isNavigating={navigatingTo === '/messaging'}>Real-time Messaging</FooterLink>
           <FooterLink to="/projects" onClick={handleLinkClick} $isNavigating={navigatingTo === '/projects'}>View All Projects</FooterLink>
+          <FooterLink to="/blog" onClick={handleLinkClick} $isNavigating={navigatingTo === '/blog'}>Blog</FooterLink>
         </FooterSection>
 
         <FooterSection>

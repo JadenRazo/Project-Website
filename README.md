@@ -507,13 +507,8 @@ The database schema includes tables for:
 
 ## Deployment
 
-### Docker Deployment
-```bash
-# Build and run with Docker Compose
-docker-compose up --build
-```
-
 ### Manual Deployment
+
 1. Build frontend:
    ```bash
    cd frontend
@@ -530,11 +525,10 @@ docker-compose up --build
    go build -o bin/worker cmd/worker/main.go
    ```
 
-   Note: Each service is an independent binary that runs as a separate process.
+   Each service is an independent binary that runs as a separate process.
 
 3. Configure Nginx:
    ```nginx
-   # Example Nginx configuration
    server {
        listen 80;
        server_name yourdomain.com;
@@ -549,10 +543,383 @@ docker-compose up --build
            proxy_set_header Host $host;
            proxy_set_header X-Real-IP $remote_addr;
        }
-
-       # Add similar blocks for other services
    }
    ```
+
+## Docker Deployment
+
+The application runs as 10 containers: 5 backend microservices, frontend, PostgreSQL, Redis, Prometheus, and Grafana.
+
+### Prerequisites
+
+- Docker 20.10+
+- Docker Compose 2.0+
+- 4GB RAM minimum
+- 10GB disk space
+
+Verify prerequisites:
+```bash
+docker --version          # Should show 20.10 or higher
+docker-compose --version  # Should show 2.0 or higher
+```
+
+### Container Architecture
+
+| Container | Port | Purpose |
+|-----------|------|---------|
+| portfolio_api | 8080 | Main API gateway, authentication, visitor tracking |
+| portfolio_devpanel | 8081 | Admin panel for service management and analytics |
+| portfolio_messaging | 8082 | WebSocket real-time messaging and presence |
+| portfolio_urlshortener | 8083 | URL shortening with click analytics |
+| portfolio_worker | 8084 | Background cron jobs for visitor analytics aggregation |
+| portfolio_frontend | 3000 | React SPA served via nginx |
+| postgres | 5432 | Primary database |
+| redis_secure | 6379 | Cache with TLS 1.3 encryption |
+| prometheus | 9090 | Metrics collection |
+| grafana | 3001 | Metrics visualization |
+
+### Setup
+
+**Step 1: Generate secure secrets**
+
+Run the automated secret generation script:
+```bash
+./scripts/utilities/generate-secrets.sh
+```
+
+This creates `.env` from `.env.example` and generates secure passwords for all services.
+
+**Step 2: Generate Redis TLS certificates**
+
+```bash
+./scripts/utilities/generate-redis-certs.sh
+```
+
+Creates self-signed TLS certificates in `deploy/redis/certs/` (ca.crt, ca.key, redis.crt, redis.key). Replace with CA-signed certificates for production.
+
+**Step 3: Configure environment**
+
+Edit `.env` and verify these required variables are set:
+```bash
+DB_PASSWORD=your_secure_password
+JWT_SECRET=your_jwt_secret           # 32+ characters
+ADMIN_TOKEN=your_admin_token         # openssl rand -base64 32
+REDIS_APP_PASSWORD=your_redis_app_password
+REDIS_MONITOR_PASSWORD=your_redis_monitor_password
+REDIS_WORKER_PASSWORD=your_redis_worker_password
+REDIS_HEALTH_PASSWORD=your_redis_health_password
+GRAFANA_PASSWORD=your_grafana_password
+ADMIN_ALLOWED_EMAILS=your-email@example.com,@your-domain.com
+FRONTEND_URL=http://localhost:3000
+```
+
+**Step 4: Build and start**
+
+```bash
+docker-compose build --no-cache
+docker-compose up -d
+```
+
+**Step 5: Verify deployment**
+
+```bash
+docker-compose ps
+```
+
+All services should show "healthy" or "Up" status. First deployment may take 5-10 minutes for database initialization.
+
+### Health Checks
+
+```bash
+curl http://localhost:8080/api/health   # API
+curl http://localhost:8081/api/health   # DevPanel
+curl http://localhost:8082/api/health   # Messaging
+curl http://localhost:8083/api/health   # URL Shortener
+curl http://localhost:8084/api/health   # Worker
+curl http://localhost:3000/health       # Frontend
+
+# PostgreSQL
+docker-compose exec postgres pg_isready -U portfolio
+
+# Redis (with TLS)
+docker-compose exec redis redis-cli --tls --cacert /etc/redis/certs/ca.crt \
+  --user health -a "$REDIS_HEALTH_PASSWORD" ping
+
+# Prometheus
+curl http://localhost:9090/-/healthy
+```
+
+### Database Verification
+
+```bash
+# Check all 48 tables were created
+docker exec -it portfolio_postgres psql -U postgres -d project_website -c "\dt" | wc -l
+
+# Verify visitor analytics tables
+docker exec -it portfolio_postgres psql -U postgres -d project_website \
+  -c "SELECT table_name FROM information_schema.tables WHERE table_name LIKE 'visitor%';"
+```
+
+Expected: 7 visitor tables (visitor_sessions, page_views, visitor_realtime, visitor_metrics, visitor_daily_summary, privacy_consents, visitor_locations).
+
+### Redis Security
+
+Redis is configured with TLS 1.3 encryption and ACL authentication with four user roles:
+
+- `app` - Full read/write access (api, messaging, urlshortener)
+- `monitor` - Read-only access (devpanel)
+- `worker` - Background job access (worker)
+- `health` - Health check ping only
+
+Dangerous commands (FLUSHDB, KEYS, CONFIG) are disabled.
+
+Connection string format:
+```
+rediss://username:password@redis:6379?tls=true&ca_cert=/path/to/ca.crt
+```
+
+### Docker Networks
+
+Three isolated networks:
+
+1. **internal_network** - PostgreSQL and Redis (no external access)
+2. **external_network** - Frontend, API services, and nginx
+3. **monitoring_network** - Prometheus and Grafana (isolated)
+
+### Volumes
+
+- `postgres_data` - PostgreSQL database
+- `redis_data` - Redis persistence
+- `prometheus_data` - Metrics history
+- `grafana_data` - Dashboards and configuration
+
+### Resource Limits
+
+| Service | CPU Limit | Memory Limit | CPU Reserved | Memory Reserved |
+|---------|-----------|--------------|--------------|-----------------|
+| PostgreSQL | 1.0 | 1GB | 0.5 | 512MB |
+| Redis | 0.5 | 512MB | 0.25 | 256MB |
+| API | 1.0 | 512MB | 0.5 | 256MB |
+| DevPanel | 0.5 | 256MB | 0.25 | 128MB |
+| Messaging | 0.5 | 384MB | 0.25 | 192MB |
+| URL Shortener | 0.5 | 256MB | 0.25 | 128MB |
+| Worker | 0.5 | 256MB | 0.25 | 128MB |
+| Frontend | 0.5 | 256MB | 0.25 | 128MB |
+| Prometheus | 0.5 | 512MB | 0.25 | 256MB |
+| Grafana | 0.5 | 512MB | 0.25 | 256MB |
+
+For production under expected traffic, increase limits by 50-100%.
+
+### Common Docker Operations
+
+```bash
+# View logs
+docker-compose logs -f                     # All services
+docker-compose logs -f api                 # Specific service
+docker-compose logs --tail=100 api         # Last 100 lines
+
+# Restart services
+docker-compose restart                     # All services
+docker-compose restart api                 # Specific service
+
+# Update application
+git pull origin main
+docker-compose build --no-cache
+docker-compose up -d
+
+# Clean up
+docker-compose down                        # Stop services
+docker-compose down -v                     # Stop and remove volumes (WARNING: deletes data)
+docker image prune -a                      # Remove unused images
+
+# Rebuild single service
+docker-compose build api
+docker-compose up -d api
+```
+
+### Docker Troubleshooting
+
+**Container fails to start:**
+```bash
+docker-compose logs <service-name>
+```
+Common causes: missing environment variables, port conflicts (`lsof -i :<port>`), database not healthy.
+
+**Redis TLS connection failed:**
+```bash
+ls -la deploy/redis/certs/   # Verify ca.crt, ca.key, redis.crt, redis.key exist
+./scripts/utilities/generate-redis-certs.sh  # Regenerate if missing
+docker-compose restart redis
+```
+
+**Database schema not initialized:**
+```bash
+docker-compose down
+docker volume rm project-website_postgres_data
+docker-compose up -d postgres
+# Wait for PostgreSQL to be healthy, then:
+docker-compose up -d
+```
+
+**Services show "unhealthy" after startup:**
+Wait 60 seconds - health checks run every 30 seconds and may require 2-3 cycles. If still unhealthy after 2 minutes, check logs and restart the service.
+
+**Worker cron jobs not running:**
+```bash
+docker-compose logs worker | grep "Starting scheduled tasks"
+docker-compose ps worker
+```
+
+**Rollback if deployment fails:**
+```bash
+docker-compose down                 # Stop services (volumes preserved)
+# Fix configuration or restore backup
+docker-compose up -d                # Restart
+```
+
+## OAuth Setup
+
+The DevPanel supports OAuth authentication via Google, GitHub, and Microsoft. OAuth is optional - username/password authentication works without it.
+
+### Callback URLs
+
+Configure these redirect URIs in each provider's developer console:
+
+| Provider | Development | Production |
+|----------|-------------|------------|
+| Google | `http://localhost:8080/api/v1/auth/admin/oauth/callback/google` | `https://your-domain.com/api/v1/auth/admin/oauth/callback/google` |
+| GitHub | `http://localhost:8080/api/v1/auth/admin/oauth/callback/github` | `https://your-domain.com/api/v1/auth/admin/oauth/callback/github` |
+| Microsoft | `http://localhost:8080/api/v1/auth/admin/oauth/callback/microsoft` | `https://your-domain.com/api/v1/auth/admin/oauth/callback/microsoft` |
+
+### Google OAuth
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/) and create a project
+2. Navigate to **APIs & Services** → **Library**, search for and enable "Google+ API"
+3. Go to **APIs & Services** → **OAuth consent screen**, select External, fill in app details, and add scopes `.../auth/userinfo.email` and `.../auth/userinfo.profile`
+4. Go to **APIs & Services** → **Credentials**, click **Create Credentials** → **OAuth client ID**
+5. Select Web application, add authorized JavaScript origins (`http://localhost:3000`) and authorized redirect URIs
+6. Copy the Client ID and Client Secret
+
+```bash
+# .env
+GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-client-secret
+GOOGLE_REDIRECT_URL=http://localhost:8080/api/v1/auth/admin/oauth/callback/google
+```
+
+### GitHub OAuth
+
+1. Go to [GitHub Developer Settings](https://github.com/settings/developers) → **OAuth Apps** → **New OAuth App**
+2. Set Homepage URL to `http://localhost:3000` and Authorization callback URL to the GitHub callback above
+3. Click Register application, then generate a client secret
+4. Copy the Client ID and Client Secret immediately (the secret cannot be viewed again)
+
+```bash
+# .env
+GITHUB_CLIENT_ID=your-github-client-id
+GITHUB_CLIENT_SECRET=your-github-client-secret
+GITHUB_REDIRECT_URL=http://localhost:8080/api/v1/auth/admin/oauth/callback/github
+```
+
+### Microsoft OAuth
+
+1. Go to [Azure Portal](https://portal.azure.com/) → **Azure Active Directory** → **App registrations** → **New registration**
+2. Set supported account types to "Accounts in any organizational directory and personal Microsoft accounts"
+3. Add the Microsoft redirect URI under Redirect URI → Web
+4. Go to **Certificates & secrets** → **New client secret**, copy the Value immediately
+5. Go to **API permissions**, add Microsoft Graph delegated permissions: `User.Read`, `email`, `profile`, `openid`
+6. Copy the Application (client) ID from Overview
+
+```bash
+# .env
+MICROSOFT_CLIENT_ID=your-application-client-id
+MICROSOFT_CLIENT_SECRET=your-client-secret-value
+MICROSOFT_REDIRECT_URL=http://localhost:8080/api/v1/auth/admin/oauth/callback/microsoft
+```
+
+### OAuth .env Configuration
+
+```bash
+FRONTEND_URL=http://localhost:3000
+ADMIN_ALLOWED_EMAILS=your-email@gmail.com,@your-domain.com
+OAUTH_ENCRYPTION_KEY=<generated by generate-secrets.sh>
+
+GOOGLE_CLIENT_ID=xxxxxx.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-xxxxxxxxxx
+GOOGLE_REDIRECT_URL=http://localhost:8080/api/v1/auth/admin/oauth/callback/google
+
+GITHUB_CLIENT_ID=Iv1.xxxxxxxxxxxxxx
+GITHUB_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxx
+GITHUB_REDIRECT_URL=http://localhost:8080/api/v1/auth/admin/oauth/callback/github
+
+MICROSOFT_CLIENT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+MICROSOFT_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxx
+MICROSOFT_REDIRECT_URL=http://localhost:8080/api/v1/auth/admin/oauth/callback/microsoft
+```
+
+`ADMIN_ALLOWED_EMAILS` accepts specific addresses and domain wildcards (e.g., `@company.com` allows anyone from that domain). Unconfigured OAuth providers will not show buttons in the UI.
+
+### OAuth Troubleshooting
+
+- **Redirect URI mismatch**: The URI in your OAuth app must match exactly what is in `.env`, including protocol, port, and path
+- **Unauthorized / Access Denied**: Verify your email is listed in `ADMIN_ALLOWED_EMAILS` and the OAuth encryption key is set
+- **Invalid client**: Double-check that `CLIENT_ID` and `CLIENT_SECRET` have no extra spaces or newlines
+- **Google "This app isn't verified"**: Expected in development - click Advanced and proceed. Submit for verification for production
+
+### OAuth Security Practices
+
+- Never commit `.env` - it is already in `.gitignore`
+- Use separate OAuth apps for development and production
+- Enable 2FA on all OAuth provider accounts
+- Rotate secrets periodically using `./scripts/utilities/generate-secrets.sh`
+- Only add trusted addresses to `ADMIN_ALLOWED_EMAILS`
+
+## Production Deployment
+
+### Environment Updates
+
+```bash
+ENVIRONMENT=production
+NODE_ENV=production
+GO_ENV=production
+
+FRONTEND_URL=https://your-domain.com
+REACT_APP_API_URL=https://your-domain.com
+REACT_APP_WS_URL=wss://your-domain.com
+
+# Update OAuth redirect URLs to https
+GOOGLE_REDIRECT_URL=https://your-domain.com/api/v1/auth/admin/oauth/callback/google
+GITHUB_REDIRECT_URL=https://your-domain.com/api/v1/auth/admin/oauth/callback/github
+MICROSOFT_REDIRECT_URL=https://your-domain.com/api/v1/auth/admin/oauth/callback/microsoft
+```
+
+### Production Checklist
+
+- Replace self-signed Redis TLS certificates in `deploy/redis/certs/` with CA-signed certificates
+- Configure firewall: open ports 80 and 443, block direct access to 3000, 5432, 6379, 8080-8084, 9090, 3001
+- Set up nginx for SSL/TLS termination and routing to backend services
+- Create admin user: `docker exec -it portfolio_api go run /app/cmd/init-admin/main.go`
+- Configure automated database backups:
+  ```bash
+  # Daily backup cron
+  0 2 * * * /path/to/scripts/database/backup_db.sh
+  ```
+- Set up log rotation to prevent disk space issues
+- Configure Prometheus alert rules for service downtime, high memory/CPU, database failures, and disk warnings
+- Update all OAuth provider consoles with production redirect URLs
+- Submit Google OAuth app for verification if it will have external users
+- Set resource limits in `docker-compose.yml` appropriate for your server capacity
+- Test disaster recovery using backup and restore scripts
+
+### Admin User Creation
+
+```bash
+# Docker deployment
+docker exec -it portfolio_api go run /app/cmd/init-admin/main.go
+
+# Non-Docker deployment
+go run backend/cmd/init-admin/main.go
+```
 
 ## Monitoring and Maintenance
 

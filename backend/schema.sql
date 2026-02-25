@@ -503,9 +503,18 @@ CREATE TABLE IF NOT EXISTS posts (
     published_at TIMESTAMP WITH TIME ZONE,
     tags TEXT[],
     view_count INTEGER DEFAULT 0,
+    read_time_minutes INTEGER DEFAULT 1,
+    is_featured BOOLEAN DEFAULT false,
+    is_visible BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_posts_slug ON posts(slug);
+CREATE INDEX IF NOT EXISTS idx_posts_status ON posts(status);
+CREATE INDEX IF NOT EXISTS idx_posts_published_at ON posts(published_at DESC);
+CREATE INDEX IF NOT EXISTS idx_posts_is_featured ON posts(is_featured) WHERE is_featured = true;
+CREATE INDEX IF NOT EXISTS idx_posts_is_visible ON posts(is_visible) WHERE is_visible = true;
 
 -- Skill categories for organizing skills
 CREATE TABLE IF NOT EXISTS skill_categories (

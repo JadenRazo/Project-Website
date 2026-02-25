@@ -31,16 +31,16 @@ const DevPanel = lazy(() => import('./pages/devpanel/DevPanel'));
 const Messaging = lazy(() => import('./pages/messaging/Messaging'));
 const UrlShortener = lazy(() => import('./pages/urlshortener/UrlShortener'));
 const NotFound = lazy(() => import('./pages/NotFound/NotFound'));
-const Home = lazy(() => import('./pages/Home/Home'));
 const AboutPage = lazy(() => import('./pages/About/About'));
 const ProjectsPage = lazy(() => import('./pages/Projects'));
 const Status = lazy(() => import('./pages/Status/Status'));
+const BlogPage = lazy(() => import('./pages/Blog/Blog'));
+const BlogPostPage = lazy(() => import('./pages/Blog/BlogPost'));
 
 const AppContainer = styled.div`
   max-width: 100vw;
   width: 100%;
   overflow-x: hidden;
-  contain: layout style;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -159,12 +159,12 @@ function AppContent() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/projects" element={<ProjectsPage />} />
             <Route path="/portfolio" element={<ProjectsPage />} />
-            <Route path="/home" element={<Home />} />
-
             <Route path="/devpanel" element={<DevPanel />} />
             <Route path="/urlshortener" element={<UrlShortener />} />
             <Route path="/messaging" element={<Messaging />} />
             <Route path="/status" element={<Status />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/blog/:slug" element={<BlogPostPage />} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

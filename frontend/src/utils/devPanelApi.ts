@@ -121,6 +121,36 @@ export interface ProjectPathFormData {
   is_active: boolean;
 }
 
+export interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  excerpt: string;
+  featured_image: string;
+  status: 'draft' | 'published' | 'archived';
+  published_at: string;
+  tags: string[];
+  view_count: number;
+  read_time_minutes: number;
+  is_featured: boolean;
+  is_visible: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BlogPostFormData {
+  title: string;
+  slug: string;
+  content: string;
+  excerpt: string;
+  featured_image: string;
+  status: string;
+  tags_input: string;
+  is_featured: boolean;
+  is_visible: boolean;
+}
+
 // API Helper Functions
 export const getAuthHeaders = (): Record<string, string> => {
   const headers: Record<string, string> = {
@@ -448,4 +478,66 @@ export const defaultProjectPathFormData: ProjectPathFormData = {
   description: '',
   exclude_patterns: [],
   is_active: true,
+};
+
+export const blogApi = {
+  getAll: async (): Promise<{ posts: BlogPost[]; total: number }> => {
+    const response = await fetch(buildApiUrl('/api/v1/blog/admin'), {
+      headers: getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch blog posts');
+    return response.json();
+  },
+
+  create: async (data: Record<string, unknown>): Promise<BlogPost> => {
+    const response = await fetch(buildApiUrl('/api/v1/blog/admin'), {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error('Failed to create blog post');
+    return response.json();
+  },
+
+  update: async (id: string, data: Record<string, unknown>): Promise<BlogPost> => {
+    const response = await fetch(buildApiUrl(`/api/v1/blog/admin/${id}`), {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error('Failed to update blog post');
+    return response.json();
+  },
+
+  delete: async (id: string): Promise<void> => {
+    const response = await fetch(buildApiUrl(`/api/v1/blog/admin/${id}`), {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to delete blog post');
+  },
+};
+
+export const mapBlogPostToFormData = (post: BlogPost): BlogPostFormData => ({
+  title: post.title,
+  slug: post.slug,
+  content: post.content || '',
+  excerpt: post.excerpt || '',
+  featured_image: post.featured_image || '',
+  status: post.status,
+  tags_input: (post.tags || []).join(', '),
+  is_featured: post.is_featured,
+  is_visible: post.is_visible,
+});
+
+export const defaultBlogPostFormData: BlogPostFormData = {
+  title: '',
+  slug: '',
+  content: '',
+  excerpt: '',
+  featured_image: '',
+  status: 'draft',
+  tags_input: '',
+  is_featured: false,
+  is_visible: true,
 };

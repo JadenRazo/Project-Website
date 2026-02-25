@@ -12,7 +12,6 @@ import (
 	"time"
 
 	appconfig "github.com/JadenRazo/Project-Website/backend/internal/app/config"
-	"github.com/JadenRazo/Project-Website/backend/internal/common/database"
 	"github.com/JadenRazo/Project-Website/backend/internal/common/logger"
 	"github.com/JadenRazo/Project-Website/backend/internal/core/db"
 	"github.com/JadenRazo/Project-Website/backend/internal/worker/tasks"
@@ -324,11 +323,15 @@ func main() {
 		env = "development"
 	}
 
-	// Initialize the logging system
+	logOutput := "file"
+	if os.Getenv("ENVIRONMENT") == "production" {
+		logOutput = "stdout"
+	}
+
 	logConfig := &appconfig.LoggingConfig{
 		Level:      "info",
 		Format:     "json",
-		Output:     "file",
+		Output:     logOutput,
 		TimeFormat: time.RFC3339,
 		Filename:   "logs/worker.log",
 		MaxSize:    100,
@@ -348,35 +351,13 @@ func main() {
 
 	var dbConn *gorm.DB
 
-	// Try to use the new database package first
-	dbConfig := &appconfig.DatabaseConfig{
-		Driver:                 "postgres",
-		DSN:                    os.Getenv("DATABASE_URL"),
-		MaxIdleConns:           5,
-		MaxOpenConns:           20,
-		ConnMaxLifetimeMinutes: 60,
-		LogLevel:               "warn",
-		SlowThresholdMs:        200,
-	}
-
-	// Try to connect using the database package
 	logger.Info("Connecting to database...")
 
-	// First attempt with the common database package
-	dbInstance, err := database.NewDatabase(dbConfig)
-	if err == nil {
-		dbConn = dbInstance.GetDB()
-		logger.Info("Connected to database using database package")
-	} else {
-		// Fallback to core/db package
-		logger.Warn("Failed to connect with database package, trying fallback", "error", err.Error())
-
-		dbConn, err = db.GetDB()
-		if err != nil {
-			logger.Fatal("Failed to connect to database", "error", err)
-		}
-		logger.Info("Connected to database using fallback method")
+	dbConn, err = db.GetDB()
+	if err != nil {
+		logger.Fatal("Failed to connect to database", "error", err)
 	}
+	logger.Info("Connected to database")
 
 	// Initialize worker with database connection
 	worker := NewWorker(dbConn)
