@@ -35,7 +35,7 @@ export default function PortfolioNavbar() {
       transition={{ duration: 0.6, ease: 'easeOut' }}
       className="fixed top-0 left-0 right-0 z-50 py-3 sm:py-4 bg-background/80 backdrop-blur-md"
     >
-      <div className="container flex items-center justify-between">
+      <div className="container flex items-center gap-4 md:justify-between">
         <div className="flex items-center gap-2 sm:gap-4">
           <Link to="/" className="relative group">
             <span className="text-xl sm:text-2xl font-bold gradient-text">Portfolio</span>
@@ -43,6 +43,14 @@ export default function PortfolioNavbar() {
           </Link>
           <CodeCounter />
         </div>
+
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="md:hidden p-2.5 text-text-primary rounded-full hover:bg-surface-hover transition-colors"
+          aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+        >
+          {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+        </button>
 
         <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
@@ -59,14 +67,6 @@ export default function PortfolioNavbar() {
             <span>Hire Me</span>
           </button>
         </div>
-
-        <button
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="md:hidden p-2.5 mr-10 text-text-primary rounded-full hover:bg-surface-hover transition-colors"
-          aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
-        >
-          {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
-        </button>
       </div>
 
       <AnimatePresence>
