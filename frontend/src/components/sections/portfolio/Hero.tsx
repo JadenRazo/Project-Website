@@ -116,7 +116,7 @@ export default function Hero() {
     <section
       id="home"
       ref={containerRef}
-      className="relative w-full min-h-[85vh] sm:min-h-[88vh] overflow-hidden"
+      className="relative w-full min-h-[70vh] sm:min-h-[85vh] overflow-hidden"
     >
       {/* 3D Elements - desktop only */}
       <div className="absolute right-[3%] top-1/2 -translate-y-1/2 hidden xl:block opacity-50 pointer-events-none">
@@ -314,8 +314,6 @@ export default function Hero() {
 
         </div>
 
-      {/* Bottom gradient */}
-      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent pointer-events-none" />
     </section>
   )
 }
