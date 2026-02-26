@@ -124,7 +124,7 @@ export default function Hero() {
       </div>
 
       {/* Main content - centered vertically */}
-      <div className="relative z-10 w-full h-full flex flex-col items-center justify-center pt-32 sm:pt-36 lg:pt-40 pb-20 px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 w-full h-full flex flex-col items-center justify-center pt-36 sm:pt-40 lg:pt-44 pb-10 px-4 sm:px-6 lg:px-8">
         {/* Content wrapper */}
         <div className="w-full max-w-4xl text-center">
             <motion.div
@@ -290,29 +290,29 @@ export default function Hero() {
             </motion.div>
           </div>
 
-        </div>
+          {/* Scroll indicator */}
+          <motion.button
+            onClick={handleScrollToAbout}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 2, duration: 0.6 }}
+            className="mt-8 sm:mt-10 flex flex-col items-center gap-2 group cursor-pointer z-20"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <span className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-text-muted group-hover:text-primary transition-colors">
+              Scroll
+            </span>
+            <motion.div
+              animate={{ y: [0, 8, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+              className="p-2 glass-enhanced rounded-full"
+            >
+              <ArrowDown size={20} className="text-primary group-hover:text-accent transition-colors" />
+            </motion.div>
+          </motion.button>
 
-      {/* Scroll indicator - fixed at bottom */}
-      <motion.button
-        onClick={handleScrollToAbout}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 2, duration: 0.6 }}
-        className="absolute bottom-8 sm:bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 group cursor-pointer z-20"
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-      >
-        <span className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-text-muted group-hover:text-primary transition-colors">
-          Scroll
-        </span>
-        <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-          className="p-2 glass-enhanced rounded-full"
-        >
-          <ArrowDown size={20} className="text-primary group-hover:text-accent transition-colors" />
-        </motion.div>
-      </motion.button>
+        </div>
 
       {/* Bottom gradient */}
       <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent pointer-events-none" />
