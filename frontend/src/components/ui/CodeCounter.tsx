@@ -50,7 +50,7 @@ export default function CodeCounter() {
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5, delay: 0.2 }}
-      className="hidden lg:flex items-center gap-2 px-3 py-1.5 glass rounded-full"
+      className="flex items-center gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 glass rounded-full"
     >
       <div className="w-6 h-6 rounded-lg bg-primary/20 flex items-center justify-center">
         <Code2 className="w-3.5 h-3.5 text-primary" />
