@@ -62,9 +62,10 @@ export default function PortfolioNavbar() {
 
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="md:hidden p-2 text-text-primary"
+          className="md:hidden p-2.5 mr-1 text-text-primary rounded-full hover:bg-surface-hover transition-colors"
+          aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
         >
-          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
       </div>
 
