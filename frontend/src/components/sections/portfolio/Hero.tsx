@@ -116,7 +116,7 @@ export default function Hero() {
     <section
       id="home"
       ref={containerRef}
-      className="relative w-full min-h-[70vh] sm:min-h-[85vh] overflow-hidden"
+      className="relative w-full min-h-[80vh] sm:min-h-[85vh] overflow-hidden"
     >
       {/* 3D Elements - desktop only */}
       <div className="absolute right-[3%] top-1/2 -translate-y-1/2 hidden xl:block opacity-50 pointer-events-none">
@@ -124,7 +124,7 @@ export default function Hero() {
       </div>
 
       {/* Main content - centered vertically */}
-      <div className="relative z-10 w-full flex flex-col items-center pt-[28vh] sm:pt-[30vh] lg:pt-[32vh] pb-16 sm:pb-20 px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 w-full flex flex-col items-center pt-[20vh] sm:pt-[30vh] lg:pt-[32vh] pb-16 sm:pb-20 px-4 sm:px-6 lg:px-8">
         {/* Content wrapper */}
         <div className="w-full max-w-4xl text-center">
             <motion.div
