@@ -60,9 +60,9 @@ export default function About() {
             About <span className="gradient-text">Me</span>
           </h2>
           <p className="text-sm sm:text-base md:text-lg text-text-secondary leading-relaxed">
-            Full-stack developer passionate about crafting exceptional digital experiences.
-            I specialize in building high-performance web applications with modern technologies,
-            seamless user experiences, and scalable architecture.
+            CompTIA A+ and Network+ certified IT professional and full-stack developer.
+            I build and maintain scalable infrastructure, web applications, and cloud
+            environments across Windows, Mac, and Linux.
           </p>
         </motion.div>
 

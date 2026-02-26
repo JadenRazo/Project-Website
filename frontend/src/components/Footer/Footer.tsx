@@ -182,18 +182,21 @@ const Footer: React.FC = () => {
   
   const techStack = [
     'TypeScript',
-    'CSS',
-    'HTML',
     'React',
-    'Python',
     'Go',
-    'SQL',
-    'Java',
-    'Linux | MacOS | Windows',
-    'Github',
+    'Python',
+    'PowerShell',
+    'Bash',
+    'PostgreSQL',
     'Docker',
+    'AWS',
+    'Terraform',
+    'Active Directory',
+    'Linux',
     'Nginx',
-    'TMUX'
+    'Prometheus',
+    'Grafana',
+    'Git',
   ];
 
   const { scrollToTop } = useScrollTo();
@@ -227,7 +230,7 @@ const Footer: React.FC = () => {
       <FooterContent>
         <FooterSection>
           <FooterTitle>About</FooterTitle>
-          <p>Full-stack developer specializing in Python, Go and TypeScript. Building scalable web applications with modern technologies.</p>
+          <p>Systems Administrator &amp; Full Stack Developer. Building scalable infrastructure and web applications with modern technologies.</p>
           <TechStack>
             {techStack.map((tech, index) => (
               <TechBadge
