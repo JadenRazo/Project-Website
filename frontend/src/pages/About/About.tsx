@@ -333,10 +333,10 @@ const experienceItemVariants = {
 const ExperienceSection = () => {
   // Experience lines data
   const experienceLines = useMemo(() => [
-    "• Built client booking platform (Showers Auto Detail) with Square payment integration and admin dashboard",
-    "• Architected 5-microservice backend with Go, PostgreSQL, Redis, and WebSocket real-time features",
-    "• Deployed production applications with Docker, Nginx, TLS, and Prometheus monitoring",
-    "• Integrated LLM APIs (OpenAI, Claude, Gemini) into Discord bot serving multiple communities"
+    "• Primary technical contact for 15+ end users, troubleshooting software, hardware, and connectivity issues via on-site and remote support",
+    "• Manage user account provisioning, password resets, and MFA enrollment through Okta and Active Directory",
+    "• Built and deployed a full-stack booking platform processing 50+ appointments and $3,000+/month via Square API",
+    "• Provisioned AWS infrastructure with Terraform; built Prometheus/Grafana monitoring dashboards achieving 99.5% uptime"
   ], []);
   
   // State for typing animation
@@ -424,9 +424,9 @@ const ExperienceSection = () => {
       <SectionTitle>Experience</SectionTitle>
       <SectionContent>
         <ExperienceItem variants={experienceItemVariants}>
-          <ExperienceTitle>Full Stack Developer</ExperienceTitle>
-          <ExperienceCompany>Freelance Developer & Independent Projects</ExperienceCompany>
-          <ExperienceDate>2020 - Present</ExperienceDate>
+          <ExperienceTitle>IT Support Contact & Freelance Developer</ExperienceTitle>
+          <ExperienceCompany>24Hr Home Care / Self-Employed</ExperienceCompany>
+          <ExperienceDate>2022 - Present</ExperienceDate>
           <ExperienceDescription>
             {experienceLines.map((line, lineIndex) => (
               <TypedLine key={`line-${lineIndex}`}>
@@ -527,8 +527,8 @@ const About: React.FC = () => {
   return (
     <>
       <SEO
-        title="About Jaden Razo | Full Stack Developer Experience & Skills"
-        description="Learn about Jaden Razo's experience as a Full Stack Developer, including expertise in JavaScript, TypeScript, React, Go, Python, Docker, Kubernetes, AWS, and cloud computing technologies."
+        title="About Jaden Razo | Systems Administrator & Full Stack Developer"
+        description="CompTIA A+ and Network+ certified IT professional and full stack developer. Experienced with Active Directory, Azure, AWS, Docker, Go, TypeScript, and cloud infrastructure."
         path="/about"
       />
       <AboutContainer>
@@ -546,20 +546,21 @@ const About: React.FC = () => {
             >
               <img 
                 src={headshot} 
-                alt="Jaden Razo - Full Stack Developer"
+                alt="Jaden Razo - Systems Administrator & Full Stack Developer"
                 loading="eager"
               />
             </ProfileImage>
             <ProfileInfo>
               <Name>Jaden Razo</Name>
-              <Title>Full Stack Developer</Title>
-              <motion.p 
+              <Title>Systems Administrator & Full Stack Developer</Title>
+              <motion.p
                 style={{ color: 'var(--text)', lineHeight: 1.6, marginTop: '1rem' }}
                 variants={itemVariants}
               >
-                I am a passionate Full Stack Developer with expertise in building scalable web applications
-                and microservices. With a strong foundation in both frontend and backend development,
-                I specialize in creating efficient, user-friendly solutions that solve real-world problems.
+                CompTIA A+ and Network+ certified IT professional with hands-on experience in
+                end-user support, hardware/software troubleshooting, and Active Directory administration
+                across Windows, Mac, and Linux environments. I also build and deploy full-stack web
+                applications and cloud infrastructure as a freelance developer.
               </motion.p>
             </ProfileInfo>
           </ProfileSection>
@@ -668,18 +669,22 @@ const About: React.FC = () => {
             <SectionTitle>Technical Skills</SectionTitle>
             <SkillsList>
               {[
-                "JavaScript/TypeScript",
-                "React.js",
-                "Node.js",
+                "TypeScript / React",
                 "Go",
                 "Python",
-                "Docker",
-                "Kubernetes",
-                "AWS",
-                "MongoDB",
-                "PostgreSQL",
-                "Redis",
-                "GraphQL"
+                "PowerShell / Bash",
+                "Active Directory / Azure AD",
+                "Okta / Intune / Jamf",
+                "Windows Server 2022",
+                "Linux (Ubuntu)",
+                "AWS / Terraform",
+                "Docker / Kubernetes",
+                "PostgreSQL / Redis",
+                "Prometheus / Grafana",
+                "ServiceNow / Jira",
+                "Nginx",
+                "Git / CI-CD",
+                "Networking (DNS, DHCP, TCP/IP, VPN)"
               ].map((skill, index) => (
                 <SkillItem
                   key={skill}
@@ -711,7 +716,7 @@ const About: React.FC = () => {
                 <ExperienceCompany>Western Governors University</ExperienceCompany>
                 <ExperienceDate>2025 - Expected 2026</ExperienceDate>
                 <ExperienceDescription>
-                  Focused on cloud computing, cybersecurity and distributed systems. Studying for A+, Security+, Network+.
+                  Focused on cloud computing, cybersecurity, and distributed systems. Currently pursuing AZ-104, AWS Solutions Architect Associate, and CompTIA Security+.
                 </ExperienceDescription>
               </ExperienceItem> 
               <ExperienceItem variants={itemVariants}>
