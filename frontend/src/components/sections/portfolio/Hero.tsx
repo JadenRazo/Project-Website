@@ -124,7 +124,7 @@ export default function Hero() {
       </div>
 
       {/* Main content - centered vertically */}
-      <div className="relative z-10 w-full h-full flex flex-col items-center justify-center pt-20 sm:pt-24 pb-20 px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 w-full h-full flex flex-col items-center justify-center pt-32 sm:pt-36 lg:pt-40 pb-20 px-4 sm:px-6 lg:px-8">
         {/* Content wrapper */}
         <div className="w-full max-w-4xl text-center">
             <motion.div
