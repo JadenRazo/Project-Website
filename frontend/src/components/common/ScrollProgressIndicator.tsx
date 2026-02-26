@@ -1,10 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
-import { useOptimizedScrollHandler } from '../../hooks/useOptimizedScrollHandler';
-
-interface ProgressBarProps {
-  $progress: number;
-}
+import { useLenis } from '../../providers/LenisProvider';
 
 const ProgressContainer = styled.div<{ $navHeight: number }>`
   position: fixed;
@@ -21,63 +17,65 @@ const ProgressContainer = styled.div<{ $navHeight: number }>`
   }
 `;
 
-const ProgressBar = styled.div<ProgressBarProps>`
+const ProgressBar = styled.div`
   height: 100%;
   background: ${({ theme }) => theme.colors.primary};
-  width: ${({ $progress }) => $progress}%;
-  transition: width 0.1s ease-out;
+  width: 0%;
+  will-change: transform;
+  transform-origin: left;
   box-shadow: 0 0 10px ${({ theme }) => theme.colors.primary}50;
 `;
 
 const ScrollProgressIndicator: React.FC = () => {
-  const [progress, setProgress] = useState(0);
-  const [navHeight, setNavHeight] = useState(0);
-  const measuredRef = useRef(false);
+  const barRef = useRef<HTMLDivElement>(null);
+  const navHeightRef = useRef(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { lenis } = useLenis();
+
+  const measureNav = useCallback(() => {
+    const nav = document.querySelector('nav');
+    if (nav) {
+      const h = nav.getBoundingClientRect().height;
+      navHeightRef.current = h;
+      if (containerRef.current) {
+        containerRef.current.style.top = `${h}px`;
+      }
+    }
+  }, []);
 
   useEffect(() => {
-    const measureNav = () => {
-      const nav = document.querySelector('nav');
-      if (nav) {
-        setNavHeight(nav.getBoundingClientRect().height);
-        measuredRef.current = true;
+    measureNav();
+    const timer = setTimeout(measureNav, 200);
+    window.addEventListener('resize', measureNav);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', measureNav);
+    };
+  }, [measureNav]);
+
+  useEffect(() => {
+    if (!lenis) return;
+
+    const onScroll = ({ progress }: { progress: number }) => {
+      if (barRef.current) {
+        barRef.current.style.transform = `scaleX(${progress})`;
       }
     };
 
-    measureNav();
+    lenis.on('scroll', onScroll);
 
-    if (!measuredRef.current) {
-      const timer = setTimeout(measureNav, 200);
-      return () => clearTimeout(timer);
+    if (barRef.current) {
+      barRef.current.style.transform = `scaleX(${lenis.progress || 0})`;
     }
 
-    window.addEventListener('resize', measureNav);
-    return () => window.removeEventListener('resize', measureNav);
-  }, []);
-
-  const handleScroll = (state: { scrollProgress: number; isScrolling: boolean; scrollY: number }) => {
-    setProgress(state.scrollProgress * 100);
-  };
-
-  useOptimizedScrollHandler(handleScroll, {
-    throttleMs: 16
-  });
-
-  useEffect(() => {
-    const initialScroll = window.pageYOffset || document.documentElement.scrollTop;
-    const documentHeight = Math.max(
-      document.body.scrollHeight,
-      document.documentElement.scrollHeight
-    );
-    const windowHeight = window.innerHeight;
-    const maxScroll = documentHeight - windowHeight;
-    const initialProgress = maxScroll > 0 ? Math.min(initialScroll / maxScroll, 1) : 0;
-
-    setProgress(initialProgress * 100);
-  }, []);
+    return () => {
+      lenis.off('scroll', onScroll);
+    };
+  }, [lenis]);
 
   return (
-    <ProgressContainer $navHeight={navHeight}>
-      <ProgressBar $progress={progress} />
+    <ProgressContainer ref={containerRef} $navHeight={navHeightRef.current}>
+      <ProgressBar ref={barRef} />
     </ProgressContainer>
   );
 };
