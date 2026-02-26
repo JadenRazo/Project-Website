@@ -20,7 +20,7 @@ const ProgressContainer = styled.div<{ $navHeight: number }>`
 const ProgressBar = styled.div`
   height: 100%;
   background: ${({ theme }) => theme.colors.primary};
-  width: 0%;
+  width: 100%;
   will-change: transform;
   transform-origin: left;
   box-shadow: 0 0 10px ${({ theme }) => theme.colors.primary}50;
