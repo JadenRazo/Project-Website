@@ -4,11 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X } from 'lucide-react'
 import CodeCounter from '../ui/CodeCounter'
 
-const navLinks = [
-  { name: 'Home', href: '#home' },
+const scrollLinks = [
   { name: 'About', href: '#about' },
-  { name: 'Projects', href: '#projects' },
-  { name: 'Services', href: '#services' },
   { name: 'Contact', href: '#contact' },
 ]
 
@@ -53,7 +50,14 @@ export default function PortfolioNavbar() {
         </button>
 
         <div className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) => (
+          <Link
+            to="/blog"
+            className="relative text-text-secondary hover:text-text-primary transition-colors duration-300 group"
+          >
+            Blog
+            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full" />
+          </Link>
+          {scrollLinks.map((link) => (
             <button
               key={link.name}
               onClick={() => scrollToSection(link.href)}
@@ -79,7 +83,14 @@ export default function PortfolioNavbar() {
             className="md:hidden glass mt-4 mx-4 rounded-2xl overflow-hidden"
           >
             <div className="flex flex-col p-6 gap-4">
-              {navLinks.map((link) => (
+              <Link
+                to="/blog"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-left text-text-secondary hover:text-text-primary transition-colors duration-300 py-2"
+              >
+                Blog
+              </Link>
+              {scrollLinks.map((link) => (
                 <button
                   key={link.name}
                   onClick={() => scrollToSection(link.href)}

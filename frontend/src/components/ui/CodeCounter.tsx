@@ -1,10 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Code2 } from 'lucide-react'
 import { motion } from 'framer-motion'
-
-interface CodeStats {
-  totalLines: number
-}
+import { fetchGitHubLOC } from '../../utils/codeStats'
 
 function AnimatedNumber({ value, duration = 2000 }: { value: number; duration?: number }) {
   const [displayValue, setDisplayValue] = useState(0)
@@ -34,16 +31,15 @@ function AnimatedNumber({ value, duration = 2000 }: { value: number; duration?: 
 }
 
 export default function CodeCounter() {
-  const [stats, setStats] = useState<CodeStats | null>(null)
+  const [totalLines, setTotalLines] = useState<number | null>(null)
 
   useEffect(() => {
-    fetch('/code_stats.json')
-      .then((res) => res.json())
-      .then((data) => setStats(data))
-      .catch((err) => console.error('Failed to load code stats:', err))
+    fetchGitHubLOC()
+      .then((data) => setTotalLines(data.totalLines))
+      .catch(() => {})
   }, [])
 
-  if (!stats) return null
+  if (!totalLines) return null
 
   return (
     <motion.div
@@ -57,7 +53,7 @@ export default function CodeCounter() {
       </div>
       <div className="flex flex-col">
         <span className="text-xs font-bold gradient-text leading-none">
-          <AnimatedNumber value={stats.totalLines} />
+          <AnimatedNumber value={totalLines} />
         </span>
         <span className="text-[10px] text-text-muted leading-none mt-0.5">lines</span>
       </div>
