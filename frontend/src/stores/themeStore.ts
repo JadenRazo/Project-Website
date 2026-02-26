@@ -30,8 +30,8 @@ export const useThemeStore = create<ThemeStore>()(
   devtools(
     persist(
       (set, get) => ({
-        theme: themes.dark,
-        themeMode: 'dark',
+        theme: themes[getPreferredTheme()],
+        themeMode: getPreferredTheme(),
 
         toggleTheme: () => {
           const currentMode = get().themeMode;
@@ -76,9 +76,15 @@ export const useThemeStore = create<ThemeStore>()(
       }),
       {
         name: 'theme-storage',
-        partialize: (state) => ({ 
-          themeMode: state.themeMode 
+        partialize: (state) => ({
+          themeMode: state.themeMode
         }),
+        onRehydrateStorage: () => (state) => {
+          if (state) {
+            state.theme = themes[state.themeMode];
+            updateDocumentTheme(state.themeMode, themes[state.themeMode]);
+          }
+        },
       }
     ),
     { name: 'theme-store' }

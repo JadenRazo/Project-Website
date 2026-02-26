@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { useScrollTo } from '../../hooks/useScrollTo';
+import { useTheme } from '../../hooks/useTheme';
 
 const FooterContainer = styled.footer`
   background: ${({ theme }) => theme.colors.surface};
@@ -100,14 +101,47 @@ const FooterExternalLink = styled.a`
   }
 `;
 
-const Copyright = styled.div`
-  text-align: center;
+const CopyrightRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: ${({ theme }) => theme.spacing.md};
   padding: ${({ theme }) => theme.spacing.md};
   color: ${({ theme }) => theme.colors.text};
   opacity: 0.7;
   font-size: 0.9rem;
   border-top: 1px solid ${({ theme }) => theme.colors.border};
   margin-top: ${({ theme }) => theme.spacing.xl};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    flex-direction: column;
+    gap: ${({ theme }) => theme.spacing.sm};
+  }
+`;
+
+const ThemeToggleButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.borderRadius.pill};
+  padding: 6px 14px;
+  color: ${({ theme }) => theme.colors.text};
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all ${({ theme }) => theme.transitions.fast};
+  opacity: 1;
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.primary};
+    color: ${({ theme }) => theme.colors.primary};
+  }
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
 `;
 
 const SocialLinks = styled.div`
@@ -144,6 +178,7 @@ const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
   const navigate = useNavigate();
   const [navigatingTo, setNavigatingTo] = useState<string | null>(null);
+  const { themeMode, toggleTheme } = useTheme();
   
   const techStack = [
     'TypeScript',
@@ -252,9 +287,29 @@ const Footer: React.FC = () => {
         </FooterSection>
       </FooterContent>
       
-      <Copyright>
-        © {currentYear} Jaden Razo. All rights reserved.
-      </Copyright>
+      <CopyrightRow>
+        <span>© {currentYear} Jaden Razo. All rights reserved.</span>
+        <ThemeToggleButton onClick={toggleTheme} aria-label={`Switch to ${themeMode === 'dark' ? 'light' : 'dark'} mode`}>
+          {themeMode === 'dark' ? (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="5" />
+              <line x1="12" y1="1" x2="12" y2="3" />
+              <line x1="12" y1="21" x2="12" y2="23" />
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+              <line x1="1" y1="12" x2="3" y2="12" />
+              <line x1="21" y1="12" x2="23" y2="12" />
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+          )}
+          {themeMode === 'dark' ? 'Light' : 'Dark'}
+        </ThemeToggleButton>
+      </CopyrightRow>
     </FooterContainer>
   );
 };
