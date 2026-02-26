@@ -344,7 +344,7 @@ func main() {
 	}
 
 	blogRepository := blogRepo.NewGormRepository(gormDB)
-	blogService := blog.NewService(blogRepository)
+	blogService := blog.NewService(blogRepository, secureCacheInstance)
 	blogHandler := blogHTTP.NewHandler(blogService)
 
 	workerService := worker.NewService(gormDB)

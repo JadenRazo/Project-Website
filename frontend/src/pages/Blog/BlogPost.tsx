@@ -287,6 +287,7 @@ const BlogPost: React.FC = () => {
 
   useEffect(() => {
     if (!slug) return;
+    if (sessionStorage.getItem('blog_viewed_' + slug)) return;
     const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || '';
     const endpoint = apiUrl
       ? `${apiUrl}/api/v1/blog/${slug}/view`
@@ -294,6 +295,7 @@ const BlogPost: React.FC = () => {
     fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
       .then((res) => {
         if (res.ok) {
+          sessionStorage.setItem('blog_viewed_' + slug, '1');
           setPost((prev) => prev ? { ...prev, view_count: prev.view_count + 1 } : prev);
         }
       })

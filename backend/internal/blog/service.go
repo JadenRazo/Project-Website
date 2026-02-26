@@ -1,21 +1,29 @@
 package blog
 
 import (
+	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
+	"fmt"
+	"net/http"
 	"regexp"
 	"strings"
 	"time"
 	"unicode"
 
 	"github.com/google/uuid"
+
+	"github.com/JadenRazo/Project-Website/backend/internal/common/cache"
 )
 
 type service struct {
-	repo Repository
+	repo  Repository
+	cache *cache.SecureCache
 }
 
-func NewService(repo Repository) Service {
-	return &service{repo: repo}
+func NewService(repo Repository, c *cache.SecureCache) Service {
+	return &service{repo: repo, cache: c}
 }
 
 func slugify(title string) string {
@@ -158,10 +166,32 @@ func (s *service) DeletePost(id uuid.UUID) error {
 	return s.repo.Delete(id)
 }
 
-func (s *service) IncrementViewCount(slug string) error {
+func generateBlogViewHash(r *http.Request) string {
+	bucket := time.Now().Unix() / 86400
+	raw := fmt.Sprintf("%s|%s|%s|%d",
+		r.Header.Get("User-Agent"),
+		r.Header.Get("Accept-Language"),
+		r.Header.Get("Accept-Encoding"),
+		bucket,
+	)
+	sum := sha256.Sum256([]byte(raw))
+	return "blogview|" + hex.EncodeToString(sum[:])
+}
+
+func (s *service) IncrementViewCount(slug string, r *http.Request) error {
 	post, err := s.repo.GetBySlug(slug)
 	if err != nil {
 		return err
 	}
+
+	if s.cache != nil {
+		viewerHash := generateBlogViewHash(r)
+		key := fmt.Sprintf("blogview:%s:%s", post.ID, viewerHash)
+		wasSet, err := s.cache.SetNX(context.Background(), key, 1, 24*time.Hour)
+		if err == nil && !wasSet {
+			return nil
+		}
+	}
+
 	return s.repo.IncrementViewCount(post.ID)
 }

@@ -1,6 +1,7 @@
 package blog
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/google/uuid"
@@ -67,5 +68,5 @@ type Service interface {
 	GetFeatured(limit int) ([]Post, error)
 	UpdatePost(id uuid.UUID, updates map[string]interface{}) error
 	DeletePost(id uuid.UUID) error
-	IncrementViewCount(slug string) error
+	IncrementViewCount(slug string, r *http.Request) error
 }

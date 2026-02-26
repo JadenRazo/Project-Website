@@ -80,7 +80,7 @@ func (h *Handler) IncrementViewCount(c *gin.Context) {
 		return
 	}
 
-	if err := h.service.IncrementViewCount(slug); err != nil {
+	if err := h.service.IncrementViewCount(slug, c.Request); err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "post not found"})
 		return
 	}
