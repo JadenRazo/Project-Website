@@ -116,7 +116,7 @@ export default function Hero() {
     <section
       id="home"
       ref={containerRef}
-      className="relative w-full min-h-[80vh] sm:min-h-[85vh] overflow-hidden"
+      className="relative w-full h-[100dvh] overflow-hidden"
     >
       {/* 3D Elements - desktop only */}
       <div className="absolute right-[3%] top-1/2 -translate-y-1/2 hidden xl:block opacity-50 pointer-events-none">
@@ -124,7 +124,7 @@ export default function Hero() {
       </div>
 
       {/* Main content - centered vertically */}
-      <div className="relative z-10 w-full flex flex-col items-center pt-[20vh] sm:pt-[30vh] lg:pt-[32vh] pb-16 sm:pb-20 px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 w-full h-full flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 pb-16">
         {/* Content wrapper */}
         <div className="w-full max-w-4xl text-center">
             <motion.div
@@ -290,29 +290,29 @@ export default function Hero() {
             </motion.div>
           </div>
 
-          {/* Scroll indicator */}
-          <motion.button
-            onClick={handleScrollToAbout}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 2, duration: 0.6 }}
-            className="mt-8 sm:mt-10 flex flex-col items-center gap-2 group cursor-pointer z-20"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <span className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-text-muted group-hover:text-primary transition-colors">
-              Scroll
-            </span>
-            <motion.div
-              animate={{ y: [0, 8, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-              className="p-2 glass-enhanced rounded-full"
-            >
-              <ArrowDown size={20} className="text-primary group-hover:text-accent transition-colors" />
-            </motion.div>
-          </motion.button>
-
         </div>
+
+      {/* Scroll indicator */}
+      <motion.button
+        onClick={handleScrollToAbout}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 2, duration: 0.6 }}
+        className="absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 group cursor-pointer z-20"
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        <span className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-text-muted group-hover:text-primary transition-colors">
+          Scroll
+        </span>
+        <motion.div
+          animate={{ y: [0, 8, 0] }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+          className="p-2 glass-enhanced rounded-full"
+        >
+          <ArrowDown size={20} className="text-primary group-hover:text-accent transition-colors" />
+        </motion.div>
+      </motion.button>
 
     </section>
   )
