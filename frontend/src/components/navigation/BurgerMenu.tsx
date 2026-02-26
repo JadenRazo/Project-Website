@@ -218,6 +218,13 @@ const BurgerButton = styled(motion.button)<{ isOpen: boolean }>`
   border-radius: 50%;
   cursor: pointer;
   background: ${({ theme }) => theme.colors.primaryLight};
+
+  @media (max-width: 768px) {
+    right: 1rem;
+    top: 1rem;
+    width: 2.75rem;
+    height: 2.75rem;
+  }
   border: 2px solid ${({ theme }) => theme.colors.primaryHover};
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
   transition: all 0.3s ease;
