@@ -116,7 +116,7 @@ export default function Hero() {
     <section
       id="home"
       ref={containerRef}
-      className="relative w-full h-[100dvh] overflow-hidden"
+      className="relative w-full min-h-[100dvh] overflow-hidden"
     >
       {/* 3D Elements - desktop only */}
       <div className="absolute right-[3%] top-1/2 -translate-y-1/2 hidden xl:block opacity-50 pointer-events-none">
@@ -124,21 +124,21 @@ export default function Hero() {
       </div>
 
       {/* Main content - centered vertically */}
-      <div className="relative z-10 w-full h-full flex flex-col items-center justify-center pt-14 sm:pt-16 px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 w-full h-full flex flex-col items-center justify-center pt-20 sm:pt-24 pb-20 px-4 sm:px-6 lg:px-8">
         {/* Content wrapper */}
-        <div className="w-full max-w-6xl text-center -mt-8 sm:-mt-4 lg:mt-0">
+        <div className="w-full max-w-4xl text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
               className="mb-2 sm:mb-4"
             >
-              <span className="inline-block px-3 py-1.5 glass-enhanced rounded-full text-[11px] sm:text-xs font-mono uppercase tracking-widest text-primary">
+              <span className="inline-block px-4 py-2 glass-enhanced rounded-full text-xs sm:text-sm font-mono uppercase tracking-widest text-primary">
                 Available for freelance work
               </span>
             </motion.div>
 
-            <h1 className="text-editorial mb-2 sm:mb-4">
+            <h1 className="text-editorial mb-3 sm:mb-5">
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -147,7 +147,7 @@ export default function Hero() {
               >
                 <SplitText
                   text="I craft beautiful"
-                  className="text-[2rem] sm:text-4xl md:text-5xl lg:text-6xl text-text-primary block leading-[1.1]"
+                  className="text-[2.5rem] sm:text-5xl md:text-6xl lg:text-7xl text-text-primary block leading-[1.1]"
                   delay={0.5}
                 />
               </motion.div>
@@ -157,7 +157,7 @@ export default function Hero() {
                 transition={{ duration: 0.3, delay: 0.8 }}
                 className="overflow-hidden"
               >
-                <span className="text-[2rem] sm:text-4xl md:text-5xl lg:text-6xl leading-[1.1]">
+                <span className="text-[2.5rem] sm:text-5xl md:text-6xl lg:text-7xl leading-[1.1]">
                   <AnimatedRole />
                 </span>
               </motion.div>
@@ -168,7 +168,7 @@ export default function Hero() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 1.2, ease: [0.22, 1, 0.36, 1] }}
-                className="text-sm sm:text-base md:text-lg text-text-secondary max-w-xl mb-3 sm:mb-6 leading-relaxed text-center"
+                className="text-base sm:text-lg md:text-xl text-text-secondary max-w-lg mb-4 sm:mb-6 leading-relaxed text-center"
               >
                 Full-stack developer specializing in stunning, high-performance web applications with modern technologies.
               </motion.p>
