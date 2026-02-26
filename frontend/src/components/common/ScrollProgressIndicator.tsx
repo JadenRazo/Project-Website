@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useOptimizedScrollHandler } from '../../hooks/useOptimizedScrollHandler';
 
@@ -6,9 +6,9 @@ interface ProgressBarProps {
   $progress: number;
 }
 
-const ProgressContainer = styled.div`
+const ProgressContainer = styled.div<{ $navHeight: number }>`
   position: fixed;
-  top: 0;
+  top: ${({ $navHeight }) => $navHeight}px;
   left: 0;
   width: 100%;
   height: 3px;
@@ -29,16 +29,30 @@ const ProgressBar = styled.div<ProgressBarProps>`
   box-shadow: 0 0 10px ${({ theme }) => theme.colors.primary}50;
 `;
 
-interface ScrollProgressIndicatorProps {
-  showOnlyWhenScrolling?: boolean;
-  hideThreshold?: number;
-}
-
-const ScrollProgressIndicator: React.FC<ScrollProgressIndicatorProps> = ({
-  showOnlyWhenScrolling = false,
-  hideThreshold = 100
-}) => {
+const ScrollProgressIndicator: React.FC = () => {
   const [progress, setProgress] = useState(0);
+  const [navHeight, setNavHeight] = useState(0);
+  const measuredRef = useRef(false);
+
+  useEffect(() => {
+    const measureNav = () => {
+      const nav = document.querySelector('nav');
+      if (nav) {
+        setNavHeight(nav.getBoundingClientRect().height);
+        measuredRef.current = true;
+      }
+    };
+
+    measureNav();
+
+    if (!measuredRef.current) {
+      const timer = setTimeout(measureNav, 200);
+      return () => clearTimeout(timer);
+    }
+
+    window.addEventListener('resize', measureNav);
+    return () => window.removeEventListener('resize', measureNav);
+  }, []);
 
   const handleScroll = (state: { scrollProgress: number; isScrolling: boolean; scrollY: number }) => {
     setProgress(state.scrollProgress * 100);
@@ -62,7 +76,7 @@ const ScrollProgressIndicator: React.FC<ScrollProgressIndicatorProps> = ({
   }, []);
 
   return (
-    <ProgressContainer>
+    <ProgressContainer $navHeight={navHeight}>
       <ProgressBar $progress={progress} />
     </ProgressContainer>
   );
