@@ -9,6 +9,7 @@ import {
 import styled from 'styled-components';
 import { mockProjects } from '../../data/projects';
 import SEO from '../../components/common/SEO';
+import { fetchGitHubLOC } from '../../utils/codeStats';
 
 // --- Types ---
 interface Project {
@@ -942,36 +943,14 @@ const Projects: React.FC = () => {
     const fetchLinesOfCode = async (): Promise<void> => {
       setIsLoadingLines(true);
       setErrorLines(null);
-      
-      try {
-        // Always get fresh data from API endpoint
-        const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || '';
-        const endpoint = apiUrl ? `${apiUrl}/api/v1/code/stats` : '/api/v1/code/stats';
-        const response = await fetch(endpoint);
-        
-        if (!response.ok) {
-          throw new Error(`Failed to fetch code stats: ${response.status} ${response.statusText}`);
-        }
-        
-        const data: { totalLines?: number; error?: string } = await response.json();
-        
-        if (data.error) {
-          throw new Error(`Error in code stats: ${data.error}`);
-        }
 
-        // API returns totalLines directly with fresh calculation
-        const totalLines = data.totalLines;
-        if (typeof totalLines === 'number') {
-          setTotalLinesOfCode(totalLines);
-        } else {
-          setTotalLinesOfCode(null);
-          // Total lines was not a valid number
-        }
+      try {
+        const data = await fetchGitHubLOC();
+        setTotalLinesOfCode(data.totalLines);
       } catch (err) {
-        // Error fetching code stats
         const errorMessage = err instanceof Error ? err.message : "An unknown error occurred while loading code stats.";
         setErrorLines(errorMessage);
-        setTotalLinesOfCode(null); // Clear any previous data
+        setTotalLinesOfCode(null);
       } finally {
         setIsLoadingLines(false);
       }
