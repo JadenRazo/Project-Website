@@ -27,10 +27,19 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
   }, [currentIndex])
 
   useEffect(() => {
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [])
+
+  useEffect(() => {
     if (isComplete && !hasCompleted.current) {
       const safetyTimeout = setTimeout(() => {
         if (!hasCompleted.current) {
           hasCompleted.current = true
+          document.body.style.overflow = ''
           onComplete()
         }
       }, 1000)
@@ -41,6 +50,7 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
   const handleAnimationComplete = () => {
     if (!hasCompleted.current) {
       hasCompleted.current = true
+      document.body.style.overflow = ''
       onComplete()
     }
   }
