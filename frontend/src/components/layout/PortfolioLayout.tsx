@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { motion } from 'framer-motion'
 import PortfolioNavbar from './PortfolioNavbar'
@@ -11,6 +11,15 @@ interface PortfolioLayoutProps {
 
 export default function PortfolioLayout({ children }: PortfolioLayoutProps) {
   const [introComplete, setIntroComplete] = useState(false)
+
+  useEffect(() => {
+    if (introComplete) {
+      window.scrollTo(0, 0)
+      requestAnimationFrame(() => {
+        window.scrollTo(0, 0)
+      })
+    }
+  }, [introComplete])
 
   return (
     <div className="relative min-h-screen overflow-x-hidden noise-overlay">
