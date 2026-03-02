@@ -8,6 +8,10 @@ interface IntroAnimationProps {
 const words = ['Build', 'Design', 'Create', 'Innovate']
 
 function lockScroll() {
+  if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual'
+  }
+  window.scrollTo(0, 0)
   document.documentElement.style.overflow = 'hidden'
   document.body.style.overflow = 'hidden'
   document.documentElement.style.position = 'fixed'
@@ -30,6 +34,12 @@ function unlockScroll() {
   document.body.style.height = ''
   document.body.style.top = ''
   window.scrollTo(0, 0)
+  requestAnimationFrame(() => {
+    window.scrollTo(0, 0)
+    requestAnimationFrame(() => {
+      window.scrollTo(0, 0)
+    })
+  })
 }
 
 export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
