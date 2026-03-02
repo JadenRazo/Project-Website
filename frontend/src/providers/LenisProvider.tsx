@@ -50,6 +50,8 @@ export default function LenisProvider({ children }: LenisProviderProps) {
     lenisRef.current = lenis
     setLenisInstance(lenis)
 
+    lenis.stop()
+
     lenis.on('scroll', ScrollTrigger.update)
 
     const raf = (time: number) => {
@@ -59,12 +61,23 @@ export default function LenisProvider({ children }: LenisProviderProps) {
 
     rafIdRef.current = requestAnimationFrame(raf)
 
-    setTimeout(() => {
-      ScrollTrigger.refresh()
-      setIsReady(true)
-    }, 100)
+    const observer = new MutationObserver(() => {
+      if (document.documentElement.classList.contains('scroll-unlocked')) {
+        lenis.scrollTo(0, { immediate: true })
+        lenis.start()
+        ScrollTrigger.refresh()
+        setIsReady(true)
+        observer.disconnect()
+      }
+    })
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    })
 
     return () => {
+      observer.disconnect()
       if (rafIdRef.current) {
         cancelAnimationFrame(rafIdRef.current)
       }
