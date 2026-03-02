@@ -7,59 +7,10 @@ interface IntroAnimationProps {
 
 const words = ['Build', 'Design', 'Create', 'Innovate']
 
-function lockScroll() {
-  if ('scrollRestoration' in history) {
-    history.scrollRestoration = 'manual'
-  }
-  window.scrollTo(0, 0)
-  document.documentElement.style.overflow = 'hidden'
-  document.body.style.overflow = 'hidden'
-  document.documentElement.style.position = 'fixed'
-  document.documentElement.style.width = '100%'
-  document.documentElement.style.height = '100%'
-  document.body.style.position = 'fixed'
-  document.body.style.width = '100%'
-  document.body.style.height = '100%'
-  document.body.style.top = '0'
-}
-
-function unlockScroll() {
-  document.documentElement.style.overflow = ''
-  document.body.style.overflow = ''
-  document.documentElement.style.position = ''
-  document.documentElement.style.width = ''
-  document.documentElement.style.height = ''
-  document.body.style.position = ''
-  document.body.style.width = ''
-  document.body.style.height = ''
-  document.body.style.top = ''
-  window.scrollTo(0, 0)
-  requestAnimationFrame(() => {
-    window.scrollTo(0, 0)
-    requestAnimationFrame(() => {
-      window.scrollTo(0, 0)
-    })
-  })
-}
-
 export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isComplete, setIsComplete] = useState(false)
   const hasCompleted = useRef(false)
-
-  useEffect(() => {
-    lockScroll()
-
-    const preventDefault = (e: Event) => e.preventDefault()
-    document.addEventListener('touchmove', preventDefault, { passive: false })
-    document.addEventListener('wheel', preventDefault, { passive: false })
-
-    return () => {
-      document.removeEventListener('touchmove', preventDefault)
-      document.removeEventListener('wheel', preventDefault)
-      unlockScroll()
-    }
-  }, [])
 
   useEffect(() => {
     if (currentIndex < words.length - 1) {
@@ -78,7 +29,7 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
   const finishIntro = useCallback(() => {
     if (!hasCompleted.current) {
       hasCompleted.current = true
-      unlockScroll()
+      window.scrollTo(0, 0)
       onComplete()
     }
   }, [onComplete])
