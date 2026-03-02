@@ -1,6 +1,27 @@
-import { useRef, useMemo, useEffect, useState } from 'react'
+import { useRef, useMemo, useEffect, useState, Component } from 'react'
+import type { ReactNode, ErrorInfo } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
+
+class WebGLErrorBoundary extends Component<
+  { fallback: ReactNode; children: ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false }
+
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.warn('WebGL rendering failed, using fallback:', error.message)
+  }
+
+  render() {
+    if (this.state.hasError) return this.props.fallback
+    return this.props.children
+  }
+}
 
 const vertexShader = `
   uniform float uTime;
@@ -161,33 +182,64 @@ function Particles({ count = 2000 }) {
 
 export default function WebGLBackground() {
   const [isReduced, setIsReduced] = useState(false)
+  const [contextLost, setContextLost] = useState(false)
+  const canvasContainerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     setIsReduced(prefersReducedMotion)
   }, [])
 
-  if (isReduced) {
-    return (
-      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-background via-background-secondary to-background" />
-    )
+  useEffect(() => {
+    const container = canvasContainerRef.current
+    if (!container) return
+
+    const canvas = container.querySelector('canvas')
+    if (!canvas) return
+
+    const handleContextLost = (e: Event) => {
+      e.preventDefault()
+      setContextLost(true)
+    }
+
+    const handleContextRestored = () => {
+      setContextLost(false)
+    }
+
+    canvas.addEventListener('webglcontextlost', handleContextLost)
+    canvas.addEventListener('webglcontextrestored', handleContextRestored)
+
+    return () => {
+      canvas.removeEventListener('webglcontextlost', handleContextLost)
+      canvas.removeEventListener('webglcontextrestored', handleContextRestored)
+    }
+  }, [isReduced, contextLost])
+
+  const fallback = (
+    <div className="fixed inset-0 -z-10 bg-gradient-to-br from-background via-background-secondary to-background" />
+  )
+
+  if (isReduced || contextLost) {
+    return fallback
   }
 
   return (
-    <div className="fixed inset-0 -z-10">
-      <Canvas
-        camera={{ position: [0, 0, 10], fov: 60 }}
-        gl={{
-          alpha: true,
-          antialias: false,
-          powerPreference: 'high-performance',
-        }}
-        dpr={[1, 1.5]}
-        style={{ background: 'transparent' }}
-      >
-        <color attach="background" args={['#050911']} />
-        <Particles count={1500} />
-      </Canvas>
-    </div>
+    <WebGLErrorBoundary fallback={fallback}>
+      <div ref={canvasContainerRef} className="fixed inset-0 -z-10">
+        <Canvas
+          camera={{ position: [0, 0, 10], fov: 60 }}
+          gl={{
+            alpha: true,
+            antialias: false,
+            powerPreference: 'high-performance',
+          }}
+          dpr={[1, 1.5]}
+          style={{ background: 'transparent' }}
+        >
+          <color attach="background" args={['#050911']} />
+          <Particles count={1500} />
+        </Canvas>
+      </div>
+    </WebGLErrorBoundary>
   )
 }
