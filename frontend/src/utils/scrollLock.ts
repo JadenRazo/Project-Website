@@ -11,22 +11,19 @@ export function lockScroll(): void {
 
   if (lenisInstance) {
     lenisInstance.stop()
+  } else {
+    document.body.style.overflow = 'hidden'
   }
-
-  document.documentElement.style.overflow = 'hidden'
-  document.body.style.overflow = 'hidden'
 }
 
 export function unlockScroll(): void {
   if (!isLocked) return
   isLocked = false
 
-  document.documentElement.style.overflow = ''
-  document.body.style.overflow = ''
-
   if (lenisInstance) {
-    lenisInstance.scrollTo(0, { immediate: true })
     lenisInstance.start()
+  } else {
+    document.body.style.overflow = ''
   }
 }
 

@@ -16,7 +16,6 @@ export default function PortfolioLayout({ children }: PortfolioLayoutProps) {
 
   useEffect(() => {
     if (introComplete) {
-      window.scrollTo(0, 0)
       scrollTo(0, { immediate: true })
     }
   }, [introComplete, scrollTo])

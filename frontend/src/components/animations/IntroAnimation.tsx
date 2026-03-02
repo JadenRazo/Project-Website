@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { lockScroll, unlockScroll } from '../../utils/scrollLock'
 
 interface IntroAnimationProps {
   onComplete: () => void
@@ -12,13 +11,6 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isComplete, setIsComplete] = useState(false)
   const hasCompleted = useRef(false)
-
-  useEffect(() => {
-    lockScroll()
-    return () => {
-      unlockScroll()
-    }
-  }, [])
 
   useEffect(() => {
     if (currentIndex < words.length - 1) {
@@ -37,8 +29,8 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
   const finishIntro = useCallback(() => {
     if (!hasCompleted.current) {
       hasCompleted.current = true
-      unlockScroll()
       window.scrollTo(0, 0)
+      document.documentElement.classList.add('scroll-unlocked')
       onComplete()
     }
   }, [onComplete])
