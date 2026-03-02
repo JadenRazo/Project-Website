@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { motion } from 'framer-motion'
 import PortfolioNavbar from './PortfolioNavbar'
 import WebGLBackground from '../animations/WebGLBackground'
 import IntroAnimation from '../animations/IntroAnimation'
+import { useLenis } from '../../providers/LenisProvider'
 
 interface PortfolioLayoutProps {
   children: ReactNode
@@ -11,6 +12,14 @@ interface PortfolioLayoutProps {
 
 export default function PortfolioLayout({ children }: PortfolioLayoutProps) {
   const [introComplete, setIntroComplete] = useState(false)
+  const { scrollTo } = useLenis()
+
+  useEffect(() => {
+    if (introComplete) {
+      window.scrollTo(0, 0)
+      scrollTo(0, { immediate: true })
+    }
+  }, [introComplete, scrollTo])
 
   return (
     <div className="relative min-h-screen overflow-x-hidden noise-overlay">
