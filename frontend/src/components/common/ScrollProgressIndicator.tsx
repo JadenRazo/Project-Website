@@ -23,6 +23,7 @@ const ProgressBar = styled.div`
   width: 100%;
   will-change: transform;
   transform-origin: left;
+  transform: scaleX(0);
   box-shadow: 0 0 10px ${({ theme }) => theme.colors.primary}50;
 `;
 
@@ -54,22 +55,36 @@ const ScrollProgressIndicator: React.FC = () => {
   }, [measureNav]);
 
   useEffect(() => {
-    if (!lenis) return;
+    if (lenis) {
+      const onScroll = ({ progress }: { progress: number }) => {
+        if (barRef.current) {
+          barRef.current.style.transform = `scaleX(${progress})`;
+        }
+      };
 
-    const onScroll = ({ progress }: { progress: number }) => {
+      lenis.on('scroll', onScroll);
+
       if (barRef.current) {
-        barRef.current.style.transform = `scaleX(${progress})`;
+        barRef.current.style.transform = `scaleX(${lenis.progress || 0})`;
       }
-    };
 
-    lenis.on('scroll', onScroll);
-
-    if (barRef.current) {
-      barRef.current.style.transform = `scaleX(${lenis.progress || 0})`;
+      return () => {
+        lenis.off('scroll', onScroll);
+      };
     }
 
+    const onNativeScroll = () => {
+      if (!barRef.current) return;
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? Math.min(scrollTop / docHeight, 1) : 0;
+      barRef.current.style.transform = `scaleX(${progress})`;
+    };
+
+    onNativeScroll();
+    window.addEventListener('scroll', onNativeScroll, { passive: true });
     return () => {
-      lenis.off('scroll', onScroll);
+      window.removeEventListener('scroll', onNativeScroll);
     };
   }, [lenis]);
 
