@@ -5,6 +5,11 @@ export function setLenisInstance(lenis: any): void {
   lenisInstance = lenis
 }
 
+export function resetScrollLock(): void {
+  isLocked = false
+  document.body.style.overflow = ''
+}
+
 export function lockScroll(): void {
   if (isLocked) return
   isLocked = true
@@ -20,10 +25,10 @@ export function unlockScroll(): void {
   if (!isLocked) return
   isLocked = false
 
+  document.body.style.overflow = ''
+
   if (lenisInstance) {
     lenisInstance.start()
-  } else {
-    document.body.style.overflow = ''
   }
 }
 

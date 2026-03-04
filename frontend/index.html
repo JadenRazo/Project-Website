@@ -39,11 +39,11 @@
         opacity: 0;
         pointer-events: none;
       }
-      html:not(.scroll-unlocked) {
+      html.scroll-locked {
         overflow: clip !important;
         overscroll-behavior: none !important;
       }
-      html:not(.scroll-unlocked) body {
+      html.scroll-locked body {
         overflow: clip !important;
         overscroll-behavior: none !important;
         touch-action: none !important;
