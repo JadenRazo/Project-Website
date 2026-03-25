@@ -11,6 +11,10 @@ const FooterContainer = styled.footer`
   padding: ${({ theme }) => `${theme.spacing.xl} 0`};
   margin-top: auto;
   color: ${({ theme }) => theme.colors.text};
+
+  @media (min-width: 1024px) {
+    padding: ${({ theme }) => `${theme.spacing.xxl} 0`};
+  }
 `;
 
 const FooterContent = styled.div`
@@ -18,14 +22,25 @@ const FooterContent = styled.div`
   margin: 0 auto;
   padding: 0 ${({ theme }) => theme.spacing.md};
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: ${({ theme }) => theme.spacing.xl};
 
+  @media (min-width: 1024px) {
+    max-width: 1400px;
+    padding: 0 ${({ theme }) => theme.spacing.xl};
+    gap: ${({ theme }) => theme.spacing.xxl};
+  }
+
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: ${({ theme }) => theme.spacing.lg};
+    padding: 0 ${({ theme }) => theme.spacing.lg};
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     grid-template-columns: 1fr;
     text-align: center;
     gap: ${({ theme }) => theme.spacing.lg};
-    padding: 0 ${({ theme }) => theme.spacing.lg};
   }
 `;
 
@@ -41,7 +56,7 @@ const FooterSection = styled.div`
     margin: 0;
   }
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     align-items: center;
     gap: ${({ theme }) => theme.spacing.sm};
   }
@@ -60,6 +75,8 @@ const FooterLink = styled(Link)<{ $isNavigating?: boolean }>`
   font-size: 0.9rem;
   position: relative;
   opacity: ${({ $isNavigating }) => $isNavigating ? 0.7 : 1};
+  padding: 4px 0;
+  -webkit-tap-highlight-color: transparent;
 
   &:hover {
     color: ${({ theme }) => theme.colors.primary};
@@ -74,6 +91,14 @@ const FooterLink = styled(Link)<{ $isNavigating?: boolean }>`
     height: 2px;
     background: ${({ theme }) => theme.colors.primary};
     transition: width ${({ theme }) => theme.transitions.fast};
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    padding: 6px 0;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 `;
 
@@ -148,8 +173,8 @@ const SocialLinks = styled.div`
   display: flex;
   gap: ${({ theme }) => theme.spacing.md};
   flex-wrap: wrap;
-  
-  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     justify-content: center;
     width: 100%;
   }
@@ -160,7 +185,7 @@ const TechStack = styled.div`
   flex-wrap: wrap;
   gap: ${({ theme }) => theme.spacing.xs};
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     justify-content: center;
   }
 `;

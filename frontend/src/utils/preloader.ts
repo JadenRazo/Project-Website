@@ -1,4 +1,4 @@
-import headshotImage from '../assets/images/headshot.jpg';
+import headshotImage from '../assets/images/headshot.webp';
 
 type ResourceType = 'script' | 'style' | 'image' | 'font' | 'audio' | 'video' | 'document' | 'fetch';
 
@@ -16,38 +16,52 @@ class ResourcePreloader {
 
   preload(resource: PreloadResource): Promise<void> {
     const { href, as, crossOrigin, type, media } = resource;
-    
+
     if (this.preloadedResources.has(href)) {
       return this.preloadPromises.get(href) || Promise.resolve();
     }
-    
+
+    if (this.preloadedResources.size >= 100) {
+      const oldest = this.preloadedResources.values().next().value;
+      if (oldest) {
+        this.preloadedResources.delete(oldest);
+        this.preloadPromises.delete(oldest);
+      }
+    }
+
     const promise = new Promise<void>((resolve, reject) => {
       const link = document.createElement('link');
       link.rel = 'preload';
       link.href = href;
       link.as = as;
-      
+
       if (crossOrigin) {
         link.crossOrigin = crossOrigin;
       }
-      
+
       if (type) {
         link.type = type;
       }
-      
+
       if (media) {
         link.media = media;
       }
-      
-      link.onload = () => resolve();
-      link.onerror = () => reject(new Error(`Failed to preload ${href}`));
-      
+
+      link.onload = () => {
+        document.head.removeChild(link);
+        resolve();
+      };
+      link.onerror = () => {
+        document.head.removeChild(link);
+        reject(new Error(`Failed to preload ${href}`));
+      };
+
       document.head.appendChild(link);
     });
-    
+
     this.preloadedResources.add(href);
     this.preloadPromises.set(href, promise);
-    
+
     return promise;
   }
 
@@ -164,6 +178,7 @@ export class SmartPreloader {
   private userBehavior: { [route: string]: number } = {};
   private preloadQueue: string[] = [];
   private isIdle = false;
+  private cleanupIdleDetection: (() => void) | null = null;
 
   constructor() {
     this.trackUserBehavior();
@@ -171,28 +186,45 @@ export class SmartPreloader {
   }
 
   private trackUserBehavior(): void {
-    // Track route visits
     const currentRoute = window.location.pathname;
     this.userBehavior[currentRoute] = (this.userBehavior[currentRoute] || 0) + 1;
   }
 
   private setupIdleDetection(): void {
-    let idleTimer: NodeJS.Timeout;
-    
+    let idleTimer: ReturnType<typeof setTimeout>;
+
     const resetIdleTimer = () => {
       this.isIdle = false;
       clearTimeout(idleTimer);
       idleTimer = setTimeout(() => {
         this.isIdle = true;
         this.processPreloadQueue();
-      }, 2000); // 2 seconds of inactivity
+      }, 2000);
     };
 
-    ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
-      document.addEventListener(event, resetIdleTimer, true);
+    const events: [string, AddEventListenerOptions?][] = [
+      ['mousedown'],
+      ['scroll', { passive: true }],
+      ['touchstart', { passive: true }],
+    ];
+
+    events.forEach(([event, opts]) => {
+      document.addEventListener(event, resetIdleTimer, opts ?? true);
     });
 
     resetIdleTimer();
+
+    this.cleanupIdleDetection = () => {
+      clearTimeout(idleTimer);
+      events.forEach(([event, opts]) => {
+        document.removeEventListener(event, resetIdleTimer, opts ?? (true as any));
+      });
+    };
+  }
+
+  destroy(): void {
+    this.cleanupIdleDetection?.();
+    this.cleanupIdleDetection = null;
   }
 
   queuePreload(route: string): void {

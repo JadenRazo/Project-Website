@@ -29,6 +29,7 @@ type ServiceManager struct {
 	services            map[string]Service
 	mu                  sync.RWMutex
 	healthCheckInterval time.Duration
+	stopHealth          chan struct{}
 }
 
 // NewServiceManager creates a new service manager instance
@@ -36,6 +37,7 @@ func NewServiceManager() *ServiceManager {
 	return &ServiceManager{
 		services:            make(map[string]Service),
 		healthCheckInterval: 30 * time.Second,
+		stopHealth:          make(chan struct{}),
 	}
 }
 
@@ -122,19 +124,28 @@ func (sm *ServiceManager) StartHealthChecks() {
 		ticker := time.NewTicker(sm.healthCheckInterval)
 		defer ticker.Stop()
 
-		for range ticker.C {
-			sm.mu.RLock()
-			for _, service := range sm.services {
-				go func(s Service) {
-					if err := s.HealthCheck(); err != nil {
-						// Log health check error
-						fmt.Printf("Health check failed for service %s: %v\n", s.Name(), err)
-					}
-				}(service)
+		for {
+			select {
+			case <-ticker.C:
+				sm.mu.RLock()
+				for _, service := range sm.services {
+					go func(s Service) {
+						if err := s.HealthCheck(); err != nil {
+							fmt.Printf("Health check failed for service %s: %v\n", s.Name(), err)
+						}
+					}(service)
+				}
+				sm.mu.RUnlock()
+			case <-sm.stopHealth:
+				return
 			}
-			sm.mu.RUnlock()
 		}
 	}()
+}
+
+// StopHealthChecks stops the health check goroutine
+func (sm *ServiceManager) StopHealthChecks() {
+	close(sm.stopHealth)
 }
 
 // StopAllServices gracefully stops all running services

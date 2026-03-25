@@ -13,18 +13,37 @@ const ContactContainer = styled.div`
   padding-top: calc(${({ theme }) => theme.spacing.xxl} + 70px);
   background: ${({ theme }) => theme.colors.background};
   margin-top: 60px;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    padding: ${({ theme }) => theme.spacing.lg} ${({ theme }) => theme.spacing.md};
+    padding-top: calc(${({ theme }) => theme.spacing.xl} + 60px);
+  }
 `;
 
 const ContactContent = styled.div`
   max-width: 800px;
   width: 100%;
+
+  @media (min-width: 1024px) {
+    max-width: 720px;
+  }
 `;
 
 const Title = styled(motion.h1)`
   color: ${({ theme }) => theme.colors.primary};
-  font-size: 2.5rem;
-  margin-bottom: ${({ theme }) => theme.spacing.lg};
+  font-size: 1.75rem;
+  margin-bottom: ${({ theme }) => theme.spacing.md};
   text-align: center;
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    font-size: 2.5rem;
+    margin-bottom: ${({ theme }) => theme.spacing.lg};
+  }
+
+  @media (min-width: 1024px) {
+    font-size: 2.75rem;
+    letter-spacing: -0.02em;
+  }
 `;
 
 const Subtitle = styled(motion.p)`
@@ -33,6 +52,10 @@ const Subtitle = styled(motion.p)`
   margin-bottom: ${({ theme }) => theme.spacing.xl};
   font-size: 1.1rem;
   line-height: 1.6;
+
+  @media (min-width: 1024px) {
+    font-size: 1.2rem;
+  }
 `;
 
 const Form = styled(motion.form)`
@@ -43,6 +66,18 @@ const Form = styled(motion.form)`
   padding: ${({ theme }) => theme.spacing.xl};
   border-radius: ${({ theme }) => theme.borderRadius.large};
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  transition: box-shadow 0.3s ease;
+
+  @media (min-width: 1024px) {
+    padding: 2.5rem;
+    border-radius: 20px;
+    gap: ${({ theme }) => theme.spacing.lg};
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    padding: ${({ theme }) => theme.spacing.lg};
+  }
 `;
 
 const InputGroup = styled.div`
@@ -59,15 +94,23 @@ const Label = styled.label`
 const Input = styled.input`
   padding: ${({ theme }) => theme.spacing.sm};
   border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.borderRadius.small};
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
   background: ${({ theme }) => theme.colors.background};
   color: ${({ theme }) => theme.colors.text};
   font-size: 1rem;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  min-height: 48px;
+  -webkit-appearance: none;
 
   &:focus {
     outline: none;
     border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary}20;
+  }
+
+  @media (min-width: 1024px) {
+    padding: 0.875rem 1rem;
+    border-radius: 10px;
   }
 
   &:disabled {
@@ -79,17 +122,25 @@ const Input = styled.input`
 const TextArea = styled.textarea`
   padding: ${({ theme }) => theme.spacing.sm};
   border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.borderRadius.small};
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
   background: ${({ theme }) => theme.colors.background};
   color: ${({ theme }) => theme.colors.text};
   font-size: 1rem;
   min-height: 150px;
   resize: vertical;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  -webkit-appearance: none;
 
   &:focus {
     outline: none;
     border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary}20;
+  }
+
+  @media (min-width: 1024px) {
+    padding: 0.875rem 1rem;
+    border-radius: 10px;
+    min-height: 180px;
   }
 
   &:disabled {
@@ -100,21 +151,29 @@ const TextArea = styled.textarea`
 
 const SubmitButton = styled(motion.button)`
   background: ${({ theme }) => theme.colors.primary};
-  color: ${({ theme }) => theme.colors.background};
+  color: #ffffff;
   border: none;
   padding: ${({ theme }) => theme.spacing.md};
   border-radius: ${({ theme }) => theme.borderRadius.medium};
   font-size: 1.1rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   margin-top: ${({ theme }) => theme.spacing.md};
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  min-height: 52px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 
   &:hover {
     transform: scale(1.02);
+  }
+
+  &:active {
+    transform: scale(0.98);
   }
 
   &:disabled {
@@ -270,7 +329,7 @@ const Contact: React.FC = () => {
           <Form
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.4 }}
+            transition={{ delay: 0.2 }}
             onSubmit={handleSubmit}
           >
             {error && <ErrorMessage>{error}</ErrorMessage>}

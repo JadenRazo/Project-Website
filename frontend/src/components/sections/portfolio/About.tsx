@@ -15,7 +15,7 @@ function AnimatedStat({ value, suffix, label, animate }: { value: number; suffix
   useEffect(() => {
     if (animate && !hasAnimated.current) {
       hasAnimated.current = true
-      const duration = 2000
+      const duration = 1200
       const startTime = Date.now()
 
       const animateValue = () => {
@@ -34,32 +34,32 @@ function AnimatedStat({ value, suffix, label, animate }: { value: number; suffix
   }, [animate, value])
 
   return (
-    <div className="text-center p-2 sm:p-3">
-      <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold gradient-text mb-1">
+    <div className="text-center p-3 sm:p-4 md:p-5 lg:p-6 lg:glass-card lg:rounded-2xl">
+      <div className="text-2xl sm:text-3xl md:text-3xl lg:text-4xl xl:text-5xl font-bold gradient-text mb-1 lg:mb-2 tabular-nums">
         {displayValue}{suffix}
       </div>
-      <div className="text-text-secondary text-[10px] sm:text-xs md:text-sm">{label}</div>
+      <div className="text-text-secondary text-xs sm:text-xs md:text-sm lg:text-base">{label}</div>
     </div>
   )
 }
 
 export default function About() {
   const sectionRef = useRef<HTMLElement>(null)
-  const isInView = useInView(sectionRef, { once: true, margin: '-100px' })
+  const isInView = useInView(sectionRef, { once: true, margin: '-200px' })
 
   return (
-    <section ref={sectionRef} id="about" className="relative w-full pt-0 pb-12 sm:pb-16 md:pb-20">
+    <section ref={sectionRef} id="about" className="relative w-full pt-0 pb-12 sm:pb-16 md:pb-20 lg:pb-28">
       <div className="w-full flex flex-col items-center px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
-          className="mb-8 sm:mb-10 text-center max-w-3xl"
+          className="mb-8 sm:mb-10 md:mb-12 lg:mb-14 text-center max-w-3xl"
         >
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-text-primary mb-3">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-text-primary mb-3 md:mb-4 lg:mb-5">
             About <span className="gradient-text">Me</span>
           </h2>
-          <p className="text-sm sm:text-base md:text-lg text-text-secondary leading-relaxed">
+          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-text-secondary leading-relaxed px-2 md:px-0">
             CompTIA A+ and Network+ certified IT professional and full-stack developer.
             I build and maintain scalable infrastructure, web applications, and cloud
             environments across Windows, Mac, and Linux.
@@ -70,7 +70,7 @@ export default function About() {
           initial={{ opacity: 0, y: 40 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 w-full max-w-4xl"
+          className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 lg:gap-8 w-full max-w-4xl lg:max-w-5xl"
         >
           {stats.map((stat) => (
             <AnimatedStat

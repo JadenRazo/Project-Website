@@ -89,6 +89,8 @@ services:
     volumes:
       - ./deploy/redis/certs:/app/certs:ro
       - ./backend/config:/app/config:ro
+      - /main/Project-Website:/main/Project-Website:ro
+      - /quiz_bot:/quiz_bot:ro
     networks:
       - internal_network
       - external_network

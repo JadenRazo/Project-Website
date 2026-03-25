@@ -42,6 +42,7 @@ class PerformanceMonitor {
   private apiTimes: Map<string, number> = new Map();
   private observer: PerformanceObserver | null = null;
   private intervalId: number | null = null;
+  private rafId: number | null = null;
 
   static getInstance(): PerformanceMonitor {
     if (!PerformanceMonitor.instance) {
@@ -63,15 +64,20 @@ class PerformanceMonitor {
     if (!this.isMonitoring) return;
 
     this.isMonitoring = false;
-    
+
     if (this.observer) {
       this.observer.disconnect();
       this.observer = null;
     }
 
-    if (this.intervalId) {
+    if (this.intervalId !== null) {
       clearInterval(this.intervalId);
       this.intervalId = null;
+    }
+
+    if (this.rafId !== null) {
+      cancelAnimationFrame(this.rafId);
+      this.rafId = null;
     }
   }
 
@@ -108,19 +114,19 @@ class PerformanceMonitor {
       if (!this.isMonitoring) return;
 
       this.frameCount++;
-      
+
       if (this.lastFrameTime) {
         const deltaTime = timestamp - this.lastFrameTime;
-        if (deltaTime > 16.67) { // Frame took longer than 60fps (16.67ms)
+        if (deltaTime > 16.67) {
           this.frameDrops++;
         }
       }
 
       this.lastFrameTime = timestamp;
-      requestAnimationFrame(monitorFrame);
+      this.rafId = requestAnimationFrame(monitorFrame);
     };
 
-    requestAnimationFrame(monitorFrame);
+    this.rafId = requestAnimationFrame(monitorFrame);
   }
 
   private startMemoryMonitoring(): void {

@@ -12,10 +12,14 @@ const AboutContainer = styled.div`
   padding: ${({ theme }) => theme.spacing.xxl} ${({ theme }) => theme.spacing.xl};
   background: ${({ theme }) => theme.colors.background};
   margin-top: 60px;
-  overflow-x: hidden; /* Prevent horizontal scrolling */
+  overflow-x: hidden;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     padding: ${({ theme }) => theme.spacing.xl} ${({ theme }) => theme.spacing.md};
+  }
+
+  @media (min-width: 1024px) {
+    padding: 5rem 3rem;
   }
 `;
 
@@ -25,6 +29,11 @@ const ContentWrapper = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing.xxl};
+
+  @media (min-width: 1024px) {
+    max-width: 1100px;
+    gap: 3.5rem;
+  }
 `;
 
 const ProfileSection = styled(motion.div)`
@@ -48,7 +57,8 @@ const ProfileImage = styled(motion.div)`
   overflow: hidden;
   position: relative;
   flex-shrink: 0;
-  
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+
   img {
     width: 100%;
     height: 100%;
@@ -62,6 +72,11 @@ const ProfileImage = styled(motion.div)`
     width: 150px;
     height: 150px;
   }
+
+  @media (min-width: 1024px) {
+    width: 220px;
+    height: 220px;
+  }
 `;
 
 const ProfileInfo = styled.div`
@@ -74,8 +89,17 @@ const ProfileInfo = styled.div`
 
 const Name = styled(motion.h1)`
   color: ${({ theme }) => theme.colors.primary};
-  font-size: 2.5rem;
+  font-size: 1.75rem;
   margin-bottom: ${({ theme }) => theme.spacing.sm};
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    font-size: 2.5rem;
+  }
+
+  @media (min-width: 1024px) {
+    font-size: 2.75rem;
+    letter-spacing: -0.02em;
+  }
 `;
 
 const Title = styled(motion.p)`
@@ -83,6 +107,10 @@ const Title = styled(motion.p)`
   font-size: 1.2rem;
   margin-bottom: ${({ theme }) => theme.spacing.md};
   font-weight: 600;
+
+  @media (min-width: 1024px) {
+    font-size: 1.3rem;
+  }
 `;
 
 const MainContent = styled.div`
@@ -96,6 +124,17 @@ const ProfileSectionWrapper = styled.div`
   padding: ${({ theme }) => theme.spacing.xxl};
   border-radius: ${({ theme }) => theme.borderRadius.large};
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  transition: box-shadow 0.3s ease;
+
+  @media (min-width: 1024px) {
+    padding: 3rem;
+    border-radius: 20px;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    padding: ${({ theme }) => theme.spacing.lg};
+  }
 `;
 
 const Section = styled(motion.section)`
@@ -103,6 +142,16 @@ const Section = styled(motion.section)`
   padding: ${({ theme }) => theme.spacing.xl};
   border-radius: ${({ theme }) => theme.borderRadius.large};
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid ${({ theme }) => theme.colors.border};
+
+  @media (min-width: 1024px) {
+    padding: 2.5rem;
+    border-radius: 20px;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    padding: ${({ theme }) => theme.spacing.lg};
+  }
 `;
 
 const SectionTitle = styled.h2`
@@ -128,8 +177,21 @@ const SkillsList = styled.ul`
   list-style: none;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: ${({ theme }) => theme.spacing.md};
+  grid-template-columns: 1fr;
+  gap: ${({ theme }) => theme.spacing.sm};
+
+  @media (min-width: 480px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: ${({ theme }) => theme.spacing.md};
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.desktop}) {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
 `;
 
 const SkillItem = styled(motion.li)`
@@ -219,7 +281,7 @@ const WordWrapper = styled.span`
   margin-right: 5px;
 `;
 
-const TypewriterCharacter = styled(motion.span)`
+const TypewriterCharacter = styled.span`
   display: inline-block;
   position: relative;
   color: ${({ theme }) => theme.colors.text};
@@ -237,8 +299,13 @@ const Cursor = styled(motion.span)`
 
 const CertificationGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: ${({ theme }) => theme.spacing.lg};
+  grid-template-columns: 1fr;
+  gap: ${({ theme }) => theme.spacing.md};
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: ${({ theme }) => theme.spacing.lg};
+  }
 `;
 
 const CertificationCard = styled(motion.div)`
@@ -306,13 +373,12 @@ const CertificationActions = styled.div`
   margin-top: ${({ theme }) => theme.spacing.sm};
 `;
 
-// Define animation variants for experience section
 const experienceSectionVariants = {
   initial: { opacity: 0 },
   animate: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.2
+      staggerChildren: 0.06
     }
   }
 };
@@ -324,96 +390,73 @@ const experienceItemVariants = {
     opacity: 1,
     transition: {
       type: "spring",
-      stiffness: 100
+      stiffness: 100,
+      damping: 20
     }
   }
 };
 
-// Experience section component
 const ExperienceSection = () => {
-  // Experience lines data
   const experienceLines = useMemo(() => [
     "• Primary technical contact for 15+ end users, troubleshooting software, hardware, and connectivity issues via on-site and remote support",
     "• Manage user account provisioning, password resets, and MFA enrollment through Okta and Active Directory",
     "• Built and deployed a full-stack booking platform processing 50+ appointments and $3,000+/month via Square API",
     "• Provisioned AWS infrastructure with Terraform; built Prometheus/Grafana monitoring dashboards achieving 99.5% uptime"
   ], []);
-  
-  // State for typing animation
+
+  const lineRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const [activeLineIndex, setActiveLineIndex] = useState(0);
-  const [typedCharacters, setTypedCharacters] = useState<string[]>(["", "", "", ""]);
   const [showCursor, setShowCursor] = useState(true);
   const animationRef = useRef<NodeJS.Timeout | null>(null);
-  
-  // Reference for the section element
+
   const [sectionRef, inView] = useInView({
     triggerOnce: false,
     threshold: 0.2,
     rootMargin: "-50px 0px",
   });
-  
-  // Clear all timeouts on unmount
+
   useEffect(() => {
     return () => {
-      if (animationRef.current) {
-        clearTimeout(animationRef.current);
-      }
+      if (animationRef.current) clearTimeout(animationRef.current);
     };
   }, []);
-  
-  // Type each character one by one
+
   const typeCharacter = useCallback((lineIndex: number, charIndex: number) => {
     if (lineIndex >= experienceLines.length) {
-      setTimeout(() => setShowCursor(false), 800);
+      setTimeout(() => setShowCursor(false), 500);
       return;
     }
-    
+
     setActiveLineIndex(lineIndex);
-    
-    // Get the current line
     const currentLine = experienceLines[lineIndex];
-    
+
     if (charIndex < currentLine.length) {
-      // Add next character
-      setTypedCharacters(prev => {
-        const updated = [...prev];
-        updated[lineIndex] = currentLine.substring(0, charIndex + 1);
-        return updated;
-      });
-      
-      // Schedule next character with a typing speed of 60 WPM
-      const typingDelay = Math.random() * 10 + 40; // 40-50ms per character for ~60 WPM
+      const el = lineRefs.current[lineIndex];
+      if (el) el.textContent = currentLine.substring(0, charIndex + 1);
+
+      const typingDelay = Math.random() * 5 + 25;
       animationRef.current = setTimeout(() => {
         typeCharacter(lineIndex, charIndex + 1);
       }, typingDelay);
     } else {
-      // Line is complete, move to next line after a pause
       animationRef.current = setTimeout(() => {
         typeCharacter(lineIndex + 1, 0);
-      }, 700);
+      }, 300);
     }
   }, [experienceLines]);
-  
-  // Start or reset animation when section comes into view
+
   useEffect(() => {
     if (inView) {
-      // Reset animation state
       setActiveLineIndex(0);
-      setTypedCharacters(["", "", "", ""]);
       setShowCursor(true);
-      
-      // Clear any existing timeouts
-      if (animationRef.current) {
-        clearTimeout(animationRef.current);
-      }
-      
-      // Start typing after a small delay
+      lineRefs.current.forEach(el => { if (el) el.textContent = ''; });
+      if (animationRef.current) clearTimeout(animationRef.current);
       animationRef.current = setTimeout(() => {
         typeCharacter(0, 0);
-      }, 500);
+      }, 200);
     }
   }, [inView, typeCharacter]);
-  
+
   return (
     <Section
       variants={experienceSectionVariants}
@@ -428,29 +471,12 @@ const ExperienceSection = () => {
           <ExperienceCompany>24Hr Home Care / Self-Employed</ExperienceCompany>
           <ExperienceDate>2022 - Present</ExperienceDate>
           <ExperienceDescription>
-            {experienceLines.map((line, lineIndex) => (
+            {experienceLines.map((_, lineIndex) => (
               <TypedLine key={`line-${lineIndex}`}>
                 <TypewriterText>
-                  {/* Process each word as a non-breaking unit */}
-                  {typedCharacters[lineIndex].split(' ').map((word, wordIndex) => {
-                    // Skip empty words
-                    if (word === '') return null;
-                    
-                    return (
-                      <WordWrapper key={`${lineIndex}-word-${wordIndex}`}>
-                        {word.split('').map((char, charIndex) => (
-                          <TypewriterCharacter
-                            key={`${lineIndex}-${wordIndex}-${charIndex}`}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: 0.1 }}
-                          >
-                            {char}
-                          </TypewriterCharacter>
-                        ))}
-                      </WordWrapper>
-                    );
-                  })}
+                  <TypewriterCharacter
+                    ref={(el) => { lineRefs.current[lineIndex] = el as HTMLSpanElement | null; }}
+                  />
                   {activeLineIndex === lineIndex && showCursor && (
                     <Cursor
                       animate={{ opacity: [1, 0] }}
@@ -507,7 +533,7 @@ const About: React.FC = () => {
     animate: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.2
+        staggerChildren: 0.06
       }
     }
   };
@@ -519,7 +545,8 @@ const About: React.FC = () => {
       opacity: 1,
       transition: {
         type: "spring",
-        stiffness: 100
+        stiffness: 100,
+        damping: 20
       }
     }
   };
@@ -538,7 +565,7 @@ const About: React.FC = () => {
           <ProfileSection
             initial={{ y: -30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 100 }}
+            transition={{ type: "spring", stiffness: 100, damping: 20 }}
           >
             <ProfileImage
               whileHover={{ scale: 1.05 }}
@@ -580,7 +607,7 @@ const About: React.FC = () => {
                     key={cert.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 * index }}
+                    transition={{ delay: 0.04 * index }}
                     whileHover={{ scale: 1.02 }}
                   >
                     <CertificationName>{cert.name}</CertificationName>

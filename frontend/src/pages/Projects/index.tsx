@@ -91,11 +91,16 @@ const PageTitle = styled.h1`
   position: relative;
   display: inline-block;
   text-align: center;
-  
+  letter-spacing: -0.02em;
+
+  @media (min-width: 1024px) {
+    font-size: 3.5rem;
+  }
+
   @media (max-width: 768px) {
     font-size: 2.5rem;
   }
-  
+
   @media (max-width: 480px) {
     font-size: 2rem;
   }
@@ -211,8 +216,15 @@ const ProjectsGrid = styled.div`
   overflow: visible;
   justify-items: center;
   align-items: start;
-  
-  @media (max-width: 1200px) {
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 1200px) and (min-width: 769px) {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 1.75rem;
   }
@@ -599,8 +611,8 @@ const cardVariants = {
     opacity: 1,
     y: 0,
     transition: {
-      delay: i * 0.1,
-      duration: window.innerWidth <= 768 ? 0.4 : 0.5,
+      delay: i * 0.04,
+      duration: window.innerWidth <= 768 ? 0.3 : 0.4,
       ease: "easeOut"
     }
   })
@@ -658,12 +670,12 @@ const ProjectCard = React.memo<ProjectCardProps>(({
         y: 0, 
         boxShadow: expanded ? '0 8px 32px rgba(0,0,0,0.25)' : '0 4px 16px rgba(0,0,0,0.12)',
       }}
-      transition={{ 
-        type: 'spring', 
-        stiffness: 200, 
+      transition={{
+        type: 'spring',
+        stiffness: 200,
         damping: 25,
-        delay: index * 0.1,
-        duration: 0.5,
+        delay: index * 0.04,
+        duration: 0.4,
         ease: "easeOut"
       }}
     >

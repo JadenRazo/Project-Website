@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 
 export interface CrudConfig {
   baseUrl: string;
@@ -54,6 +54,13 @@ export function useCrudOperations<T extends { id: string }, TFormData>(
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState<T | null>(null);
   const [formData, setFormData] = useState<TFormData>(initialFormData);
+  const fetchAbortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      fetchAbortRef.current?.abort();
+    };
+  }, []);
 
   const getHeaders = useCallback(() => {
     const headers: Record<string, string> = {
@@ -77,11 +84,16 @@ export function useCrudOperations<T extends { id: string }, TFormData>(
   }, [config.baseUrl]);
 
   const fetchItems = useCallback(async () => {
+    fetchAbortRef.current?.abort();
+    const controller = new AbortController();
+    fetchAbortRef.current = controller;
+
     try {
       setLoading(true);
       const url = buildUrl() + (options.fetchQueryParams ? `?${options.fetchQueryParams}` : '');
       const response = await fetch(url, {
         headers: getHeaders(),
+        signal: controller.signal,
       });
 
       if (!response.ok) {
@@ -89,17 +101,20 @@ export function useCrudOperations<T extends { id: string }, TFormData>(
       }
 
       const data = await response.json();
-      const extractedItems = options.extractItemsFromResponse 
+      const extractedItems = options.extractItemsFromResponse
         ? options.extractItemsFromResponse(data)
         : (data[config.resourceName] || data.data || data);
-      
+
       setItems(extractedItems);
       setError(null);
     } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') return;
       console.error(`Error fetching ${config.resourceName}:`, err);
       setError(err instanceof Error ? err.message : `Failed to load ${config.resourceName}`);
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) {
+        setLoading(false);
+      }
     }
   }, [buildUrl, getHeaders, config.resourceName, options.fetchQueryParams, options.extractItemsFromResponse]);
 

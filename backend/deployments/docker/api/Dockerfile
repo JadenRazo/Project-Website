@@ -34,9 +34,11 @@ RUN addgroup -g 1000 appuser && \
     mkdir -p /app/config /app/logs && \
     chown -R appuser:appuser /app
 
-# Install runtime dependencies
+# Install runtime dependencies and tokei for code statistics
 RUN apk add --no-cache ca-certificates tzdata curl && \
-    update-ca-certificates
+    update-ca-certificates && \
+    wget -qO- https://github.com/XAMPPRocky/tokei/releases/download/v12.1.2/tokei-x86_64-unknown-linux-musl.tar.gz | tar xz -C /usr/local/bin && \
+    chmod +x /usr/local/bin/tokei
 
 # Copy the binary from builder
 COPY --from=builder --chown=appuser:appuser /build/api /app/api

@@ -16,12 +16,12 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
     if (currentIndex < words.length - 1) {
       const timer = setTimeout(() => {
         setCurrentIndex((prev) => prev + 1)
-      }, 1100)
+      }, 650)
       return () => clearTimeout(timer)
     } else {
       const completeTimer = setTimeout(() => {
         setIsComplete(true)
-      }, 1200)
+      }, 650)
       return () => clearTimeout(completeTimer)
     }
   }, [currentIndex])
@@ -37,7 +37,7 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
 
   useEffect(() => {
     if (isComplete && !hasCompleted.current) {
-      const safetyTimeout = setTimeout(finishIntro, 1000)
+      const safetyTimeout = setTimeout(finishIntro, 500)
       return () => clearTimeout(safetyTimeout)
     }
   }, [isComplete, finishIntro])
@@ -52,8 +52,8 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
           exit={{
             opacity: 0,
             transition: {
-              duration: 0.6,
-              ease: 'easeInOut'
+              duration: 0.45,
+              ease: [0.22, 1, 0.36, 1]
             }
           }}
         >
@@ -64,19 +64,22 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
                 className="intro-word gradient-text"
                 initial={{
                   opacity: 0,
-                  y: 40
+                  scale: 0.92,
+                  filter: 'blur(6px)',
                 }}
                 animate={{
                   opacity: 1,
-                  y: 0
+                  scale: 1,
+                  filter: 'blur(0px)',
                 }}
                 exit={{
                   opacity: 0,
-                  y: -40
+                  scale: 1.06,
+                  filter: 'blur(4px)',
                 }}
                 transition={{
-                  duration: 0.5,
-                  ease: [0.22, 1, 0.36, 1]
+                  duration: 0.45,
+                  ease: [0.22, 1, 0.36, 1],
                 }}
               >
                 {words[currentIndex]}
@@ -87,7 +90,7 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
               className="intro-progress"
               initial={{ scaleX: 0 }}
               animate={{ scaleX: (currentIndex + 1) / words.length }}
-              transition={{ duration: 0.3, ease: 'easeOut' }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             />
           </div>
         </motion.div>

@@ -102,34 +102,38 @@ export const monitorMemoryUsage = (
  */
 export const useMemoryTracker = (componentName: string, options: MemoryMonitorOptions = {}) => {
   const metricsRef = useRef<PerformanceMetrics[]>([]);
-  
+  const leakCheckTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
-    // Capture initial memory state
     metricsRef.current.push(captureMemoryMetrics());
-    
-    // Setup interval for tracking
+
     const interval = setInterval(() => {
       metricsRef.current.push(captureMemoryMetrics());
-      
-      // Keep only last 10 measurements to avoid memory leak in the tracker itself
+
       if (metricsRef.current.length > 10) {
         metricsRef.current = metricsRef.current.slice(-10);
       }
-      
+
       monitorMemoryUsage(componentName, options);
     }, 5000);
-    
+
     return () => {
       clearInterval(interval);
-      
-      // Check memory difference at unmount
-      setTimeout(() => {
+
+      if (leakCheckTimeoutRef.current !== null) {
+        clearTimeout(leakCheckTimeoutRef.current);
+      }
+
+      leakCheckTimeoutRef.current = setTimeout(() => {
+        leakCheckTimeoutRef.current = null;
         const finalMetrics = captureMemoryMetrics();
         const initialMetrics = metricsRef.current[0];
-        
-        if (finalMetrics.usedJSHeapSize && 
-            initialMetrics.usedJSHeapSize && 
-            finalMetrics.usedJSHeapSize > initialMetrics.usedJSHeapSize + 5 * 1024 * 1024) {
+
+        if (
+          finalMetrics.usedJSHeapSize &&
+          initialMetrics.usedJSHeapSize &&
+          finalMetrics.usedJSHeapSize > initialMetrics.usedJSHeapSize + 5 * 1024 * 1024
+        ) {
           console.warn(
             `%cPossible memory leak detected in ${componentName}`,
             'color: #ff6b6b; font-weight: bold;',

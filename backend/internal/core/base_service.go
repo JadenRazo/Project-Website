@@ -102,6 +102,9 @@ func (s *BaseService) AddError(err error) {
 	defer s.mu.Unlock()
 
 	if err != nil {
+		if len(s.errors) >= 100 {
+			s.errors = s.errors[1:]
+		}
 		s.errors = append(s.errors, err.Error())
 	}
 }
