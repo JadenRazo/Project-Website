@@ -12,11 +12,12 @@ import (
 
 // LogManager handles service log collection and retrieval
 type LogManager struct {
-	logDir     string
-	maxLines   int
-	retention  time.Duration
-	mu         sync.RWMutex
-	logStreams map[string]*LogStream
+	logDir      string
+	maxLines    int
+	retention   time.Duration
+	mu          sync.RWMutex
+	logStreams   map[string]*LogStream
+	stopCleanup chan struct{}
 }
 
 // LogStream represents a streaming log connection
@@ -30,10 +31,11 @@ type LogStream struct {
 // NewLogManager creates a new log manager
 func NewLogManager(logDir string, maxLines int, retention time.Duration) *LogManager {
 	return &LogManager{
-		logDir:     logDir,
-		maxLines:   maxLines,
-		retention:  retention,
-		logStreams: make(map[string]*LogStream),
+		logDir:      logDir,
+		maxLines:    maxLines,
+		retention:   retention,
+		logStreams:  make(map[string]*LogStream),
+		stopCleanup: make(chan struct{}),
 	}
 }
 
@@ -194,11 +196,21 @@ func (lm *LogManager) StartCleanup() {
 		ticker := time.NewTicker(24 * time.Hour)
 		defer ticker.Stop()
 
-		for range ticker.C {
-			lm.CleanupOldLogs()
-			lm.RotateLogs()
+		for {
+			select {
+			case <-ticker.C:
+				lm.CleanupOldLogs()
+				lm.RotateLogs()
+			case <-lm.stopCleanup:
+				return
+			}
 		}
 	}()
+}
+
+// StopCleanup stops the cleanup goroutine
+func (lm *LogManager) StopCleanup() {
+	close(lm.stopCleanup)
 }
 
 // GetLogStats returns statistics about service logs

@@ -5,6 +5,7 @@ import PortfolioNavbar from './PortfolioNavbar'
 import WebGLBackground from '../animations/WebGLBackground'
 import IntroAnimation from '../animations/IntroAnimation'
 import { useLenis } from '../../providers/LenisProvider'
+import { IntroContext } from '../../context/IntroContext'
 
 interface PortfolioLayoutProps {
   children: ReactNode
@@ -21,25 +22,26 @@ export default function PortfolioLayout({ children }: PortfolioLayoutProps) {
   }, [introComplete, scrollTo])
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden noise-overlay">
-      <IntroAnimation onComplete={() => setIntroComplete(true)} />
-      <WebGLBackground />
-      {introComplete && (
+    <IntroContext.Provider value={introComplete}>
+      <div className="relative min-h-screen overflow-x-hidden noise-overlay">
+        <IntroAnimation onComplete={() => setIntroComplete(true)} />
+        <WebGLBackground />
         <motion.div
           className="site-content relative z-10"
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
+          initial={{ opacity: 0 }}
+          animate={introComplete ? { opacity: 1 } : { opacity: 0 }}
           transition={{
-            duration: 0.8,
+            duration: 0.4,
             ease: [0.22, 1, 0.36, 1]
           }}
+          style={{ pointerEvents: introComplete ? 'auto' : 'none' }}
         >
           <PortfolioNavbar />
           <main className="relative">
             {children}
           </main>
         </motion.div>
-      )}
-    </div>
+      </div>
+    </IntroContext.Provider>
   )
 }

@@ -19,6 +19,31 @@ import (
 	"github.com/JadenRazo/Project-Website/backend/internal/core"
 )
 
+var geoClient = &http.Client{Timeout: 3 * time.Second}
+
+var countryNames = map[string]string{
+	"US": "United States",
+	"GB": "United Kingdom",
+	"CA": "Canada",
+	"AU": "Australia",
+	"DE": "Germany",
+	"FR": "France",
+	"JP": "Japan",
+	"CN": "China",
+	"IN": "India",
+	"BR": "Brazil",
+	"MX": "Mexico",
+	"ES": "Spain",
+	"IT": "Italy",
+	"NL": "Netherlands",
+	"SE": "Sweden",
+	"NO": "Norway",
+	"DK": "Denmark",
+	"FI": "Finland",
+	"PL": "Poland",
+	"RU": "Russia",
+}
+
 // Service handles visitor tracking operations
 type Service struct {
 	*core.BaseService
@@ -259,7 +284,7 @@ type LocationInfo struct {
 func (s *Service) geolocateIP(ip string) *LocationInfo {
 	// Use ip-api.com for geolocation
 	url := fmt.Sprintf("http://ip-api.com/json/%s", ip)
-	resp, err := http.Get(url)
+	resp, err := geoClient.Get(url)
 	if err != nil {
 		return nil
 	}
@@ -705,30 +730,6 @@ func (s *Service) GetLocationDistribution(ctx context.Context, period string) ([
 	}
 
 	// Second pass to calculate percentages and country names
-	countryNames := map[string]string{
-		"US": "United States",
-		"GB": "United Kingdom",
-		"CA": "Canada",
-		"AU": "Australia",
-		"DE": "Germany",
-		"FR": "France",
-		"JP": "Japan",
-		"CN": "China",
-		"IN": "India",
-		"BR": "Brazil",
-		"MX": "Mexico",
-		"ES": "Spain",
-		"IT": "Italy",
-		"NL": "Netherlands",
-		"SE": "Sweden",
-		"NO": "Norway",
-		"DK": "Denmark",
-		"FI": "Finland",
-		"PL": "Poland",
-		"RU": "Russia",
-		// Add more as needed
-	}
-
 	for _, loc := range tempLocations {
 		countryName := countryNames[loc.CountryCode]
 		if countryName == "" {

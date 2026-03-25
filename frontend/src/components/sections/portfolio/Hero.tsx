@@ -1,25 +1,36 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
-import { motion } from 'framer-motion'
+import { motion, useAnimation } from 'framer-motion'
 import { gsap } from 'gsap'
 import { ArrowDown } from 'lucide-react'
 import GlassIcosahedron from '../../3d/GlassIcosahedron'
+import { useNavigate } from 'react-router-dom'
 import { useLenis } from '../../../providers/LenisProvider'
+import { useIntroComplete } from '../../../context/IntroContext'
 
 interface SplitTextProps {
   text: string
   className?: string
   delay?: number
+  ready?: boolean
 }
 
-function SplitText({ text, className = '', delay = 0 }: SplitTextProps) {
+function SplitText({ text, className = '', delay = 0, ready = false }: SplitTextProps) {
   const containerRef = useRef<HTMLSpanElement>(null)
   const charsRef = useRef<(HTMLSpanElement | null)[]>([])
+  const hasAnimated = useRef(false)
+  const tweenRef = useRef<gsap.core.Tween | null>(null)
 
   useEffect(() => {
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (prefersReducedMotion) return
+    if (!ready || hasAnimated.current) return
+    hasAnimated.current = true
 
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const chars = charsRef.current.filter(Boolean)
+
+    if (prefersReducedMotion) {
+      gsap.set(chars, { y: '0%', opacity: 1, rotationX: 0 })
+      return
+    }
 
     gsap.set(chars, {
       y: '100%',
@@ -27,16 +38,30 @@ function SplitText({ text, className = '', delay = 0 }: SplitTextProps) {
       rotationX: -80,
     })
 
-    gsap.to(chars, {
+    tweenRef.current = gsap.to(chars, {
       y: '0%',
       opacity: 1,
       rotationX: 0,
-      duration: 0.8,
+      duration: 0.5,
       ease: 'power3.out',
-      stagger: 0.025,
+      stagger: 0.012,
       delay: delay,
     })
-  }, [delay])
+
+    return () => {
+      tweenRef.current?.kill()
+      tweenRef.current = null
+    }
+  }, [delay, ready])
+
+  useEffect(() => {
+    if (ready) return
+    const chars = charsRef.current.filter(Boolean)
+    gsap.set(chars, { y: '100%', opacity: 0, rotationX: -80 })
+    return () => {
+      gsap.killTweensOf(chars)
+    }
+  }, [ready])
 
   const chars = useMemo(() => text.split(''), [text])
 
@@ -58,33 +83,41 @@ function SplitText({ text, className = '', delay = 0 }: SplitTextProps) {
 
 const roles = ['websites', 'experiences', 'interfaces', 'solutions']
 
-function AnimatedRole() {
+function AnimatedRole({ ready }: { ready: boolean }) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
-  const textRef = useRef<HTMLSpanElement>(null)
 
   useEffect(() => {
+    if (!ready) return
+    let pendingTimeout: ReturnType<typeof setTimeout> | null = null
+
     const interval = setInterval(() => {
       setIsAnimating(true)
 
-      setTimeout(() => {
+      pendingTimeout = setTimeout(() => {
         setCurrentIndex((prev) => (prev + 1) % roles.length)
         setIsAnimating(false)
+        pendingTimeout = null
       }, 400)
     }, 3000)
 
-    return () => clearInterval(interval)
-  }, [])
+    return () => {
+      clearInterval(interval)
+      if (pendingTimeout !== null) {
+        clearTimeout(pendingTimeout)
+      }
+    }
+  }, [ready])
 
   return (
     <span className="inline-block relative overflow-hidden">
       <motion.span
-        ref={textRef}
         className="inline-block gradient-text-hero"
-        animate={{
+        initial={{ opacity: 0 }}
+        animate={ready ? {
           y: isAnimating ? '-100%' : '0%',
           opacity: isAnimating ? 0 : 1,
-        }}
+        } : { opacity: 0 }}
         transition={{
           duration: 0.4,
           ease: [0.22, 1, 0.36, 1],
@@ -98,10 +131,19 @@ function AnimatedRole() {
 
 export default function Hero() {
   const containerRef = useRef<HTMLDivElement>(null)
+  const navigate = useNavigate()
   const { scrollTo } = useLenis()
+  const introComplete = useIntroComplete()
+  const controls = useAnimation()
+
+  useEffect(() => {
+    if (introComplete) {
+      controls.start('visible')
+    }
+  }, [introComplete, controls])
 
   const handleScrollToAbout = () => {
-    scrollTo('#about')
+    navigate('/about')
   }
 
   const handleScrollToProjects = () => {
@@ -109,8 +151,25 @@ export default function Hero() {
   }
 
   const handleScrollToContact = () => {
-    scrollTo('#contact')
+    navigate('/contact')
   }
+
+  const item = (delay: number) => ({
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.4, delay, ease: [0.22, 1, 0.36, 1] },
+    },
+  })
+
+  const fade = (delay: number) => ({
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { duration: 0.2, delay },
+    },
+  })
 
   return (
     <section
@@ -118,19 +177,16 @@ export default function Hero() {
       ref={containerRef}
       className="relative w-full h-[100dvh] overflow-hidden"
     >
-      {/* 3D Elements - desktop only */}
-      <div className="absolute right-[3%] top-1/2 -translate-y-1/2 hidden xl:block opacity-50 pointer-events-none">
-        <GlassIcosahedron size={320} />
+      <div className="absolute right-[5%] top-1/2 -translate-y-1/2 hidden xl:block xl:opacity-40 2xl:opacity-50 pointer-events-none transition-opacity duration-700">
+        <GlassIcosahedron size={380} />
       </div>
 
-      {/* Main content - centered vertically */}
-      <div className="relative z-10 w-full h-full flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 pb-16">
-        {/* Content wrapper */}
-        <div className="w-full max-w-4xl text-center">
+      <div className="relative z-10 w-full h-full flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 xl:px-12 pb-16">
+        <div className="w-full max-w-4xl xl:max-w-5xl text-center">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+              variants={item(0.0)}
+              initial="hidden"
+              animate={controls}
               className="mb-2 sm:mb-4"
             >
               <span className="inline-block px-4 py-2 glass-enhanced rounded-full text-xs sm:text-sm font-mono uppercase tracking-widest text-primary">
@@ -140,45 +196,46 @@ export default function Hero() {
 
             <h1 className="text-editorial mb-3 sm:mb-5">
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3, delay: 0.4 }}
+                variants={fade(0.1)}
+                initial="hidden"
+                animate={controls}
                 className="overflow-hidden"
               >
                 <SplitText
                   text="I craft beautiful"
-                  className="text-[2.5rem] sm:text-5xl md:text-6xl lg:text-7xl text-text-primary block leading-[1.1]"
-                  delay={0.5}
+                  className="text-[2.5rem] sm:text-5xl md:text-6xl lg:text-7xl xl:text-[5.5rem] 2xl:text-[6rem] text-text-primary block leading-[1.05]"
+                  delay={0.15}
+                  ready={introComplete}
                 />
               </motion.div>
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3, delay: 0.8 }}
+                variants={fade(0.3)}
+                initial="hidden"
+                animate={controls}
                 className="overflow-hidden"
               >
-                <span className="text-[2.5rem] sm:text-5xl md:text-6xl lg:text-7xl leading-[1.1]">
-                  <AnimatedRole />
+                <span className="text-[2.5rem] sm:text-5xl md:text-6xl lg:text-7xl xl:text-[5.5rem] 2xl:text-[6rem] leading-[1.05]">
+                  <AnimatedRole ready={introComplete} />
                 </span>
               </motion.div>
             </h1>
 
             <div className="w-full flex justify-center">
               <motion.p
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 1.2, ease: [0.22, 1, 0.36, 1] }}
-                className="text-base sm:text-lg md:text-xl text-text-secondary max-w-lg mb-4 sm:mb-6 leading-relaxed text-center"
+                variants={item(0.5)}
+                initial="hidden"
+                animate={controls}
+                className="text-base sm:text-lg md:text-xl lg:text-[1.35rem] text-text-secondary max-w-lg lg:max-w-2xl mb-4 sm:mb-6 lg:mb-8 leading-relaxed text-center"
               >
                 Full-stack developer specializing in stunning, high-performance web applications with modern technologies.
               </motion.p>
             </div>
 
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 1.4, ease: [0.22, 1, 0.36, 1] }}
-              className="flex flex-wrap gap-3 justify-center"
+              variants={item(0.6)}
+              initial="hidden"
+              animate={controls}
+              className="flex flex-wrap gap-3 lg:gap-4 justify-center"
             >
               <button
                 className="btn-primary"
@@ -196,9 +253,9 @@ export default function Hero() {
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 1.6, ease: [0.22, 1, 0.36, 1] }}
+              variants={item(0.7)}
+              initial="hidden"
+              animate={controls}
               className="flex gap-4 justify-center mt-4 sm:mt-6 items-center"
             >
               <a
@@ -266,38 +323,36 @@ export default function Hero() {
               </a>
             </motion.div>
 
-            {/* Stats row */}
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 2, duration: 0.6 }}
-              className="mt-4 sm:mt-8 flex items-center justify-center gap-5 sm:gap-6"
+              variants={fade(0.8)}
+              initial="hidden"
+              animate={controls}
+              className="mt-4 sm:mt-8 lg:mt-10 flex items-center justify-center gap-5 sm:gap-6 lg:gap-10"
             >
               <div className="flex flex-col">
-                <span className="text-xl sm:text-2xl font-bold gradient-text">50+</span>
-                <span className="text-[10px] sm:text-xs text-text-muted uppercase tracking-wider">Projects</span>
+                <span className="text-xl sm:text-2xl lg:text-3xl font-bold gradient-text tabular-nums">50+</span>
+                <span className="text-[10px] sm:text-xs lg:text-sm text-text-muted uppercase tracking-wider">Projects</span>
               </div>
-              <div className="w-px h-8 bg-border" />
+              <div className="w-px h-8 lg:h-10 bg-border" />
               <div className="flex flex-col">
-                <span className="text-xl sm:text-2xl font-bold gradient-text">5+</span>
-                <span className="text-[10px] sm:text-xs text-text-muted uppercase tracking-wider">Years</span>
+                <span className="text-xl sm:text-2xl lg:text-3xl font-bold gradient-text tabular-nums">5+</span>
+                <span className="text-[10px] sm:text-xs lg:text-sm text-text-muted uppercase tracking-wider">Years</span>
               </div>
-              <div className="w-px h-8 bg-border" />
+              <div className="w-px h-8 lg:h-10 bg-border" />
               <div className="flex flex-col">
-                <span className="text-xl sm:text-2xl font-bold gradient-text">100%</span>
-                <span className="text-[10px] sm:text-xs text-text-muted uppercase tracking-wider">Quality</span>
+                <span className="text-xl sm:text-2xl lg:text-3xl font-bold gradient-text tabular-nums">100%</span>
+                <span className="text-[10px] sm:text-xs lg:text-sm text-text-muted uppercase tracking-wider">Quality</span>
               </div>
             </motion.div>
           </div>
 
         </div>
 
-      {/* Scroll indicator */}
       <motion.button
         onClick={handleScrollToAbout}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 2, duration: 0.6 }}
+        variants={fade(0.9)}
+        initial="hidden"
+        animate={controls}
         className="absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 group cursor-pointer z-20"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}

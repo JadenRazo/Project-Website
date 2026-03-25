@@ -35,6 +35,11 @@ const BlogContainer = styled.div`
   background: ${({ theme }) => theme?.colors?.background || '#111'};
   color: ${({ theme }) => theme?.colors?.text || '#fff'};
 
+  @media (min-width: 1024px) {
+    max-width: 1200px;
+    padding: calc(3rem + 60px) 3rem 5rem 3rem;
+  }
+
   @media (max-width: 768px) {
     padding: calc(1.5rem + 60px) 1rem 3rem 1rem;
   }
@@ -52,6 +57,11 @@ const PageTitle = styled.h1`
   font-weight: 700;
   position: relative;
   display: inline-block;
+  letter-spacing: -0.02em;
+
+  @media (min-width: 1024px) {
+    font-size: 3.5rem;
+  }
 
   @media (max-width: 768px) {
     font-size: 2.5rem;
@@ -196,6 +206,11 @@ const PostGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 1.5rem;
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;

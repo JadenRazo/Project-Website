@@ -26,7 +26,8 @@ const NavContainer = styled.nav`
   right: 0;
   z-index: ${({ theme }) => theme.zIndex.header};
   background: ${({ theme }) => theme.colors.surface}CC;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
   transition: all ${({ theme }) => theme.transitions.normal};
 `;
@@ -38,6 +39,11 @@ const NavContent = styled.div`
   max-width: 1200px;
   margin: 0 auto;
   padding: ${({ theme }) => `${theme.spacing.sm} ${theme.spacing.md}`};
+
+  @media (min-width: 1024px) {
+    max-width: 1400px;
+    padding: ${({ theme }) => `${theme.spacing.md} ${theme.spacing.xl}`};
+  }
 `;
 
 const Logo = styled(Link)`
@@ -64,18 +70,26 @@ const NavLinks = styled.div<{ $isOpen: boolean }>`
   gap: ${({ theme }) => theme.spacing.md};
   align-items: center;
 
+  @media (min-width: 1024px) {
+    gap: ${({ theme }) => theme.spacing.lg};
+  }
+
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     display: ${({ $isOpen }) => ($isOpen ? 'flex' : 'none')};
     position: fixed;
     top: 60px;
     left: 0;
     right: 0;
+    bottom: 0;
     background: ${({ theme }) => theme.colors.surface};
-    padding: ${({ theme }) => theme.spacing.md};
+    padding: ${({ theme }) => `${theme.spacing.lg} ${theme.spacing.md}`};
     flex-direction: column;
-    align-items: flex-start;
-    border-bottom: 1px solid ${({ theme }) => theme.colors.border};
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    align-items: stretch;
+    border-bottom: none;
+    box-shadow: none;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    z-index: 999;
   }
 `;
 
@@ -87,6 +101,8 @@ const NavLink = styled(Link)<{ $isActive?: boolean }>`
   border-radius: ${({ theme }) => theme.borderRadius.small};
   transition: all ${({ theme }) => theme.transitions.fast};
   font-weight: 500;
+  font-size: 0.9375rem;
+  letter-spacing: 0.01em;
   width: 100%;
   text-align: left;
   position: relative;
@@ -116,7 +132,13 @@ const NavLink = styled(Link)<{ $isActive?: boolean }>`
   }
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    padding: ${({ theme }) => `${theme.spacing.sm} ${theme.spacing.md}`};
+    padding: ${({ theme }) => `${theme.spacing.md} ${theme.spacing.md}`};
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    font-size: 1.1rem;
+    border-radius: ${({ theme }) => theme.borderRadius.medium};
+    -webkit-tap-highlight-color: transparent;
 
     &::after {
       bottom: 0;
@@ -128,6 +150,10 @@ const NavLink = styled(Link)<{ $isActive?: boolean }>`
 
     &:hover::after {
       width: 3px;
+    }
+
+    &:active {
+      background: ${({ theme }) => theme.colors.primaryLight};
     }
   }
 `;
@@ -265,9 +291,14 @@ const HamburgerButton = styled.button`
   padding: ${({ theme }) => theme.spacing.xs};
   color: ${({ theme }) => theme.colors.text};
   z-index: 1000;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    display: block;
+    display: flex;
   }
 `;
 

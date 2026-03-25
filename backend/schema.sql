@@ -567,13 +567,15 @@ CREATE TABLE IF NOT EXISTS contact_submissions (
 
 -- Code statistics
 CREATE TABLE IF NOT EXISTS code_stats (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    project_name VARCHAR(255) NOT NULL,
-    language VARCHAR(50) NOT NULL,
-    lines_of_code INTEGER DEFAULT 0,
-    files_count INTEGER DEFAULT 0,
-    last_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(project_name, language)
+    id SERIAL PRIMARY KEY,
+    languages JSONB DEFAULT '[]',
+    total_lines BIGINT DEFAULT 0,
+    total_files INTEGER DEFAULT 0,
+    total_blanks BIGINT DEFAULT 0,
+    total_code BIGINT DEFAULT 0,
+    total_comment BIGINT DEFAULT 0,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Project paths for code statistics

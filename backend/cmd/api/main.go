@@ -660,6 +660,12 @@ func main() {
 
 	logger.Info("Gracefully shutting down server")
 
+	logger.Info("Stopping metrics collector")
+	metricsCollector.StopCollecting()
+
+	logger.Info("Stopping log manager")
+	logManager.StopCleanup()
+
 	logger.Info("Stopping all services")
 	if err := serviceManager.StopAllServices(); err != nil {
 		logger.Error("Error stopping services", "error", err)

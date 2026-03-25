@@ -17,7 +17,7 @@ function ProjectCard({ project, index }: ProjectCardProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
-  const isInView = useInView(cardRef, { once: true, margin: '-50px' })
+  const isInView = useInView(cardRef, { once: true, margin: '-150px' })
 
   useEffect(() => {
     const checkMobile = () => {
@@ -33,14 +33,14 @@ function ProjectCard({ project, index }: ProjectCardProps) {
   return (
     <motion.div
       ref={cardRef}
-      className={`flex flex-col ${isEven ? 'lg:flex-row' : 'lg:flex-row-reverse'} gap-4 sm:gap-6 lg:gap-10 items-center`}
+      className={`flex flex-col ${isEven ? 'md:flex-row' : 'md:flex-row-reverse'} gap-4 sm:gap-6 md:gap-8 lg:gap-12 xl:gap-16 items-center`}
       initial={{ opacity: 0, y: 60 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.5, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="w-full lg:w-1/2 relative group">
+      <div className="w-full md:w-1/2 relative group">
         <motion.div
           className="relative rounded-xl overflow-hidden glass-card"
           whileHover={{ scale: 1.02 }}
@@ -73,7 +73,7 @@ function ProjectCard({ project, index }: ProjectCardProps) {
           <div className={`absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent transition-opacity duration-300 ${isMobile ? 'opacity-60' : 'opacity-0 group-hover:opacity-60'}`} />
 
           <motion.div
-            className={`absolute inset-0 flex items-end justify-center pb-4 ${isMobile ? '' : 'lg:items-center lg:pb-0'}`}
+            className={`absolute inset-0 flex items-end justify-center pb-4 ${isMobile ? '' : 'md:items-center md:pb-0'}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: isMobile || isHovered ? 1 : 0 }}
             transition={{ duration: 0.3 }}
@@ -109,22 +109,22 @@ function ProjectCard({ project, index }: ProjectCardProps) {
           className="absolute -bottom-2 -right-2 sm:-bottom-3 sm:-right-3 w-10 h-10 sm:w-12 sm:h-12 rounded-full glass-enhanced flex items-center justify-center text-sm sm:text-base font-bold text-primary font-mono z-10"
           initial={{ scale: 0, rotate: -180 }}
           animate={isInView ? { scale: 1, rotate: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.3, type: 'spring' }}
+          transition={{ duration: 0.6, delay: 0.15, type: 'spring' }}
         >
           {String(index + 1).padStart(2, '0')}
         </motion.div>
       </div>
 
-      <div className="w-full lg:w-1/2 space-y-3 sm:space-y-4">
+      <div className="w-full md:w-1/2 space-y-3 sm:space-y-4 lg:space-y-5">
         <motion.div
           initial={{ opacity: 0, x: isEven ? -30 : 30 }}
           animate={isInView ? { opacity: 1, x: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.2 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
         >
           <span className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-primary mb-2 block">
             Project {String(index + 1).padStart(2, '0')}
           </span>
-          <h3 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-text-primary tracking-tight leading-tight">
+          <h3 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-text-primary tracking-tight leading-tight">
             {project.name}
           </h3>
           {project.badges && project.badges.length > 0 && (
@@ -150,10 +150,10 @@ function ProjectCard({ project, index }: ProjectCardProps) {
         </motion.div>
 
         <motion.p
-          className="text-text-secondary text-xs sm:text-sm md:text-base leading-relaxed"
+          className="text-text-secondary text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed"
           initial={{ opacity: 0, x: isEven ? -30 : 30 }}
           animate={isInView ? { opacity: 1, x: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.3 }}
+          transition={{ duration: 0.5, delay: 0.15 }}
         >
           {project.description}
         </motion.p>
@@ -162,7 +162,7 @@ function ProjectCard({ project, index }: ProjectCardProps) {
           className="flex flex-wrap gap-1.5 sm:gap-2"
           initial={{ opacity: 0, x: isEven ? -30 : 30 }}
           animate={isInView ? { opacity: 1, x: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.4 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
         >
           {project.tags.slice(0, 5).map((tag) => (
             <span
@@ -183,14 +183,14 @@ function ProjectCard({ project, index }: ProjectCardProps) {
           className="flex flex-wrap gap-2 pt-1"
           initial={{ opacity: 0, x: isEven ? -30 : 30 }}
           animate={isInView ? { opacity: 1, x: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.5 }}
+          transition={{ duration: 0.5, delay: 0.25 }}
         >
           {project.live_url && (
             <a
               href={project.live_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-primary text-sm py-2 px-4"
+              className="btn-primary text-sm py-2.5 px-4 min-h-[44px]"
             >
               <span>View Live</span>
               <ExternalLink size={14} />
@@ -201,7 +201,7 @@ function ProjectCard({ project, index }: ProjectCardProps) {
               href={project.repo_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-secondary text-sm py-2 px-4"
+              className="btn-secondary text-sm py-2.5 px-4 min-h-[44px]"
             >
               <span>Source Code</span>
               <Github size={14} />
@@ -216,20 +216,20 @@ function ProjectCard({ project, index }: ProjectCardProps) {
 export default function HorizontalProjectGallery() {
   const sectionRef = useRef<HTMLElement>(null)
   const headerRef = useRef<HTMLDivElement>(null)
-  const isInView = useInView(headerRef, { once: true, margin: '-50px' })
+  const isInView = useInView(headerRef, { once: true, margin: '-150px' })
   const projects = mockProjects.slice(0, 6)
 
   return (
     <section
       id="projects"
       ref={sectionRef}
-      className="relative w-full py-12 sm:py-16 md:py-20"
+      className="relative w-full py-12 sm:py-16 md:py-20 lg:py-28"
     >
       <div className="w-full flex flex-col items-center px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div ref={headerRef} className="text-center mb-8 sm:mb-10 md:mb-12">
+        <div ref={headerRef} className="text-center mb-8 sm:mb-10 md:mb-12 lg:mb-16">
           <motion.span
-            className="block text-[10px] sm:text-xs font-mono uppercase tracking-[0.2em] text-primary mb-2"
+            className="block text-[10px] sm:text-xs lg:text-sm font-mono uppercase tracking-[0.2em] text-primary mb-2 lg:mb-3"
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6 }}
@@ -237,7 +237,7 @@ export default function HorizontalProjectGallery() {
             Selected Works
           </motion.span>
           <motion.h2
-            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-text-primary tracking-tight"
+            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-text-primary tracking-tight"
             initial={{ opacity: 0, y: 30 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.1 }}
@@ -248,7 +248,7 @@ export default function HorizontalProjectGallery() {
 
         {/* Project cards */}
         <div className="w-full max-w-7xl">
-          <div className="space-y-10 sm:space-y-12 md:space-y-16">
+          <div className="space-y-10 sm:space-y-12 md:space-y-16 lg:space-y-24">
             {projects.map((project, index) => (
               <ProjectCard
                 key={project.id}

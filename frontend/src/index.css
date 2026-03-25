@@ -255,17 +255,17 @@ html.lenis body {
 
   .glass-card {
     background: var(--color-glass);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(12px) saturate(160%);
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 16px;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
   }
 
   @media (hover: hover) and (pointer: fine) {
     .glass-card:hover {
       border-color: var(--color-border-glow);
-      box-shadow: var(--shadow-glow);
+      box-shadow: 0 0 20px rgba(0, 134, 220, 0.2), 0 8px 32px rgba(0, 0, 0, 0.2);
       transform: translateY(-4px);
     }
   }
@@ -276,8 +276,8 @@ html.lenis body {
 
   .glass-enhanced {
     background: rgba(15, 24, 41, 0.6);
-    backdrop-filter: blur(24px) saturate(200%);
-    -webkit-backdrop-filter: blur(24px) saturate(200%);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
     border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow:
       0 8px 32px rgba(0, 0, 0, 0.3),
@@ -415,7 +415,7 @@ html.lenis body {
     border-radius: 12px;
     border: none;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
     position: relative;
     overflow: hidden;
     -webkit-tap-highlight-color: transparent;
@@ -428,6 +428,14 @@ html.lenis body {
     .btn-primary {
       padding: 14px 32px;
       font-size: 1rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .btn-primary {
+      padding: 16px 36px;
+      font-size: 1rem;
+      border-radius: 14px;
     }
   }
 
@@ -473,7 +481,7 @@ html.lenis body {
     border-radius: 12px;
     border: 1px solid var(--color-border-glow);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
     white-space: nowrap;
@@ -487,10 +495,19 @@ html.lenis body {
     }
   }
 
+  @media (min-width: 1024px) {
+    .btn-secondary {
+      padding: 16px 36px;
+      font-size: 1rem;
+      border-radius: 14px;
+    }
+  }
+
   .btn-secondary:hover {
     background: var(--color-surface-hover);
     border-color: var(--color-primary);
     box-shadow: var(--shadow-glow);
+    transform: translateY(-2px);
   }
 
   .btn-secondary:active {
@@ -521,8 +538,8 @@ html.lenis body {
 
   @media (min-width: 768px) {
     .container {
-      padding-left: 32px;
-      padding-right: 32px;
+      padding-left: 40px;
+      padding-right: 40px;
     }
   }
 
@@ -530,6 +547,13 @@ html.lenis body {
     .container {
       padding-left: 48px;
       padding-right: 48px;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .container {
+      padding-left: 64px;
+      padding-right: 64px;
     }
   }
 
@@ -552,8 +576,8 @@ html.lenis body {
 
   @media (min-width: 768px) {
     .portfolio-container {
-      padding-left: 32px;
-      padding-right: 32px;
+      padding-left: 40px;
+      padding-right: 40px;
     }
   }
 
@@ -581,15 +605,21 @@ html.lenis body {
     line-height: 1.6;
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 1023px) {
     .section {
-      padding: 60px 0;
+      padding: 64px 0;
+    }
+  }
+
+  @media (max-width: 639px) {
+    .section {
+      padding: 48px 0;
     }
 
     .container,
     .portfolio-container {
-      padding-left: 24px;
-      padding-right: 24px;
+      padding-left: 20px;
+      padding-right: 20px;
     }
   }
 
@@ -618,7 +648,7 @@ html.lenis body {
     font-size: clamp(3rem, 12vw, 8rem);
     font-weight: 800;
     letter-spacing: -0.02em;
-    will-change: transform, opacity, filter;
+    will-change: transform, opacity;
     transform: translate3d(0, 0, 0);
   }
 
@@ -644,7 +674,6 @@ html.lenis body {
   .site-content {
     position: relative;
     z-index: 10;
-    will-change: transform, opacity;
   }
 
   .snap-container {
@@ -673,6 +702,8 @@ html.lenis body {
     overflow: hidden;
     scroll-snap-align: start;
     scroll-snap-stop: always;
+    content-visibility: auto;
+    contain-intrinsic-size: auto 100vh;
   }
 
   .content {
@@ -725,11 +756,11 @@ html.lenis body {
   }
 
   .transition-smooth {
-    transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .transition-spring {
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
   .text-primary {
@@ -833,21 +864,18 @@ html.lenis body {
 
   .animate-float-slow {
     animation: float-gentle 5s ease-in-out infinite;
-    will-change: transform;
     transform: translateZ(0);
     backface-visibility: hidden;
   }
 
   .animate-float-medium {
     animation: float-gentle 4s ease-in-out infinite 0.5s;
-    will-change: transform;
     transform: translateZ(0);
     backface-visibility: hidden;
   }
 
   .animate-float-fast {
     animation: float-gentle 3.5s ease-in-out infinite 1s;
-    will-change: transform;
     transform: translateZ(0);
     backface-visibility: hidden;
   }
@@ -871,6 +899,20 @@ html.lenis body {
 @media (max-width: 768px) {
   html, body {
     touch-action: pan-y;
+  }
+
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+}
+
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .snap-section:last-child {
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }
 

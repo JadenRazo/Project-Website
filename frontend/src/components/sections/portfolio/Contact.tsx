@@ -58,19 +58,19 @@ export default function Contact() {
   }
 
   return (
-    <section id="contact" className="relative w-full py-12 sm:py-16 md:py-20">
+    <section id="contact" className="relative w-full py-12 sm:py-16 md:py-20 lg:py-28">
       <div className="w-full flex flex-col items-center px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-6"
+          className="text-center mb-6 md:mb-8 lg:mb-10"
         >
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 text-text-primary">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 lg:mb-4 text-text-primary">
             Let's <span className="gradient-text">Connect</span>
           </h2>
-          <p className="text-text-secondary text-sm sm:text-base">
+          <p className="text-text-secondary text-sm sm:text-base lg:text-lg">
             Have a project in mind? I'd love to hear about it.
           </p>
         </motion.div>
@@ -80,7 +80,7 @@ export default function Contact() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="glass-card p-4 sm:p-6 w-full max-w-xl"
+          className="glass-card p-4 sm:p-6 md:p-7 lg:p-8 w-full max-w-xl md:max-w-lg lg:max-w-2xl"
         >
           {isSubmitted ? (
             <motion.div
@@ -95,7 +95,7 @@ export default function Contact() {
               </p>
             </motion.div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4 lg:space-y-5">
               {error && (
                 <div className="px-3 py-2 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
                   {error}
@@ -122,7 +122,7 @@ export default function Contact() {
                     onChange={handleChange}
                     required
                     disabled={isLoading}
-                    className="w-full px-3 py-2.5 bg-surface border border-border rounded-lg focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors text-sm text-text-primary placeholder:text-text-muted disabled:opacity-50"
+                    className="w-full px-4 py-3 bg-surface border border-border rounded-lg focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors text-base sm:text-sm text-text-primary placeholder:text-text-muted disabled:opacity-50"
                     placeholder="Your name"
                   />
                 </div>
@@ -136,7 +136,7 @@ export default function Contact() {
                     onChange={handleChange}
                     required
                     disabled={isLoading}
-                    className="w-full px-3 py-2.5 bg-surface border border-border rounded-lg focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors text-sm text-text-primary placeholder:text-text-muted disabled:opacity-50"
+                    className="w-full px-4 py-3 bg-surface border border-border rounded-lg focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors text-base sm:text-sm text-text-primary placeholder:text-text-muted disabled:opacity-50"
                     placeholder="Your email"
                   />
                 </div>
@@ -150,7 +150,7 @@ export default function Contact() {
                   value={formData.subject}
                   onChange={handleChange}
                   disabled={isLoading}
-                  className="w-full px-3 py-2.5 bg-surface border border-border rounded-lg focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors text-sm text-text-primary placeholder:text-text-muted disabled:opacity-50"
+                  className="w-full px-4 py-3 bg-surface border border-border rounded-lg focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors text-base sm:text-sm text-text-primary placeholder:text-text-muted disabled:opacity-50"
                   placeholder="Subject (optional)"
                 />
               </div>
@@ -164,7 +164,7 @@ export default function Contact() {
                   required
                   disabled={isLoading}
                   rows={3}
-                  className="w-full px-3 py-2.5 bg-surface border border-border rounded-lg focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors resize-none text-sm text-text-primary placeholder:text-text-muted disabled:opacity-50"
+                  className="w-full px-4 py-3 bg-surface border border-border rounded-lg focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors resize-none text-base sm:text-sm text-text-primary placeholder:text-text-muted disabled:opacity-50"
                   placeholder="Tell me about your project..."
                 />
               </div>
@@ -189,7 +189,7 @@ export default function Contact() {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          transition={{ delay: 0.4, duration: 0.5 }}
+          transition={{ delay: 0.2, duration: 0.4 }}
           className="flex items-center justify-center gap-4 mt-5"
         >
           {socialLinks.map((social) => (
@@ -198,7 +198,7 @@ export default function Contact() {
               href={social.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2.5 glass rounded-lg hover:bg-surface-hover transition-colors group"
+              className="p-3 min-w-[44px] min-h-[44px] flex items-center justify-center glass rounded-lg hover:bg-surface-hover active:bg-surface-hover transition-colors group"
               aria-label={social.label}
             >
               <social.icon className="w-5 h-5 text-text-secondary group-hover:text-primary transition-colors" />
@@ -210,7 +210,7 @@ export default function Contact() {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          transition={{ delay: 0.5, duration: 0.5 }}
+          transition={{ delay: 0.25, duration: 0.4 }}
           className="text-text-muted text-xs mt-5 text-center"
         >
           &copy; {new Date().getFullYear()} Jaden Razo. All rights reserved.

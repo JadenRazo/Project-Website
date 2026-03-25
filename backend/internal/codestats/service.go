@@ -94,9 +94,13 @@ func (s *Service) UpdateStats() error {
 	logger.Info("Running tokei to collect code statistics")
 
 	// Check if tokei binary exists before proceeding
-	tokeiPath := "/root/.cargo/bin/tokei"
+	tokeiPath := "/usr/local/bin/tokei"
 	if _, err := os.Stat(tokeiPath); os.IsNotExist(err) {
-		return fmt.Errorf("tokei binary not found at %s. Please install tokei to enable code statistics", tokeiPath)
+		// Fallback to cargo install path for local development
+		tokeiPath = "/root/.cargo/bin/tokei"
+		if _, err := os.Stat(tokeiPath); os.IsNotExist(err) {
+			return fmt.Errorf("tokei binary not found. Please install tokei to enable code statistics")
+		}
 	}
 
 	// Get active project paths from database
@@ -111,7 +115,7 @@ func (s *Service) UpdateStats() error {
 	}
 
 	// Build tokei command with all project paths and exclusions
-	args := []string{"/root/.cargo/bin/tokei", "--output", "json"}
+	args := []string{tokeiPath, "--output", "json"}
 
 	// Add exclusion patterns from database
 	excludePatterns := make(map[string]bool)

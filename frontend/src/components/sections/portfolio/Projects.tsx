@@ -63,20 +63,6 @@ const projects: Project[] = [
     linesOfCode: 8200,
     files: 42,
   },
-  {
-    id: 4,
-    title: 'WeenieSMP',
-    category: 'Full-Stack Minecraft Ecosystem',
-    description: 'Production-grade Minecraft server ecosystem with Vue 3 e-commerce site, Go microservices for real-time stats, and comprehensive Docker infrastructure serving 12,000+ players.',
-    liveUrl: 'https://weeniesmp.net',
-    githubUrl: 'https://github.com/jadenrazo/Project-Website/tree/main/weeniesmp',
-    images: ['/videos/weeniesmp_gambling_demo_optimized.mp4'],
-    technologies: ['Vue 3', 'Go', 'MariaDB', 'Redis', 'Docker', 'Nginx'],
-    linesOfCode: 45000,
-    files: 238,
-    mediaType: 'video',
-    videoUrl: '/videos/weeniesmp_gambling_demo_optimized.mp4',
-  },
 ]
 
 function AnimatedCounter({ value, duration = 2000 }: { value: number; duration?: number }) {
@@ -230,10 +216,10 @@ export default function Projects() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -60 }}
               transition={{ duration: 0.35, ease: 'easeOut' }}
-              className="absolute inset-0 flex flex-col lg:flex-row"
+              className="absolute inset-0 flex flex-col md:flex-row"
             >
               {/* Image/Video Section */}
-              <div className="relative w-full lg:w-1/2 aspect-video sm:aspect-[16/10] lg:h-full flex-shrink-0">
+              <div className="relative w-full md:w-1/2 aspect-video sm:aspect-[16/10] md:h-full flex-shrink-0">
                 {currentProject.mediaType === 'video' && currentProject.videoUrl ? (
                   <video
                     src={currentProject.videoUrl}
@@ -268,7 +254,7 @@ export default function Projects() {
                     />
                   </picture>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/10 to-transparent lg:bg-gradient-to-r lg:from-transparent lg:via-background/10 lg:to-background/80" />
+                <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/10 to-transparent md:bg-gradient-to-r md:from-transparent md:via-background/10 md:to-background/80" />
 
                 {/* Project Counter */}
                 <div className="absolute top-3 left-3 sm:top-4 sm:left-4 px-2.5 py-1 sm:px-3 sm:py-1.5 glass rounded-full text-xs sm:text-sm text-text-primary font-medium">
@@ -293,42 +279,42 @@ export default function Projects() {
               </div>
 
               {/* Content Section */}
-              <div className="flex-1 lg:w-1/2 flex flex-col justify-center px-4 sm:px-6 lg:px-10 py-3 sm:py-4 lg:py-6 overflow-y-auto">
-                <div className="max-w-lg mx-auto lg:mx-0 w-full">
+              <div className="flex-1 md:w-1/2 flex flex-col justify-center px-4 sm:px-6 md:px-8 lg:px-10 py-3 sm:py-4 md:py-6 overflow-y-auto">
+                <div className="max-w-lg mx-auto md:mx-0 w-full">
                   {/* Category */}
                   <span className="inline-block px-2.5 py-1 glass rounded-full text-xs text-primary mb-2 sm:mb-3">
                     {currentProject.category}
                   </span>
 
                   {/* Title */}
-                  <h3 className="text-lg sm:text-xl lg:text-3xl xl:text-4xl font-bold text-text-primary mb-1.5 sm:mb-2 lg:mb-3">
+                  <h3 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-text-primary mb-1.5 sm:mb-2 md:mb-3">
                     {currentProject.title}
                   </h3>
 
                   {/* Description */}
-                  <p className="text-text-secondary text-xs sm:text-sm lg:text-base mb-3 sm:mb-4 leading-relaxed line-clamp-2 lg:line-clamp-none">
+                  <p className="text-text-secondary text-xs sm:text-sm md:text-base mb-3 sm:mb-4 leading-relaxed line-clamp-2 md:line-clamp-none">
                     {currentProject.description}
                   </p>
 
                   {/* Stats */}
                   <div className="flex gap-2 sm:gap-3 mb-3 sm:mb-4">
-                    <div className="glass-card px-2.5 py-1.5 sm:px-3 sm:py-2 lg:px-4 lg:py-3 flex items-center gap-2">
-                      <div className="w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                    <div className="glass-card px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-3.5 md:py-2.5 lg:px-4 lg:py-3 flex items-center gap-2">
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-10 lg:h-10 rounded-lg bg-primary/20 flex items-center justify-center">
                         <Code className="w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-primary" />
                       </div>
                       <div>
-                        <div className="text-sm sm:text-base lg:text-lg font-bold gradient-text">
+                        <div className="text-sm sm:text-base md:text-base lg:text-lg font-bold gradient-text">
                           <AnimatedCounter value={currentProject.linesOfCode} />
                         </div>
                         <div className="text-[10px] sm:text-xs text-text-muted">Lines</div>
                       </div>
                     </div>
-                    <div className="glass-card px-2.5 py-1.5 sm:px-3 sm:py-2 lg:px-4 lg:py-3 flex items-center gap-2">
-                      <div className="w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded-lg bg-accent/20 flex items-center justify-center">
+                    <div className="glass-card px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-3.5 md:py-2.5 lg:px-4 lg:py-3 flex items-center gap-2">
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-10 lg:h-10 rounded-lg bg-accent/20 flex items-center justify-center">
                         <FileCode className="w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-accent" />
                       </div>
                       <div>
-                        <div className="text-sm sm:text-base lg:text-lg font-bold gradient-text">
+                        <div className="text-sm sm:text-base md:text-base lg:text-lg font-bold gradient-text">
                           <AnimatedCounter value={currentProject.files} />
                         </div>
                         <div className="text-[10px] sm:text-xs text-text-muted">Files</div>
