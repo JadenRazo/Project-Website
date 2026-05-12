@@ -9,7 +9,7 @@ import (
 
 	"github.com/JadenRazo/Project-Website/backend/internal/common/auth"
 	"github.com/JadenRazo/Project-Website/backend/internal/config"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 // AuthMiddleware handles JWT authentication for the messaging API

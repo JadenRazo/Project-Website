@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/JadenRazo/Project-Website/backend/internal/domain/entity"
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 	"gorm.io/gorm"
 )
 
@@ -26,7 +26,7 @@ type AdminClaims struct {
 	Email   string `json:"email"`
 	Role    string `json:"role"`
 	IsAdmin bool   `json:"is_admin"`
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
 
 type AdminLoginRequest struct {
@@ -161,9 +161,9 @@ func (a *AdminAuth) GenerateToken(user *entity.User) (string, int64, error) {
 		Email:   user.Email,
 		Role:    string(user.Role),
 		IsAdmin: user.IsAdmin(),
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(expiresIn).Unix(),
-			IssuedAt:  time.Now().Unix(),
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expiresIn)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			Subject:   user.ID.String(),
 		},
 	}
@@ -305,9 +305,9 @@ func (a *AdminAuth) GenerateTempToken(user *entity.User) (string, error) {
 		Email:   user.Email,
 		Role:    string(user.Role),
 		IsAdmin: false,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(expiresIn).Unix(),
-			IssuedAt:  time.Now().Unix(),
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expiresIn)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			Subject:   "mfa-pending",
 		},
 	}

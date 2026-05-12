@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/JadenRazo/Project-Website/backend/internal/app/config"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
 
@@ -174,10 +174,8 @@ func (m *JWTManager) ValidateToken(tokenString string) (*Claims, error) {
 	})
 
 	if err != nil {
-		if ve, ok := err.(*jwt.ValidationError); ok {
-			if ve.Errors&jwt.ValidationErrorExpired != 0 {
-				return nil, ErrTokenExpired
-			}
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			return nil, ErrTokenExpired
 		}
 		return nil, fmt.Errorf("%w: %v", ErrInvalidToken, err)
 	}
