@@ -11,7 +11,7 @@
   "dependencies": {
     "@types/marked": "^5.0.2",
     "dompurify": "^3.3.1",
-    "lucide-vue-next": "^0.344.0",
+    "lucide-vue-next": "^0.577.0",
     "marked": "^17.0.1",
     "pinia": "^2.1.7",
     "vue": "^3.4.21",
