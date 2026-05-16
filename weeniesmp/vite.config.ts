@@ -15,7 +15,7 @@ export default defineConfig({
     host: '0.0.0.0',
     strictPort: true,
     hmr: {
-      host: 'REDACTED-IP',
+      host: process.env.VITE_HMR_HOST ?? 'localhost',
       port: 5173,
       protocol: 'ws'
     }
