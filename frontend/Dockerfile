@@ -18,7 +18,7 @@ COPY . .
 RUN GENERATE_SOURCEMAP=false NODE_ENV=production NODE_OPTIONS='--max-old-space-size=3092' npm run build
 
 # Stage 2: Production serve with nginx
-FROM nginx:1.25-alpine
+FROM nginx:1.31-alpine
 
 # Copy custom nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
