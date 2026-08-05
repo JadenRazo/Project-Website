@@ -12,7 +12,7 @@ import (
 	globalconfig "github.com/JadenRazo/Project-Website/backend/config"
 	appconfig "github.com/JadenRazo/Project-Website/backend/internal/app/config"
 	"github.com/google/uuid"
-	"github.com/natefinch/lumberjack"
+	"gopkg.in/natefinch/lumberjack.v2"
 	"github.com/sirupsen/logrus"
 )
 
