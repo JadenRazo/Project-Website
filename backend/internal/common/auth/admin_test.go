@@ -184,6 +184,12 @@ func TestAdminAuth_GenerateSetupToken(t *testing.T) {
 }
 
 func TestAdminAuth_HasAdminAccount(t *testing.T) {
+	// NewAdminAuth panics when JWT_SECRET is unset — a deliberate fail-fast so a
+	// deployment can never fall back to a default signing key. The test has to
+	// supply one. t.Setenv restores the previous value and forbids t.Parallel,
+	// which is correct: the environment is process-global.
+	t.Setenv("JWT_SECRET", "test-only-secret-not-used-outside-tests")
+
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Silent),
 	})
@@ -242,6 +248,12 @@ func TestAdminAuth_HasAdminAccount(t *testing.T) {
 }
 
 func TestAdminAuth_Login(t *testing.T) {
+	// NewAdminAuth panics when JWT_SECRET is unset — a deliberate fail-fast so a
+	// deployment can never fall back to a default signing key. The test has to
+	// supply one. t.Setenv restores the previous value and forbids t.Parallel,
+	// which is correct: the environment is process-global.
+	t.Setenv("JWT_SECRET", "test-only-secret-not-used-outside-tests")
+
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Silent),
 	})
@@ -360,6 +372,12 @@ func TestAdminAuth_Login(t *testing.T) {
 }
 
 func TestAdminAuth_CompleteSetup(t *testing.T) {
+	// NewAdminAuth panics when JWT_SECRET is unset — a deliberate fail-fast so a
+	// deployment can never fall back to a default signing key. The test has to
+	// supply one. t.Setenv restores the previous value and forbids t.Parallel,
+	// which is correct: the environment is process-global.
+	t.Setenv("JWT_SECRET", "test-only-secret-not-used-outside-tests")
+
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Silent),
 	})
