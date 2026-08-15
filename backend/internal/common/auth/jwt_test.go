@@ -238,9 +238,13 @@ func TestExtractTokenFromBearerString(t *testing.T) {
 			wantErr:    true,
 		},
 		{
+			// ExtractTokenFromBearerString trims the value (jwt.go:233), which is
+			// right: RFC 6750 allows more than one space after "Bearer", and a
+			// token carrying leading whitespace is not the token. The expectation
+			// here was "  token123", asserting that the padding survived.
 			name:          "bearer with extra spaces",
 			authHeader:    "Bearer   token123",
-			expectedToken: "  token123",
+			expectedToken: "token123",
 			wantErr:       false,
 		},
 	}
@@ -360,24 +364,44 @@ func TestJWTManager_EdgeCases(t *testing.T) {
 		assert.Equal(t, "admin/super-user", validatedClaims.Role)
 	})
 
-	t.Run("token_at_exact_expiry", func(t *testing.T) {
-		shortCfg := &config.AuthConfig{
+	// NewJWTManager raises any TokenExpiry below 15 minutes to 15 minutes
+	// (jwt.go:56), a deliberate floor so a misconfigured deployment cannot mint
+	// near-instantly-expiring tokens. Nothing asserted that floor, and the
+	// expiry test below was defeated by it: it configured a one-second expiry,
+	// slept two seconds, and expected the token to be rejected. It was silently
+	// given a fifteen-minute token instead, so it validated fine - and the test
+	// read as "expired tokens are accepted", which is not what was happening.
+	t.Run("configured expiry below the floor is raised", func(t *testing.T) {
+		m := NewJWTManager(&config.AuthConfig{
 			JWTSecret:     "test-secret-key",
 			TokenExpiry:   time.Second,
-			RefreshExpiry: 24 * time.Hour,
+			RefreshExpiry: time.Minute,
 			Issuer:        "devpanel",
 			Audience:      "users",
+		})
+
+		assert.Equal(t, 15*time.Minute, m.tokenExpiry, "token expiry floor")
+		assert.Equal(t, 24*time.Hour, m.refreshExpiry, "refresh expiry floor")
+	})
+
+	t.Run("expired token is rejected", func(t *testing.T) {
+		// Constructed directly rather than through NewJWTManager, so the floor
+		// does not overwrite the expiry under test. This is the same approach
+		// TestJWTManager_ValidateToken already uses, and it removes a two-second
+		// sleep from the suite.
+		expired := &JWTManager{
+			secret:        []byte("test-secret-key"),
+			tokenExpiry:   -time.Minute,
+			refreshExpiry: 24 * time.Hour,
+			issuer:        "devpanel",
+			audience:      "users",
 		}
 
-		shortManager := NewJWTManager(shortCfg)
-
-		token, err := shortManager.GenerateToken("user123", "user")
+		token, err := expired.GenerateToken("user123", "user")
 		require.NoError(t, err)
 
-		time.Sleep(2 * time.Second)
-
-		_, err = shortManager.ValidateToken(token)
-		assert.Error(t, err, "Token should be expired")
+		_, err = expired.ValidateToken(token)
+		assert.ErrorIs(t, err, ErrTokenExpired)
 	})
 }
 
