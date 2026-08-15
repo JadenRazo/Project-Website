@@ -1,0 +1,5 @@
+# Go packages under backend/ that do not currently build.
+#
+# Populated from the first CI run on this branch. See scripts/ci/build-ratchet.sh.
+# This list may only shrink: CI fails if a package here starts building and the
+# file was not updated, and fails if anything not listed here breaks.
