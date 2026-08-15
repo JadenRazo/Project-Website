@@ -58,17 +58,21 @@ func TestJWTManager_GenerateToken(t *testing.T) {
 			role:    "admin",
 			wantErr: false,
 		},
+		// GenerateTokenWithDetails rejects an empty userID or role (jwt.go:128).
+		// That is the correct behaviour and these cases assert it: a signed JWT
+		// with an empty subject or an empty role is an authorization hazard, not
+		// an edge case to tolerate. The expectations here predated that check.
 		{
-			name:    "empty user ID",
+			name:    "empty user ID is rejected",
 			userID:  "",
 			role:    "user",
-			wantErr: false,
+			wantErr: true,
 		},
 		{
-			name:    "empty role",
+			name:    "empty role is rejected",
 			userID:  "user123",
 			role:    "",
-			wantErr: false,
+			wantErr: true,
 		},
 	}
 

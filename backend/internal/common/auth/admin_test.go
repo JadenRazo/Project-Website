@@ -392,6 +392,15 @@ func TestAdminAuth_CompleteSetup(t *testing.T) {
 		setupToken, err := adminAuth.GenerateSetupToken()
 		require.NoError(t, err)
 
+		// CompleteSetup compares the submitted token against ADMIN_SETUP_TOKEN
+		// and refuses with "admin setup is disabled" when that is unset
+		// (admin.go:257). GenerateSetupToken only mints a value; it does not
+		// store it anywhere. The real flow is that an operator generates one and
+		// installs it in the environment, so the test has to do the same - it
+		// was previously submitting a freshly generated token that nothing on
+		// the server side could ever have matched.
+		t.Setenv("ADMIN_SETUP_TOKEN", setupToken)
+
 		setupReq := &SetupRequest{
 			Email:           "setup@jadenrazo.dev",
 			Password:        "SetupPass123!",
