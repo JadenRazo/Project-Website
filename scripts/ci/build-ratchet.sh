@@ -34,9 +34,17 @@ WRITE=0
 [ "${1:-}" = "--write" ] && WRITE=1
 
 # -e keeps listing after a package fails to load, instead of aborting.
-mapfile -t packages < <(go list -e ./... 2>/dev/null | sort)
+#
+# Packages holding only _test.go files are excluded: `go build` reports
+# "no non-test Go files in ..." and exits non-zero for them, which is not a
+# build failure. internal/performance is one, and the first run of this script
+# flagged it as broken when it was fine. Their compilation is covered by the
+# backend-test job, which builds test files.
+mapfile -t packages < <(go list -e -f '{{if .GoFiles}}{{.ImportPath}}{{end}}' ./... 2>/dev/null | sed '/^$/d' | sort)
+mapfile -t testonly < <(go list -e -f '{{if and (not .GoFiles) (or .TestGoFiles .XTestGoFiles)}}{{.ImportPath}}{{end}}' ./... 2>/dev/null | sed '/^$/d' | sort)
+
 if [ "${#packages[@]}" -eq 0 ]; then
-  echo "error: go list returned no packages - is this the right directory?" >&2
+  echo "error: go list returned no buildable packages - is this the right directory?" >&2
   exit 2
 fi
 
@@ -49,7 +57,7 @@ done
 
 printf '%s\n' "${broken[@]}" | sed '/^$/d' | sort > /tmp/broken.now
 
-echo "packages: ${#packages[@]}   not building: $(wc -l < /tmp/broken.now)"
+echo "packages: ${#packages[@]}   not building: $(wc -l < /tmp/broken.now)   test-only (skipped): ${#testonly[@]}"
 
 if [ "$WRITE" = "1" ]; then
   cp /tmp/broken.now "$BASELINE"

@@ -114,10 +114,9 @@ func TestJWTManager_ValidateToken(t *testing.T) {
 	require.NoError(t, err)
 
 	tests := []struct {
-		name       string
-		token      string
-		wantErr    bool
-		wantClaims *CustomClaims
+		name    string
+		token   string
+		wantErr bool
 	}{
 		{
 			name:    "valid token",
