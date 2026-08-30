@@ -90,7 +90,12 @@ function DistortedImage({ imageUrl, velocity, isHovered }: DistortedImageProps) 
   })
 
   const scale = useMemo(() => {
-    const aspectRatio = texture.image ? texture.image.width / texture.image.height : 16 / 9
+    // THREE.Texture.image is typed as `{}` (it can be an HTMLImageElement, a
+    // canvas, a video, an ImageBitmap or raw data), so its dimensions have to
+    // be narrowed rather than read straight off it. Guarding on height also
+    // avoids dividing by zero before the texture has decoded.
+    const image = texture.image as { width?: number; height?: number } | undefined
+    const aspectRatio = image?.width && image?.height ? image.width / image.height : 16 / 9
     const height = viewport.height * 0.7
     const width = height * aspectRatio
     return [Math.min(width, viewport.width * 0.8), height, 1]

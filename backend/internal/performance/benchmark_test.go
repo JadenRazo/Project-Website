@@ -216,7 +216,6 @@ func BenchmarkMessagingService(b *testing.B) {
 			db.Create(msg)
 		}
 
-		memBefore := getMemoryStats()
 		latencies := make([]time.Duration, b.N)
 
 		b.ResetTimer()
@@ -262,7 +261,6 @@ func BenchmarkURLShortenerService(b *testing.B) {
 	router, _ := setupTestRouter()
 
 	b.Run("ShortenURL", func(b *testing.B) {
-		memBefore := getMemoryStats()
 		latencies := make([]time.Duration, b.N)
 
 		b.ResetTimer()

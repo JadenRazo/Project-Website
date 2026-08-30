@@ -184,6 +184,12 @@ func TestAdminAuth_GenerateSetupToken(t *testing.T) {
 }
 
 func TestAdminAuth_HasAdminAccount(t *testing.T) {
+	// NewAdminAuth panics when JWT_SECRET is unset — a deliberate fail-fast so a
+	// deployment can never fall back to a default signing key. The test has to
+	// supply one. t.Setenv restores the previous value and forbids t.Parallel,
+	// which is correct: the environment is process-global.
+	t.Setenv("JWT_SECRET", "test-only-secret-not-used-outside-tests")
+
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Silent),
 	})
@@ -242,6 +248,12 @@ func TestAdminAuth_HasAdminAccount(t *testing.T) {
 }
 
 func TestAdminAuth_Login(t *testing.T) {
+	// NewAdminAuth panics when JWT_SECRET is unset — a deliberate fail-fast so a
+	// deployment can never fall back to a default signing key. The test has to
+	// supply one. t.Setenv restores the previous value and forbids t.Parallel,
+	// which is correct: the environment is process-global.
+	t.Setenv("JWT_SECRET", "test-only-secret-not-used-outside-tests")
+
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Silent),
 	})
@@ -360,6 +372,12 @@ func TestAdminAuth_Login(t *testing.T) {
 }
 
 func TestAdminAuth_CompleteSetup(t *testing.T) {
+	// NewAdminAuth panics when JWT_SECRET is unset — a deliberate fail-fast so a
+	// deployment can never fall back to a default signing key. The test has to
+	// supply one. t.Setenv restores the previous value and forbids t.Parallel,
+	// which is correct: the environment is process-global.
+	t.Setenv("JWT_SECRET", "test-only-secret-not-used-outside-tests")
+
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Silent),
 	})
@@ -373,6 +391,15 @@ func TestAdminAuth_CompleteSetup(t *testing.T) {
 	t.Run("complete_setup_successfully", func(t *testing.T) {
 		setupToken, err := adminAuth.GenerateSetupToken()
 		require.NoError(t, err)
+
+		// CompleteSetup compares the submitted token against ADMIN_SETUP_TOKEN
+		// and refuses with "admin setup is disabled" when that is unset
+		// (admin.go:257). GenerateSetupToken only mints a value; it does not
+		// store it anywhere. The real flow is that an operator generates one and
+		// installs it in the environment, so the test has to do the same - it
+		// was previously submitting a freshly generated token that nothing on
+		// the server side could ever have matched.
+		t.Setenv("ADMIN_SETUP_TOKEN", setupToken)
 
 		setupReq := &SetupRequest{
 			Email:           "setup@jadenrazo.dev",

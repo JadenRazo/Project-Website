@@ -1,0 +1,113 @@
+name: ci
+
+# This repository had no CI at all. A baseline was written in PR #26 and closed
+# unmerged on 2026-05-16, and the checks went with it - so every commit to main
+# since has landed unverified, on a public repo.
+#
+# The reason it never came back is worth stating, because it shapes this file:
+# `go build ./...` does not pass in backend/. Some packages under
+# internal/messaging/ have duplicate declarations and reference a type that no
+# longer exists. None of them is reachable from any of the eleven binaries in
+# cmd/, so everything that ships builds and runs - which is precisely why the
+# breakage survived. A workflow gated on `go build ./...` would be red from its
+# first run forever, and a permanently red check is one nobody reads.
+#
+# So the checks here are the ones that are TRUE today and would catch a real
+# regression tomorrow, plus a ratchet that stops the known debt growing.
+#
+# Everything is a pure function of the commit: no network beyond the package
+# registries, no credentials, no clock. Safe to make a required status check.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # The eleven binaries in cmd/ are what actually deploys. These built clean
+  # even when `go build ./...` reported 36 errors, so this is a real gate rather
+  # than an aspiration.
+  backend-cmd:
+    name: backend (cmd binaries)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      - name: go mod verify
+        run: go mod verify
+      - name: Build every cmd binary
+        run: go build -o /dev/null ./cmd/...
+      - name: go vet ./cmd/...
+        run: go vet ./cmd/...
+
+  backend-test:
+    name: backend (tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      # Scoped to the packages that hold tests today - all under
+      # internal/common/auth plus internal/performance. Widening this to ./...
+      # would drag in the packages that do not compile and turn the job red for
+      # reasons that have nothing to do with the tests.
+      - name: go test
+        run: go test -race ./internal/common/auth/... ./internal/performance/...
+
+  backend-build-ratchet:
+    name: backend (build ratchet)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      # Fails if a package that builds today stops building, and equally if a
+      # package in the baseline starts building and the baseline was not updated
+      # - so the recorded debt can only go down. See the script for why this is
+      # a ratchet rather than a plain `go build ./...`.
+      - name: Build ratchet
+        run: scripts/ci/build-ratchet.sh
+
+  frontend:
+    name: frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: npm ci
+        run: npm ci
+      - name: Type check
+        run: npm run type-check
+      - name: Build
+        run: npm run build

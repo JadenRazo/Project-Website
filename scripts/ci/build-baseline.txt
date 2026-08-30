@@ -1,0 +1,35 @@
+# Go packages under backend/ that do not currently build.
+#
+# Measured by scripts/ci/build-ratchet.sh on the first CI run this repository
+# has had since PR #26 was closed unmerged on 2026-05-16. None of these is
+# reachable from any of the eleven binaries in cmd/, which is why they broke
+# without anything noticing.
+#
+# This list may only SHRINK. CI fails if a package not listed here breaks, and
+# equally if a package listed here starts building and the file was not updated.
+#
+# The bulk is the internal/messaging/ tree: duplicate declarations and
+# references to a User type that no longer exists. internal/app pulls in
+# common/tracing; common/testutil and common/validator were identified as dead
+# in PR #26 and never deleted.
+github.com/JadenRazo/Project-Website/backend/internal/app
+github.com/JadenRazo/Project-Website/backend/internal/common/testutil
+github.com/JadenRazo/Project-Website/backend/internal/common/tracing
+github.com/JadenRazo/Project-Website/backend/internal/common/validator
+github.com/JadenRazo/Project-Website/backend/internal/messaging/api
+github.com/JadenRazo/Project-Website/backend/internal/messaging/attachments
+github.com/JadenRazo/Project-Website/backend/internal/messaging/delivery
+github.com/JadenRazo/Project-Website/backend/internal/messaging/delivery/http
+github.com/JadenRazo/Project-Website/backend/internal/messaging/domain
+github.com/JadenRazo/Project-Website/backend/internal/messaging/errors
+github.com/JadenRazo/Project-Website/backend/internal/messaging/events
+github.com/JadenRazo/Project-Website/backend/internal/messaging/infrastructure/database
+github.com/JadenRazo/Project-Website/backend/internal/messaging/interfaces
+github.com/JadenRazo/Project-Website/backend/internal/messaging/repository
+github.com/JadenRazo/Project-Website/backend/internal/messaging/repository/cache
+github.com/JadenRazo/Project-Website/backend/internal/messaging/repository/postgres
+github.com/JadenRazo/Project-Website/backend/internal/messaging/service
+github.com/JadenRazo/Project-Website/backend/internal/messaging/usecase
+github.com/JadenRazo/Project-Website/backend/internal/messaging/usecases
+github.com/JadenRazo/Project-Website/backend/internal/urlshortener/repository
+github.com/JadenRazo/Project-Website/backend/internal/urlshortener/service
