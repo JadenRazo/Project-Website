@@ -129,7 +129,7 @@ func (s *Service) ServeWs(hub *Hub, c *gin.Context) {
 		if err != nil {
 			break
 		}
-		// Print the message to the console
-		fmt.Printf("%s sent: %s\n", conn.RemoteAddr(), string(msg))
+		// Record only message size; message bodies may contain secrets or log-control characters.
+		fmt.Printf("WebSocket message received (%d bytes)\n", len(msg))
 	}
 }

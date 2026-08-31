@@ -2,10 +2,13 @@ package devpanel
 
 import (
 	"bufio"
+	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
@@ -40,6 +43,15 @@ type Config struct {
 	MetricsInterval time.Duration
 	MaxLogLines     int
 	LogRetention    time.Duration
+}
+
+var serviceNamePattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$`)
+
+func validateServiceName(serviceName string) (string, error) {
+	if !serviceNamePattern.MatchString(serviceName) {
+		return "", errors.New("invalid service name")
+	}
+	return serviceName, nil
 }
 
 // SystemStats represents system-wide statistics
@@ -261,12 +273,22 @@ func (s *Service) collectServiceStats(name string, service core.Service) (Servic
 // getServiceLogs returns logs for a specific service
 func (s *Service) getServiceLogs(c *gin.Context) {
 	serviceName := c.Param("service")
+	if _, err := validateServiceName(serviceName); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
 
 	// Get limit from query params
 	limitStr := c.DefaultQuery("limit", "100")
 	limit, err := strconv.Atoi(limitStr)
+	maxLogLines := s.config.MaxLogLines
+	if maxLogLines <= 0 {
+		maxLogLines = 1000
+	}
 	if err != nil || limit <= 0 {
 		limit = 100
+	} else if limit > maxLogLines {
+		limit = maxLogLines
 	}
 
 	// Get logs from the service
@@ -286,6 +308,10 @@ func (s *Service) getServiceLogs(c *gin.Context) {
 // streamServiceLogs streams logs for a specific service
 func (s *Service) streamServiceLogs(c *gin.Context) {
 	serviceName := c.Param("service")
+	if _, err := validateServiceName(serviceName); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
 
 	// Set headers for SSE
 	c.Header("Content-Type", "text/event-stream")
@@ -294,16 +320,21 @@ func (s *Service) streamServiceLogs(c *gin.Context) {
 
 	// Create a channel for log streaming
 	logChan := make(chan string, 100)
-	defer close(logChan)
 
 	// Start streaming logs
-	go s.streamLogsForService(serviceName, logChan)
+	go func() {
+		defer close(logChan)
+		s.streamLogsForService(c.Request.Context(), serviceName, logChan)
+	}()
 
 	// Send logs to client
 	c.Stream(func(w io.Writer) bool {
 		select {
-		case log := <-logChan:
-			c.SSEvent("log", log)
+		case logLine, ok := <-logChan:
+			if !ok {
+				return false
+			}
+			c.SSEvent("log", logLine)
 			return true
 		case <-c.Request.Context().Done():
 			return false
@@ -477,25 +508,47 @@ func (s *Service) restartService(c *gin.Context) {
 
 // Helper methods for service operations
 
-// getLogsForService retrieves real logs for a specific service
-func (s *Service) getLogsForService(serviceName string, limit int) ([]string, error) {
-	// Try using LogManager if available
-	logPath := filepath.Join("logs", "services", serviceName+".log")
-	if _, err := os.Stat(logPath); os.IsNotExist(err) {
-		// Try alternative log paths
-		logPath = filepath.Join("logs", serviceName+".log")
-		if _, err := os.Stat(logPath); os.IsNotExist(err) {
-			// Try the main API log for the service
-			logPath = filepath.Join("logs", "api.log")
-			if _, err := os.Stat(logPath); os.IsNotExist(err) {
-				return []string{}, nil
-			}
+func openServiceLog(serviceName string) (*os.File, bool, error) {
+	validatedName, err := validateServiceName(serviceName)
+	if err != nil {
+		return nil, false, err
+	}
+
+	logsRoot, err := os.OpenRoot("logs")
+	if err != nil {
+		return nil, false, err
+	}
+	defer logsRoot.Close()
+
+	candidates := []struct {
+		name   string
+		shared bool
+	}{
+		{name: filepath.Join("services", validatedName+".log")},
+		{name: validatedName + ".log"},
+		{name: "api.log", shared: true},
+	}
+
+	for _, candidate := range candidates {
+		file, openErr := logsRoot.Open(candidate.name)
+		if openErr == nil {
+			return file, candidate.shared, nil
+		}
+		if !errors.Is(openErr, os.ErrNotExist) {
+			return nil, false, openErr
 		}
 	}
 
-	// Read the log file
-	file, err := os.Open(logPath)
+	return nil, false, os.ErrNotExist
+}
+
+// getLogsForService retrieves real logs for a specific service
+func (s *Service) getLogsForService(serviceName string, limit int) ([]string, error) {
+	file, sharedLog, err := openServiceLog(serviceName)
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return []string{}, nil
+		}
 		return nil, fmt.Errorf("failed to open log file: %w", err)
 	}
 	defer file.Close()
@@ -505,7 +558,7 @@ func (s *Service) getLogsForService(serviceName string, limit int) ([]string, er
 	for scanner.Scan() {
 		line := scanner.Text()
 		// Filter logs for the specific service if reading from a shared log
-		if serviceName != "" && !strings.Contains(line, serviceName) {
+		if sharedLog && !strings.Contains(line, serviceName) {
 			continue
 		}
 		lines = append(lines, line)
@@ -524,19 +577,13 @@ func (s *Service) getLogsForService(serviceName string, limit int) ([]string, er
 }
 
 // streamLogsForService streams real logs for a specific service
-func (s *Service) streamLogsForService(serviceName string, logChan chan<- string) {
-	logPath := filepath.Join("logs", "services", serviceName+".log")
-	if _, err := os.Stat(logPath); os.IsNotExist(err) {
-		logPath = filepath.Join("logs", serviceName+".log")
-		if _, err := os.Stat(logPath); os.IsNotExist(err) {
-			logPath = filepath.Join("logs", "api.log")
-		}
-	}
-
-	// Open file for tailing
-	file, err := os.Open(logPath)
+func (s *Service) streamLogsForService(ctx context.Context, serviceName string, logChan chan<- string) {
+	file, sharedLog, err := openServiceLog(serviceName)
 	if err != nil {
-		logChan <- fmt.Sprintf("Error opening log file: %v", err)
+		select {
+		case logChan <- "Log file is unavailable":
+		case <-ctx.Done():
+		}
 		return
 	}
 	defer file.Close()
@@ -556,10 +603,16 @@ func (s *Service) streamLogsForService(serviceName string, logChan chan<- string
 			line, err := reader.ReadString('\n')
 			if err == nil {
 				// Filter for service if reading shared log
-				if serviceName == "" || strings.Contains(line, serviceName) {
-					logChan <- strings.TrimSpace(line)
+				if !sharedLog || strings.Contains(line, serviceName) {
+					select {
+					case logChan <- strings.TrimSpace(line):
+					case <-ctx.Done():
+						return
+					}
 				}
 			}
+		case <-ctx.Done():
+			return
 		case <-timeout:
 			return
 		}

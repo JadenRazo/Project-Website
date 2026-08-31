@@ -18,13 +18,15 @@ func TrackingMiddleware(service *Service) gin.HandlerFunc {
 			return
 		}
 
+		path := c.Request.URL.Path
+		request := c.Request.Clone(context.Background())
+
 		go func() {
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 
-			path := c.Request.URL.Path
-			if err := service.TrackPageView(ctx, c.Request, path); err != nil {
-				log.Printf("[VISITOR TRACKING ERROR] Path: %s | Error: %v", path, err)
+			if err := service.TrackPageView(ctx, request, path); err != nil {
+				log.Printf("[VISITOR TRACKING ERROR] Path: %q | Error: %q", path, err.Error())
 
 				if service.metrics != nil {
 					service.metrics.RecordLatency(0, "/visitor/error")
@@ -83,11 +85,11 @@ func RateLimitMiddleware(maxRequestsPerMinute int) gin.HandlerFunc {
 	// Simple in-memory rate limiting
 	// In production, use Redis-based rate limiting
 	requests := make(map[string][]time.Time)
-	
+
 	return func(c *gin.Context) {
 		clientID := getClientIdentifier(c.Request)
 		now := time.Now()
-		
+
 		// Clean old entries
 		if times, exists := requests[clientID]; exists {
 			var validTimes []time.Time
@@ -98,7 +100,7 @@ func RateLimitMiddleware(maxRequestsPerMinute int) gin.HandlerFunc {
 			}
 			requests[clientID] = validTimes
 		}
-		
+
 		// Check rate limit
 		if len(requests[clientID]) >= maxRequestsPerMinute {
 			c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
@@ -106,10 +108,10 @@ func RateLimitMiddleware(maxRequestsPerMinute int) gin.HandlerFunc {
 			})
 			return
 		}
-		
+
 		// Add current request
 		requests[clientID] = append(requests[clientID], now)
-		
+
 		c.Next()
 	}
 }
@@ -124,7 +126,7 @@ func getClientIdentifier(r *http.Request) string {
 			ip = r.RemoteAddr
 		}
 	}
-	
+
 	ua := r.UserAgent()
 	return ip + "|" + ua
 }
@@ -134,14 +136,14 @@ func SecurityHeadersMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Content Security Policy
 		c.Header("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';")
-		
+
 		// Other security headers
 		c.Header("X-Content-Type-Options", "nosniff")
 		c.Header("X-Frame-Options", "DENY")
 		c.Header("X-XSS-Protection", "1; mode=block")
 		c.Header("Referrer-Policy", "strict-origin-when-cross-origin")
 		c.Header("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
-		
+
 		c.Next()
 	}
 }
@@ -152,7 +154,7 @@ func PrivacyComplianceMiddleware(service *Service) gin.HandlerFunc {
 		// Get user's location from IP (for compliance detection)
 		// This is done in memory only, IP is not stored
 		location := service.getLocationFromIP(c.Request)
-		
+
 		if location != nil {
 			// Set compliance requirements based on location
 			switch location.CountryCode {
@@ -176,7 +178,7 @@ func PrivacyComplianceMiddleware(service *Service) gin.HandlerFunc {
 				c.Set("require_consent", false)
 			}
 		}
-		
+
 		c.Next()
 	}
 }

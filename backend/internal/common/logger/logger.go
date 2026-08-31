@@ -12,8 +12,8 @@ import (
 	globalconfig "github.com/JadenRazo/Project-Website/backend/config"
 	appconfig "github.com/JadenRazo/Project-Website/backend/internal/app/config"
 	"github.com/google/uuid"
-	"gopkg.in/natefinch/lumberjack.v2"
 	"github.com/sirupsen/logrus"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 // Key constants for context values
@@ -29,6 +29,47 @@ const (
 var log *logrus.Logger
 var serviceName string
 var serviceVersion string
+
+func sanitizeLogString(value string) string {
+	value = strings.ReplaceAll(value, "\r", `\r`)
+	return strings.ReplaceAll(value, "\n", `\n`)
+}
+
+func sanitizeLogValue(value interface{}) interface{} {
+	switch typed := value.(type) {
+	case nil:
+		return nil
+	case string:
+		return sanitizeLogString(typed)
+	case error:
+		return sanitizeLogString(typed.Error())
+	case []byte:
+		return sanitizeLogString(string(typed))
+	case bool,
+		int, int8, int16, int32, int64,
+		uint, uint8, uint16, uint32, uint64,
+		float32, float64:
+		return value
+	default:
+		// Unknown values may implement String() and emit control characters when
+		// logrus formats them. Convert and sanitize them at this trust boundary.
+		return sanitizeLogString(fmt.Sprint(value))
+	}
+}
+
+func sanitizeLogMessage(args []interface{}) string {
+	// Sanitize the final rendered message, not just recognized argument types.
+	// This also covers custom fmt.Stringer implementations and nested values.
+	message := fmt.Sprint(args...)
+	message = strings.ReplaceAll(message, "\r", `\r`)
+	return strings.ReplaceAll(message, "\n", `\n`)
+}
+
+func sanitizeFormattedLogMessage(format string, args []interface{}) string {
+	message := fmt.Sprintf(format, args...)
+	message = strings.ReplaceAll(message, "\r", `\r`)
+	return strings.ReplaceAll(message, "\n", `\n`)
+}
 
 // Logger defines the logging interface
 type Logger interface {
@@ -128,22 +169,22 @@ func WithContext(ctx context.Context) *Entry {
 
 	// Extract common context values if they exist
 	if reqID, ok := ctx.Value(RequestIDKey).(string); ok {
-		entry = entry.WithField(RequestIDKey, reqID)
+		entry = entry.WithField(RequestIDKey, sanitizeLogString(reqID))
 	}
 
 	if userID, ok := ctx.Value(UserIDKey).(string); ok {
-		entry = entry.WithField(UserIDKey, userID)
+		entry = entry.WithField(UserIDKey, sanitizeLogString(userID))
 	}
 
 	if corrID, ok := ctx.Value(CorrelationID).(string); ok {
-		entry = entry.WithField(CorrelationID, corrID)
+		entry = entry.WithField(CorrelationID, sanitizeLogString(corrID))
 	} else {
 		// Generate correlation ID if not present
 		entry = entry.WithField(CorrelationID, uuid.New().String())
 	}
 
 	if sessID, ok := ctx.Value(SessionID).(string); ok {
-		entry = entry.WithField(SessionID, sessID)
+		entry = entry.WithField(SessionID, sanitizeLogString(sessID))
 	}
 
 	return &Entry{entry}
@@ -151,7 +192,7 @@ func WithContext(ctx context.Context) *Entry {
 
 // WithField adds a field to the log entry
 func WithField(key string, value interface{}) *Entry {
-	return &Entry{log.WithField(key, value)}
+	return &Entry{log.WithField(sanitizeLogString(key), sanitizeLogValue(value))}
 }
 
 // WithFields adds multiple fields to the log entry
@@ -164,7 +205,7 @@ func WithFields(fields map[string]interface{}) *Entry {
 
 	// Merge with provided fields
 	for k, v := range fields {
-		baseFields[k] = v
+		baseFields[sanitizeLogString(k)] = sanitizeLogValue(v)
 	}
 
 	return &Entry{log.WithFields(baseFields)}
@@ -172,82 +213,82 @@ func WithFields(fields map[string]interface{}) *Entry {
 
 // WithError adds an error to the log entry
 func WithError(err error) *Entry {
-	return &Entry{log.WithError(err)}
+	return &Entry{log.WithField(logrus.ErrorKey, sanitizeLogValue(err))}
 }
 
 // Debug logs a debug message
 func Debug(args ...interface{}) {
-	log.Debug(args...)
+	log.Debug(sanitizeLogMessage(args))
 }
 
 // Info logs an info message
 func Info(args ...interface{}) {
-	log.Info(args...)
+	log.Info(sanitizeLogMessage(args))
 }
 
 // Warn logs a warning message
 func Warn(args ...interface{}) {
-	log.Warn(args...)
+	log.Warn(sanitizeLogMessage(args))
 }
 
 // Error logs an error message
 func Error(args ...interface{}) {
-	log.Error(args...)
+	log.Error(sanitizeLogMessage(args))
 }
 
 // Fatal logs a fatal message and exits
 func Fatal(args ...interface{}) {
-	log.Fatal(args...)
+	log.Fatal(sanitizeLogMessage(args))
 }
 
 // Debugf logs a formatted debug message
 func Debugf(format string, args ...interface{}) {
-	log.Debugf(format, args...)
+	log.Debug(sanitizeFormattedLogMessage(format, args))
 }
 
 // Infof logs a formatted info message
 func Infof(format string, args ...interface{}) {
-	log.Infof(format, args...)
+	log.Info(sanitizeFormattedLogMessage(format, args))
 }
 
 // Warnf logs a formatted warning message
 func Warnf(format string, args ...interface{}) {
-	log.Warnf(format, args...)
+	log.Warn(sanitizeFormattedLogMessage(format, args))
 }
 
 // Errorf logs a formatted error message
 func Errorf(format string, args ...interface{}) {
-	log.Errorf(format, args...)
+	log.Error(sanitizeFormattedLogMessage(format, args))
 }
 
 // Fatalf logs a formatted fatal message and exits
 func Fatalf(format string, args ...interface{}) {
-	log.Fatalf(format, args...)
+	log.Fatal(sanitizeFormattedLogMessage(format, args))
 }
 
 // Debug logs a debug message with the given entry
 func (e *Entry) Debug(args ...interface{}) {
-	e.Entry.Debug(args...)
+	e.Entry.Debug(sanitizeLogMessage(args))
 }
 
 // Info logs an info message with the given entry
 func (e *Entry) Info(args ...interface{}) {
-	e.Entry.Info(args...)
+	e.Entry.Info(sanitizeLogMessage(args))
 }
 
 // Warn logs a warning message with the given entry
 func (e *Entry) Warn(args ...interface{}) {
-	e.Entry.Warn(args...)
+	e.Entry.Warn(sanitizeLogMessage(args))
 }
 
 // Error logs an error message with the given entry
 func (e *Entry) Error(args ...interface{}) {
-	e.Entry.Error(args...)
+	e.Entry.Error(sanitizeLogMessage(args))
 }
 
 // Fatal logs a fatal message and exits with the given entry
 func (e *Entry) Fatal(args ...interface{}) {
-	e.Entry.Fatal(args...)
+	e.Entry.Fatal(sanitizeLogMessage(args))
 }
 
 // ApplyFilters applies the configured log filters

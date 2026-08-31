@@ -1,8 +1,7 @@
 package auth
 
 import (
-	"crypto/rand"
-	"encoding/base64"
+	"crypto/subtle"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -197,12 +196,11 @@ func (a *AdminAuth) ValidateToken(tokenString string) (*AdminClaims, error) {
 }
 
 func (a *AdminAuth) GenerateSetupToken() (string, error) {
-	bytes := make([]byte, 32)
-	_, err := rand.Read(bytes)
-	if err != nil {
-		return "", err
+	setupToken := os.Getenv("ADMIN_SETUP_TOKEN")
+	if setupToken == "" {
+		return "", errors.New("admin setup is disabled")
 	}
-	return base64.URLEncoding.EncodeToString(bytes), nil
+	return setupToken, nil
 }
 
 func (a *AdminAuth) SendSetupEmail(email, setupToken string) error {
@@ -212,13 +210,7 @@ func (a *AdminAuth) SendSetupEmail(email, setupToken string) error {
 	smtpPass := os.Getenv("SMTP_PASS")
 
 	if smtpHost == "" || smtpPort == "" {
-		// Log the setup token for development
-		fmt.Printf("\n=== ADMIN SETUP TOKEN ===\n")
-		fmt.Printf("Email: %s\n", email)
-		fmt.Printf("Setup Token: %s\n", setupToken)
-		fmt.Printf("Use this token to complete admin setup at: /devpanel/setup\n")
-		fmt.Printf("========================\n\n")
-		return nil
+		return errors.New("SMTP is not configured; refusing to write the admin setup token to logs")
 	}
 
 	subject := "Admin Account Setup - Project Website"
@@ -259,7 +251,7 @@ func (a *AdminAuth) CompleteSetup(req *SetupRequest) error {
 		return errors.New("admin setup is disabled")
 	}
 
-	if req.SetupToken != expectedToken {
+	if subtle.ConstantTimeCompare([]byte(req.SetupToken), []byte(expectedToken)) != 1 {
 		return errors.New("invalid setup token")
 	}
 

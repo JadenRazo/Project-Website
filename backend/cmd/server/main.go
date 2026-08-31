@@ -272,7 +272,7 @@ func main() {
 		readReceipts.POST("/messages/:messageID", func(c *gin.Context) {
 			// Get message ID from URL parameter
 			messageIDStr := c.Param("messageID")
-			messageID, err := strconv.ParseUint(messageIDStr, 10, 64)
+			messageID, err := strconv.ParseUint(messageIDStr, 10, strconv.IntSize)
 			if err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid message ID"})
 				return
@@ -299,7 +299,7 @@ func main() {
 		readReceipts.POST("/channels/:channelID", func(c *gin.Context) {
 			// Get channel ID from URL parameter
 			channelIDStr := c.Param("channelID")
-			channelID, err := strconv.ParseUint(channelIDStr, 10, 64)
+			channelID, err := strconv.ParseUint(channelIDStr, 10, strconv.IntSize)
 			if err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid channel ID"})
 				return
@@ -326,7 +326,7 @@ func main() {
 		readReceipts.GET("/channels/:channelID/unread", func(c *gin.Context) {
 			// Get channel ID from URL parameter
 			channelIDStr := c.Param("channelID")
-			channelID, err := strconv.ParseUint(channelIDStr, 10, 64)
+			channelID, err := strconv.ParseUint(channelIDStr, 10, strconv.IntSize)
 			if err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid channel ID"})
 				return

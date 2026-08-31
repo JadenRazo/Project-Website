@@ -67,12 +67,11 @@ export const trackPageView = async (path: string): Promise<void> => {
       consecutiveFailures = 0;
 
       if (response.data?.activeVisitors !== undefined) {
-        console.debug(`[Visitor Tracking] ✓ Tracked: ${path} | ${response.data.activeVisitors} active visitors`);
+        console.debug('[Visitor Tracking] Page view recorded');
       }
     } catch (error: any) {
       consecutiveFailures++;
-      const errorMsg = error?.response?.data?.error || error?.message || 'Unknown error';
-      console.error(`[Visitor Tracking] ✗ Failed to track ${path}:`, errorMsg, `(${consecutiveFailures}/${MAX_FAILURES})`);
+      console.error('[Visitor Tracking] Page view request failed');
 
       if (error?.response?.status === 404) {
         console.error('[Visitor Tracking] Endpoint not found - check nginx configuration');
