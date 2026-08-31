@@ -700,7 +700,7 @@ const ProjectCard = React.memo<ProjectCardProps>(({
               target="_blank"
               rel="noopener noreferrer"
               tabIndex={-1}
-              onClick={(e) => e.stopPropagation()} // Prevent card expansion when clicking link
+              onClick={(event: React.MouseEvent<HTMLAnchorElement>) => event.stopPropagation()} // Prevent card expansion when clicking link
             >
               <FaGithubIcon />
               GitHub
@@ -710,7 +710,7 @@ const ProjectCard = React.memo<ProjectCardProps>(({
               target="_blank" 
               rel="noopener noreferrer" 
               tabIndex={-1}
-              onClick={(e) => e.stopPropagation()} // Prevent card expansion when clicking link
+              onClick={(event: React.MouseEvent<HTMLAnchorElement>) => event.stopPropagation()} // Prevent card expansion when clicking link
             >
               <FaExternalLinkAltIcon />
               Live Demo
