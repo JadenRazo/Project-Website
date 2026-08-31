@@ -37,23 +37,38 @@ func sanitizeLogString(value string) string {
 
 func sanitizeLogValue(value interface{}) interface{} {
 	switch typed := value.(type) {
+	case nil:
+		return nil
 	case string:
 		return sanitizeLogString(typed)
 	case error:
 		return sanitizeLogString(typed.Error())
 	case []byte:
 		return sanitizeLogString(string(typed))
-	default:
+	case bool,
+		int, int8, int16, int32, int64,
+		uint, uint8, uint16, uint32, uint64,
+		float32, float64:
 		return value
+	default:
+		// Unknown values may implement String() and emit control characters when
+		// logrus formats them. Convert and sanitize them at this trust boundary.
+		return sanitizeLogString(fmt.Sprint(value))
 	}
 }
 
-func sanitizeLogArgs(args []interface{}) []interface{} {
-	sanitized := make([]interface{}, len(args))
-	for i, arg := range args {
-		sanitized[i] = sanitizeLogValue(arg)
-	}
-	return sanitized
+func sanitizeLogMessage(args []interface{}) string {
+	// Sanitize the final rendered message, not just recognized argument types.
+	// This also covers custom fmt.Stringer implementations and nested values.
+	message := fmt.Sprint(args...)
+	message = strings.ReplaceAll(message, "\r", `\r`)
+	return strings.ReplaceAll(message, "\n", `\n`)
+}
+
+func sanitizeFormattedLogMessage(format string, args []interface{}) string {
+	message := fmt.Sprintf(format, args...)
+	message = strings.ReplaceAll(message, "\r", `\r`)
+	return strings.ReplaceAll(message, "\n", `\n`)
 }
 
 // Logger defines the logging interface
@@ -203,77 +218,77 @@ func WithError(err error) *Entry {
 
 // Debug logs a debug message
 func Debug(args ...interface{}) {
-	log.Debug(sanitizeLogArgs(args)...)
+	log.Debug(sanitizeLogMessage(args))
 }
 
 // Info logs an info message
 func Info(args ...interface{}) {
-	log.Info(sanitizeLogArgs(args)...)
+	log.Info(sanitizeLogMessage(args))
 }
 
 // Warn logs a warning message
 func Warn(args ...interface{}) {
-	log.Warn(sanitizeLogArgs(args)...)
+	log.Warn(sanitizeLogMessage(args))
 }
 
 // Error logs an error message
 func Error(args ...interface{}) {
-	log.Error(sanitizeLogArgs(args)...)
+	log.Error(sanitizeLogMessage(args))
 }
 
 // Fatal logs a fatal message and exits
 func Fatal(args ...interface{}) {
-	log.Fatal(sanitizeLogArgs(args)...)
+	log.Fatal(sanitizeLogMessage(args))
 }
 
 // Debugf logs a formatted debug message
 func Debugf(format string, args ...interface{}) {
-	log.Debugf(sanitizeLogString(format), sanitizeLogArgs(args)...)
+	log.Debug(sanitizeFormattedLogMessage(format, args))
 }
 
 // Infof logs a formatted info message
 func Infof(format string, args ...interface{}) {
-	log.Infof(sanitizeLogString(format), sanitizeLogArgs(args)...)
+	log.Info(sanitizeFormattedLogMessage(format, args))
 }
 
 // Warnf logs a formatted warning message
 func Warnf(format string, args ...interface{}) {
-	log.Warnf(sanitizeLogString(format), sanitizeLogArgs(args)...)
+	log.Warn(sanitizeFormattedLogMessage(format, args))
 }
 
 // Errorf logs a formatted error message
 func Errorf(format string, args ...interface{}) {
-	log.Errorf(sanitizeLogString(format), sanitizeLogArgs(args)...)
+	log.Error(sanitizeFormattedLogMessage(format, args))
 }
 
 // Fatalf logs a formatted fatal message and exits
 func Fatalf(format string, args ...interface{}) {
-	log.Fatalf(sanitizeLogString(format), sanitizeLogArgs(args)...)
+	log.Fatal(sanitizeFormattedLogMessage(format, args))
 }
 
 // Debug logs a debug message with the given entry
 func (e *Entry) Debug(args ...interface{}) {
-	e.Entry.Debug(sanitizeLogArgs(args)...)
+	e.Entry.Debug(sanitizeLogMessage(args))
 }
 
 // Info logs an info message with the given entry
 func (e *Entry) Info(args ...interface{}) {
-	e.Entry.Info(sanitizeLogArgs(args)...)
+	e.Entry.Info(sanitizeLogMessage(args))
 }
 
 // Warn logs a warning message with the given entry
 func (e *Entry) Warn(args ...interface{}) {
-	e.Entry.Warn(sanitizeLogArgs(args)...)
+	e.Entry.Warn(sanitizeLogMessage(args))
 }
 
 // Error logs an error message with the given entry
 func (e *Entry) Error(args ...interface{}) {
-	e.Entry.Error(sanitizeLogArgs(args)...)
+	e.Entry.Error(sanitizeLogMessage(args))
 }
 
 // Fatal logs a fatal message and exits with the given entry
 func (e *Entry) Fatal(args ...interface{}) {
-	e.Entry.Fatal(sanitizeLogArgs(args)...)
+	e.Entry.Fatal(sanitizeLogMessage(args))
 }
 
 // ApplyFilters applies the configured log filters
