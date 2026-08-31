@@ -780,7 +780,6 @@ export const BurgerMenu: React.FC<BurgerMenuProps> = ({
               animate="open"
               exit="closed"
               variants={menuVariants}
-              data-lenis-prevent
               data-scroll-lock-scrollable
             >
               <motion.nav

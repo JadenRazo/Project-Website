@@ -292,8 +292,8 @@ const Contact: React.FC = () => {
   return (
     <>
       <SEO
-        title="Contact Jaden Razo | Full Stack Developer"
-        description="Get in touch with Jaden Razo for collaboration opportunities, project inquiries, or questions about full-stack development and cloud technologies."
+        title="Contact Jaden Razo | Cloud & DevOps Engineer"
+        description="Contact Jaden Razo about cloud, DevOps, platform engineering, or SRE opportunities."
         path="/contact"
       />
       <ContactContainer>
@@ -310,7 +310,7 @@ const Contact: React.FC = () => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
-          Have a question or want to work together? I'd love to hear from you.
+          Hiring for a cloud, DevOps, platform, or SRE team? I&apos;d like to hear about the role.
         </Subtitle>
 
         {isSubmitted ? (

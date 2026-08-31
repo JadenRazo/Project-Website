@@ -22,10 +22,10 @@ import { useAuthStore } from './stores/authStore';
 import PageTransition from './components/navigation/PageTransition';
 import { useVisitorTracking } from './hooks/useVisitorTracking';
 import PortfolioLayout from './components/layout/PortfolioLayout';
-import LenisProvider from './providers/LenisProvider';
+import ScrollProvider from './providers/ScrollProvider';
 import ErrorBoundary from './components/common/ErrorBoundary';
+import PortfolioHome from './pages/PortfolioHome';
 
-const PortfolioHome = lazy(() => import('./pages/PortfolioHome'));
 const Contact = lazy(() => import('./pages/Contact/Contact'));
 const DevPanel = lazy(() => import('./pages/devpanel/DevPanel'));
 const Messaging = lazy(() => import('./pages/messaging/Messaging'));
@@ -76,9 +76,7 @@ function PortfolioPage() {
     <StyledThemeProvider theme={theme}>
       <GlobalStyles theme={theme} />
       <PortfolioLayout>
-        <Suspense fallback={<SmartSkeleton type="hero" />}>
-          <PortfolioHome />
-        </Suspense>
+        <PortfolioHome />
       </PortfolioLayout>
     </StyledThemeProvider>
   );
@@ -176,10 +174,10 @@ function App() {
     <HelmetProvider>
       <StoreInitializer>
         <Router>
-          <LenisProvider>
+          <ScrollProvider>
             <ScrollToTop />
             <AppContent />
-          </LenisProvider>
+          </ScrollProvider>
         </Router>
       </StoreInitializer>
     </HelmetProvider>

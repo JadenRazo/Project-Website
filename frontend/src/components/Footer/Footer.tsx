@@ -206,22 +206,16 @@ const Footer: React.FC = () => {
   const { themeMode, toggleTheme } = useTheme();
   
   const techStack = [
-    'TypeScript',
-    'React',
-    'Go',
-    'Python',
-    'PowerShell',
-    'Bash',
-    'PostgreSQL',
-    'Docker',
     'AWS',
     'Terraform',
-    'Active Directory',
+    'Go',
+    'TypeScript',
+    'GitHub Actions',
+    'Docker',
+    'Kubernetes',
     'Linux',
-    'Nginx',
     'Prometheus',
     'Grafana',
-    'Git',
   ];
 
   const { scrollToTop } = useScrollTo();
@@ -255,7 +249,7 @@ const Footer: React.FC = () => {
       <FooterContent>
         <FooterSection>
           <FooterTitle>About</FooterTitle>
-          <p>Systems Administrator &amp; Full Stack Developer. Building scalable infrastructure and web applications with modern technologies.</p>
+          <p>AWS cloud and DevOps engineer building reliable, secure, cost-aware systems with inspectable operational evidence.</p>
           <TechStack>
             {techStack.map((tech, index) => (
               <TechBadge
@@ -342,4 +336,4 @@ const Footer: React.FC = () => {
   );
 };
 
-export default Footer; 
+export default Footer;

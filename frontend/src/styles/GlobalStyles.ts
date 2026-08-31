@@ -2,13 +2,6 @@
 import { createGlobalStyle } from 'styled-components';
 import type { Theme } from './theme.types';
 
-// Define default system fonts for fallback
-const systemFonts = {
-  sans: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif",
-  primary: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-  mono: "'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace"
-};
-
 export const GlobalStyles = createGlobalStyle<{ theme: Theme }>`
   :root {
     --primary-color: ${({ theme }) => theme.colors.primary};
@@ -60,8 +53,6 @@ export const GlobalStyles = createGlobalStyle<{ theme: Theme }>`
   }
 
   * {
-    margin: 0;
-    padding: 0;
     box-sizing: border-box;
   }
 
@@ -137,36 +128,9 @@ export const GlobalStyles = createGlobalStyle<{ theme: Theme }>`
     z-index: calc(var(--z-scroll-indicator) - 1);
   }
 
-  /* Navigation elements */
-  nav, header {
-    position: relative;
-    z-index: var(--z-navigation);
-  }
-
   /* Reset for potentially problematic elements */
   canvas {
     display: block;
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    font-family: ${systemFonts.primary};
-    font-weight: bold;
-    line-height: 1.2;
-    margin-bottom: 1rem;
-  }
-
-  p {
-    margin-bottom: 1rem;
-  }
-
-  a {
-    color: ${({ theme }) => theme.colors.primary};
-    text-decoration: none;
-    transition: color ${({ theme }) => theme.transitions.fast};
-
-    &:hover {
-      color: ${({ theme }) => theme.colors.primaryHover};
-    }
   }
 
   img {

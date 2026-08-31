@@ -1,12 +1,12 @@
 import { useEffect, useRef } from 'react';
 import { useLocation, useNavigationType } from 'react-router-dom';
-import { useLenis } from '../../providers/LenisProvider';
+import { useScroll } from '../../providers/ScrollProvider';
 
 const ScrollToTop = () => {
   const { pathname, hash, state } = useLocation();
   const navigationType = useNavigationType();
   const prevPathRef = useRef(pathname);
-  const { lenis } = useLenis();
+  const { scrollTo } = useScroll();
 
   useEffect(() => {
     const locationState = state as { preventScroll?: boolean; fromFooter?: boolean };
@@ -19,24 +19,16 @@ const ScrollToTop = () => {
       const elementId = hash.substring(1);
       const element = document.getElementById(elementId);
       if (element) {
-        if (lenis) {
-          lenis.scrollTo(element, { offset: 0 });
-        } else {
-          element.scrollIntoView({ behavior: 'smooth' });
-        }
+        scrollTo(element);
       }
     } else {
       if (prevPathRef.current !== pathname || locationState?.fromFooter) {
-        if (lenis) {
-          lenis.scrollTo(0, { immediate: true });
-        } else {
-          window.scrollTo(0, 0);
-        }
+        scrollTo(0, { immediate: true });
       }
     }
 
     prevPathRef.current = pathname;
-  }, [pathname, hash, state, navigationType, lenis]);
+  }, [pathname, hash, state, navigationType, scrollTo]);
 
   return null;
 };

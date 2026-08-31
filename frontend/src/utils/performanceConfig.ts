@@ -102,8 +102,6 @@ export const bundleSplittingConfig = {
 
 // Resource hints for preloading critical resources
 export const criticalResourceHints = [
-  { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-  { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
   { rel: 'dns-prefetch', href: '//api.github.com' }
 ];
 
@@ -115,23 +113,6 @@ export const serviceWorkerConfig = {
   navigateFallback: '/index.html',
   navigateFallbackBlacklist: [/^\/_/, /\/[^/?]+\.[^/]+$/],
   runtimeCaching: [
-    {
-      urlPattern: /^https:\/\/fonts\.googleapis\.com\//,
-      handler: 'StaleWhileRevalidate',
-      options: {
-        cacheName: 'google-fonts-stylesheets'
-      }
-    },
-    {
-      urlPattern: /^https:\/\/fonts\.gstatic\.com\//,
-      handler: 'CacheFirst',
-      options: {
-        cacheName: 'google-fonts-webfonts',
-        expiration: {
-          maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
-        }
-      }
-    },
     {
       urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
       handler: 'CacheFirst',

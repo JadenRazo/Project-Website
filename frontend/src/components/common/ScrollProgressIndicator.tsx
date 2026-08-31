@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
-import { useLenis } from '../../providers/LenisProvider';
 
 const ProgressContainer = styled.div<{ $navHeight: number }>`
   position: fixed;
@@ -31,7 +30,6 @@ const ScrollProgressIndicator: React.FC = () => {
   const barRef = useRef<HTMLDivElement>(null);
   const navHeightRef = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
-  const { lenis } = useLenis();
 
   const measureNav = useCallback(() => {
     const nav = document.querySelector('nav');
@@ -55,24 +53,6 @@ const ScrollProgressIndicator: React.FC = () => {
   }, [measureNav]);
 
   useEffect(() => {
-    if (lenis) {
-      const onScroll = ({ progress }: { progress: number }) => {
-        if (barRef.current) {
-          barRef.current.style.transform = `scaleX(${progress})`;
-        }
-      };
-
-      lenis.on('scroll', onScroll);
-
-      if (barRef.current) {
-        barRef.current.style.transform = `scaleX(${lenis.progress || 0})`;
-      }
-
-      return () => {
-        lenis.off('scroll', onScroll);
-      };
-    }
-
     const onNativeScroll = () => {
       if (!barRef.current) return;
       const scrollTop = window.scrollY;
@@ -86,7 +66,7 @@ const ScrollProgressIndicator: React.FC = () => {
     return () => {
       window.removeEventListener('scroll', onNativeScroll);
     };
-  }, [lenis]);
+  }, []);
 
   return (
     <ProgressContainer ref={containerRef} $navHeight={navHeightRef.current}>

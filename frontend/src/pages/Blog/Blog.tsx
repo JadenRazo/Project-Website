@@ -383,7 +383,7 @@ const Blog: React.FC = () => {
   const fetchPosts = useCallback(async () => {
     setLoading(true);
     try {
-      const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || '';
+      const apiUrl = (window as any)._env_?.REACT_APP_API_URL || import.meta.env.VITE_API_URL || '';
       const params = new URLSearchParams({
         page: String(page),
         page_size: '9',
@@ -408,7 +408,7 @@ const Blog: React.FC = () => {
 
   const fetchFeatured = useCallback(async () => {
     try {
-      const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || '';
+      const apiUrl = (window as any)._env_?.REACT_APP_API_URL || import.meta.env.VITE_API_URL || '';
       const endpoint = apiUrl
         ? `${apiUrl}/api/v1/blog/featured`
         : '/api/v1/blog/featured';
@@ -445,15 +445,15 @@ const Blog: React.FC = () => {
   return (
     <>
       <SEO
-        title="Blog | Jaden Razo - Software Engineering & Web Development"
-        description="Read about software engineering, web development, and technology insights from Jaden Razo."
+        title="Cloud Engineering Notes | Jaden Razo"
+        description="Notes on AWS, DevOps, reliability, secure delivery, developer tooling, and the engineering work behind Jaden Razo's public projects."
         path="/blog"
       />
       <BlogContainer>
         <PageHeader>
           <PageTitle>Blog</PageTitle>
           <PageDescription>
-            Thoughts on software engineering, web development, and the technologies I work with day to day.
+            Notes on cloud engineering, reliable delivery, developer tooling, and the systems I work with day to day.
           </PageDescription>
         </PageHeader>
 

@@ -266,7 +266,7 @@ const BlogPost: React.FC = () => {
     setLoading(true);
     setError(false);
     try {
-      const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || '';
+      const apiUrl = (window as any)._env_?.REACT_APP_API_URL || import.meta.env.VITE_API_URL || '';
       const endpoint = apiUrl
         ? `${apiUrl}/api/v1/blog/${slug}`
         : `/api/v1/blog/${slug}`;
@@ -288,7 +288,7 @@ const BlogPost: React.FC = () => {
   useEffect(() => {
     if (!slug) return;
     if (sessionStorage.getItem('blog_viewed_' + slug)) return;
-    const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || '';
+    const apiUrl = (window as any)._env_?.REACT_APP_API_URL || import.meta.env.VITE_API_URL || '';
     const endpoint = apiUrl
       ? `${apiUrl}/api/v1/blog/${slug}/view`
       : `/api/v1/blog/${slug}/view`;

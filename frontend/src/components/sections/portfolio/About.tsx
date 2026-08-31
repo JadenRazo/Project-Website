@@ -1,87 +1,80 @@
-import { useEffect, useRef, useState } from 'react'
-import { motion, useInView } from 'framer-motion'
+import { ExternalLink } from 'lucide-react'
 
-const stats = [
-  { value: 5, suffix: '+', label: 'Years Experience' },
-  { value: 30, suffix: '+', label: 'Projects Delivered' },
-  { value: 15, suffix: '+', label: 'Clients Served' },
-  { value: 100, suffix: '%', label: 'Satisfaction Rate' },
+const signals = [
+  {
+    label: 'Incident analysis',
+    title: 'A pricing defect became a regression suite.',
+    description:
+      'The CloudCostMCP incident record shows the bad selection logic, the detection gap, live provider verification, and the controls added after the fix.',
+    href: 'https://github.com/JadenRazo/CloudCostMCP/blob/main/docs/incidents/2026-08-pricing-drift.md',
+  },
+  {
+    label: 'Controlled failure',
+    title: 'Recovery is measured, not implied.',
+    description:
+      'The SRE reference app records a 78-second ECS recovery exercise beside its SLO math, runbook, GameDay, postmortem, and explicit limitations.',
+    href: 'https://github.com/JadenRazo/sre-reference-app',
+  },
+  {
+    label: 'Release integrity',
+    title: 'Artifacts carry their own evidence.',
+    description:
+      'llm-lint uses CodeQL, SARIF, release verification, SBOMs, native package checks, and signed release artifacts instead of asking users to trust a build script.',
+    href: 'https://github.com/JadenRazo/llm-lint',
+  },
 ]
 
-function AnimatedStat({ value, suffix, label, animate }: { value: number; suffix: string; label: string; animate: boolean }) {
-  const [displayValue, setDisplayValue] = useState(0)
-  const hasAnimated = useRef(false)
-
-  useEffect(() => {
-    if (animate && !hasAnimated.current) {
-      hasAnimated.current = true
-      const duration = 1200
-      const startTime = Date.now()
-
-      const animateValue = () => {
-        const elapsed = Date.now() - startTime
-        const progress = Math.min(elapsed / duration, 1)
-        const easeOut = 1 - Math.pow(1 - progress, 3)
-        setDisplayValue(Math.floor(value * easeOut))
-
-        if (progress < 1) {
-          requestAnimationFrame(animateValue)
-        }
-      }
-
-      requestAnimationFrame(animateValue)
-    }
-  }, [animate, value])
-
-  return (
-    <div className="text-center p-3 sm:p-4 md:p-5 lg:p-6 lg:glass-card lg:rounded-2xl">
-      <div className="text-2xl sm:text-3xl md:text-3xl lg:text-4xl xl:text-5xl font-bold gradient-text mb-1 lg:mb-2 tabular-nums">
-        {displayValue}{suffix}
-      </div>
-      <div className="text-text-secondary text-xs sm:text-xs md:text-sm lg:text-base">{label}</div>
-    </div>
-  )
-}
-
 export default function About() {
-  const sectionRef = useRef<HTMLElement>(null)
-  const isInView = useInView(sectionRef, { once: true, margin: '-200px' })
-
   return (
-    <section ref={sectionRef} id="about" className="relative w-full pt-0 pb-12 sm:pb-16 md:pb-20 lg:pb-28">
-      <div className="w-full flex flex-col items-center px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
-          className="mb-8 sm:mb-10 md:mb-12 lg:mb-14 text-center max-w-3xl"
-        >
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-text-primary mb-3 md:mb-4 lg:mb-5">
-            About <span className="gradient-text">Me</span>
-          </h2>
-          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-text-secondary leading-relaxed px-2 md:px-0">
-            CompTIA A+ and Network+ certified IT professional and full-stack developer.
-            I build and maintain scalable infrastructure, web applications, and cloud
-            environments across Windows, Mac, and Linux.
+    <section id="about" aria-labelledby="about-title" className="relative w-full border-b border-border py-16 sm:py-20 lg:py-28">
+      <div className="portfolio-container grid gap-12 lg:grid-cols-[0.72fr_1.28fr] lg:gap-20">
+        <div>
+          <p className="mb-4 font-mono text-xs uppercase tracking-[0.2em] text-primary">
+            Engineering signal
           </p>
-        </motion.div>
+          <h2 id="about-title" className="font-display text-4xl font-bold leading-tight tracking-[-0.04em] text-text-primary sm:text-5xl lg:text-6xl">
+            Evidence over adjectives.
+          </h2>
+          <p className="mt-6 max-w-xl text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">
+            I run RaizHost and build public cloud, reliability, and developer-tooling
+            projects around one rule: architecture claims should resolve to code,
+            tests, measurements, or an honest limitation.
+          </p>
+          <p className="mt-4 max-w-xl text-[15px] leading-7 text-text-muted sm:text-base">
+            My strongest work sits where AWS infrastructure, secure delivery,
+            observability, and operational ownership meet. I&apos;m CompTIA A+ and
+            Network+ certified and currently focused on cloud, DevOps, platform,
+            and SRE roles.
+          </p>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 lg:gap-8 w-full max-w-4xl lg:max-w-5xl"
-        >
-          {stats.map((stat) => (
-            <AnimatedStat
-              key={stat.label}
-              value={stat.value}
-              suffix={stat.suffix}
-              label={stat.label}
-              animate={isInView}
-            />
+        <div className="border-t border-border">
+          {signals.map((signal, index) => (
+            <a
+              key={signal.label}
+              href={signal.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group grid gap-3 border-b border-border py-6 sm:grid-cols-[3rem_1fr_auto] sm:gap-5 sm:py-7"
+            >
+              <span className="font-mono text-xs text-text-muted">
+                {String(index + 1).padStart(2, '0')}
+              </span>
+              <span>
+                <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-primary">
+                  {signal.label}
+                </span>
+                <span className="mt-2 block text-lg font-semibold leading-7 text-text-primary group-hover:text-primary sm:text-xl">
+                  {signal.title}
+                </span>
+                <span className="mt-2 block text-[15px] leading-7 text-text-secondary sm:text-base">
+                  {signal.description}
+                </span>
+              </span>
+              <ExternalLink className="hidden h-4 w-4 text-text-muted group-hover:text-primary sm:block" aria-hidden="true" />
+            </a>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   )

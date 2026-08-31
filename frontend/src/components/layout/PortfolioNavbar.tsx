@@ -1,118 +1,108 @@
-import { useState, useEffect } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence, useAnimation } from 'framer-motion'
-import { Menu, X } from 'lucide-react'
-import CodeCounter from '../ui/CodeCounter'
-import { useIntroComplete } from '../../context/IntroContext'
+import { useState } from 'react'
+import { Github, Menu, X } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
-const navLinks = [
-  { name: 'About', href: '/about' },
-  { name: 'Contact', href: '/contact' },
+import { useScroll } from '../../providers/ScrollProvider'
+
+const sectionLinks = [
+  { name: 'Evidence', href: '#about' },
+  { name: 'Work', href: '#projects' },
+  { name: 'Approach', href: '#services' },
 ]
 
 export default function PortfolioNavbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const location = useLocation()
-  const navigate = useNavigate()
-  const introComplete = useIntroComplete()
-  const controls = useAnimation()
+  const { scrollTo } = useScroll()
 
-  useEffect(() => {
+  const goToSection = (event: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    event.preventDefault()
     setIsMobileMenuOpen(false)
-  }, [location])
-
-  useEffect(() => {
-    if (introComplete) {
-      controls.start({ y: 0 })
-    }
-  }, [introComplete, controls])
-
-  const handleNavClick = (href: string) => {
-    navigate(href)
-    setIsMobileMenuOpen(false)
+    scrollTo(href)
   }
 
   return (
-    <motion.nav
-      initial={{ y: -100 }}
-      animate={controls}
-      transition={{ duration: 0.6, ease: 'easeOut' }}
-      className="fixed top-0 left-0 right-0 z-50 py-3 sm:py-4 lg:py-5 bg-background/70 backdrop-blur-xl border-b border-border/50"
-    >
-      <div className="container flex items-center justify-between">
-        <div className="flex items-center gap-2 sm:gap-4">
-          <Link to="/" className="relative group">
-            <span className="text-xl sm:text-2xl font-bold gradient-text">Portfolio</span>
-            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-accent transition-all duration-300 group-hover:w-full" />
-          </Link>
-          <CodeCounter />
-        </div>
+    <nav className="fixed inset-x-0 top-0 z-50 border-b border-border bg-background/95 py-3 backdrop-blur-md sm:py-4" aria-label="Primary navigation">
+      <div className="portfolio-container flex items-center justify-between gap-4">
+        <Link to="/" className="flex min-h-11 items-center gap-3 text-text-primary">
+          <span className="font-display text-lg font-bold tracking-[-0.02em] sm:text-xl">
+            Jaden Razo
+          </span>
+          <span className="hidden border-l border-border pl-3 font-mono text-[10px] uppercase tracking-[0.16em] text-text-muted sm:block">
+            Cloud / DevOps
+          </span>
+        </Link>
 
         <button
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="lg:hidden p-3 min-w-[44px] min-h-[44px] flex items-center justify-center text-text-primary rounded-full hover:bg-surface-hover active:bg-surface-hover transition-colors"
-          aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+          type="button"
+          onClick={() => setIsMobileMenuOpen((open) => !open)}
+          className="flex min-h-11 min-w-11 items-center justify-center border border-border text-text-primary hover:border-primary hover:text-primary lg:hidden"
+          aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={isMobileMenuOpen}
+          aria-controls="portfolio-mobile-menu"
         >
-          {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+          {isMobileMenuOpen ? <X size={21} /> : <Menu size={21} />}
         </button>
 
-        <div className="hidden lg:flex items-center gap-10">
-          <Link
-            to="/blog"
-            className="relative text-sm font-medium text-text-secondary hover:text-text-primary transition-colors duration-300 group tracking-wide"
-          >
-            Blog
-            <span className="absolute -bottom-1.5 left-0 w-0 h-[2px] bg-gradient-to-r from-primary to-accent transition-all duration-300 group-hover:w-full" />
-          </Link>
-          {navLinks.map((link) => (
-            <button
+        <div className="hidden items-center gap-8 lg:flex">
+          {sectionLinks.map((link) => (
+            <a
               key={link.name}
-              onClick={() => handleNavClick(link.href)}
-              className="relative text-sm font-medium text-text-secondary hover:text-text-primary transition-colors duration-300 group tracking-wide"
+              href={link.href}
+              onClick={(event) => goToSection(event, link.href)}
+              className="inline-flex min-h-11 items-center text-sm font-medium text-text-secondary hover:text-primary"
             >
               {link.name}
-              <span className="absolute -bottom-1.5 left-0 w-0 h-[2px] bg-gradient-to-r from-primary to-accent transition-all duration-300 group-hover:w-full" />
-            </button>
+            </a>
           ))}
-          <button className="btn-primary" onClick={() => handleNavClick('/contact')}>
-            <span>Hire Me</span>
-          </button>
+          <Link to="/blog" className="inline-flex min-h-11 items-center text-sm font-medium text-text-secondary hover:text-primary">
+            Blog
+          </Link>
+          <a
+            href="https://github.com/JadenRazo"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-text-secondary hover:text-primary"
+          >
+            <Github size={16} aria-hidden="true" />
+            GitHub
+          </a>
+          <a href="mailto:contact@jadenrazo.dev" className="inline-flex min-h-11 items-center border border-primary px-4 text-sm font-semibold text-primary hover:bg-primary hover:text-white">
+            Contact
+          </a>
         </div>
       </div>
 
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="lg:hidden glass mt-4 mx-4 rounded-2xl overflow-hidden"
-          >
-            <div className="flex flex-col p-5 gap-1">
-              <Link
-                to="/blog"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="text-left text-base text-text-secondary hover:text-text-primary active:text-text-primary transition-colors duration-300 py-3 min-h-[44px] flex items-center"
+      {isMobileMenuOpen && (
+        <div id="portfolio-mobile-menu" className="portfolio-container pt-3 lg:hidden">
+          <div className="border border-border bg-background-secondary p-3">
+            {sectionLinks.map((link) => (
+              <a
+                key={link.name}
+                href={link.href}
+                onClick={(event) => goToSection(event, link.href)}
+                className="flex min-h-12 items-center border-b border-border px-2 text-base text-text-secondary last:border-b-0 hover:text-primary"
               >
-                Blog
-              </Link>
-              {navLinks.map((link) => (
-                <button
-                  key={link.name}
-                  onClick={() => handleNavClick(link.href)}
-                  className="text-left text-base text-text-secondary hover:text-text-primary active:text-text-primary transition-colors duration-300 py-3 min-h-[44px] flex items-center"
-                >
-                  {link.name}
-                </button>
-              ))}
-              <button className="btn-primary mt-3 w-full" onClick={() => handleNavClick('/contact')}>
-                <span>Hire Me</span>
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.nav>
+                {link.name}
+              </a>
+            ))}
+            <Link to="/blog" onClick={() => setIsMobileMenuOpen(false)} className="flex min-h-12 items-center border-b border-border px-2 text-base text-text-secondary hover:text-primary">
+              Blog
+            </Link>
+            <a
+              href="https://github.com/JadenRazo"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex min-h-12 items-center gap-2 border-b border-border px-2 text-base text-text-secondary hover:text-primary"
+            >
+              <Github size={17} aria-hidden="true" />
+              GitHub
+            </a>
+            <a href="mailto:contact@jadenrazo.dev" className="mt-3 flex min-h-12 items-center justify-center bg-primary px-4 font-semibold text-white">
+              Contact about a role
+            </a>
+          </div>
+        </div>
+      )}
+    </nav>
   )
 }

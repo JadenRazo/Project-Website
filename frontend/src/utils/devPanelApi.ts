@@ -166,7 +166,7 @@ export const getAuthHeaders = (): Record<string, string> => {
 };
 
 export const buildApiUrl = (endpoint: string): string => {
-  const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || '';
+  const apiUrl = (window as any)._env_?.REACT_APP_API_URL || import.meta.env.VITE_API_URL || '';
   return apiUrl ? `${apiUrl}${endpoint}` : endpoint;
 };
 

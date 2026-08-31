@@ -6,8 +6,8 @@ export default function PortfolioHome() {
   return (
     <>
       <SEO
-        title="Jaden Razo | Full Stack Developer - Building scalable web applications"
-        description="Full Stack Developer specializing in React, TypeScript, Go, and cloud technologies. Building scalable web applications and microservices with modern best practices."
+        title="Jaden Razo | AWS Cloud & DevOps Engineer"
+        description="AWS cloud and DevOps engineer building reliable, secure, cost-aware systems with Terraform, Go, TypeScript, SRE practices, and inspectable operational evidence."
         path="/"
       />
       <div className="relative">

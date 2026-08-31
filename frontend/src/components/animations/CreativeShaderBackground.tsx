@@ -483,11 +483,6 @@ export const CreativeShaderBackground: React.FC<CreativeShaderBackgroundProps> =
       renderer.setSize(width, height);
     }
     
-    // Set up pattern change animation
-    let lastPatternValue = patternValue;
-    const patternChangeTime = Date.now();
-    
-    
     return () => {
       // Clean up on unmount
       if (frameRef.current) {
@@ -688,4 +683,4 @@ export const CreativeShaderBackground: React.FC<CreativeShaderBackgroundProps> =
   );
 };
 
-export default CreativeShaderBackground; 
+export default CreativeShaderBackground;

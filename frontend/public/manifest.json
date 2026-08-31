@@ -1,6 +1,8 @@
 {
   "short_name": "Jaden Razo",
-  "name": "Jaden Razo - Full Stack Developer",
+  "name": "Jaden Razo - AWS Cloud & DevOps Engineer",
+  "description": "Evidence-led cloud, DevOps, platform, and SRE engineering portfolio.",
+  "id": "/",
   "icons": [
     {
       "src": "favicon.ico",
@@ -23,7 +25,8 @@
       "sizes": "180x180"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "theme_color": "#050911",
   "background_color": "#050911"

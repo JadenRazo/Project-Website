@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOptimizedScrollHandler } from '../../hooks/useOptimizedScrollHandler';
-import { useLenis } from '../../providers/LenisProvider';
+import { useScroll } from '../../providers/ScrollProvider';
 
 const ButtonContainer = styled(motion.button)`
   position: fixed;
@@ -53,7 +53,7 @@ const ButtonContainer = styled(motion.button)`
 
 const ScrollToTopButton: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
-  const { scrollTo } = useLenis();
+  const { scrollTo } = useScroll();
 
   const handleScroll = () => {
     const scrolled = window.scrollY > 300;
