@@ -3,10 +3,10 @@ package auth
 import (
 	"testing"
 
+	"github.com/glebarez/sqlite"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
@@ -166,21 +166,29 @@ func TestAdminAuth_GenerateSetupToken(t *testing.T) {
 		jwtSecret: "test-secret-key",
 	}
 
-	t.Run("generate_setup_token", func(t *testing.T) {
+	t.Run("returns_configured_setup_token", func(t *testing.T) {
+		t.Setenv("ADMIN_SETUP_TOKEN", "test-only-admin-setup-token")
 		token, err := adminAuth.GenerateSetupToken()
 		assert.NoError(t, err)
-		assert.NotEmpty(t, token)
-		assert.True(t, len(token) > 40) // Base64 encoded token should be reasonably long
+		assert.Equal(t, "test-only-admin-setup-token", token)
 	})
 
-	t.Run("tokens_are_unique", func(t *testing.T) {
-		token1, err1 := adminAuth.GenerateSetupToken()
-		token2, err2 := adminAuth.GenerateSetupToken()
-
-		assert.NoError(t, err1)
-		assert.NoError(t, err2)
-		assert.NotEqual(t, token1, token2)
+	t.Run("fails_closed_when_setup_is_disabled", func(t *testing.T) {
+		t.Setenv("ADMIN_SETUP_TOKEN", "")
+		token, err := adminAuth.GenerateSetupToken()
+		assert.Error(t, err)
+		assert.Empty(t, token)
 	})
+}
+
+func TestAdminAuth_SendSetupEmailFailsClosedWithoutSMTP(t *testing.T) {
+	t.Setenv("SMTP_HOST", "")
+	t.Setenv("SMTP_PORT", "")
+
+	adminAuth := &AdminAuth{}
+	err := adminAuth.SendSetupEmail("admin@jadenrazo.dev", "never-write-this-token")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "refusing to write the admin setup token to logs")
 }
 
 func TestAdminAuth_HasAdminAccount(t *testing.T) {
@@ -377,6 +385,7 @@ func TestAdminAuth_CompleteSetup(t *testing.T) {
 	// supply one. t.Setenv restores the previous value and forbids t.Parallel,
 	// which is correct: the environment is process-global.
 	t.Setenv("JWT_SECRET", "test-only-secret-not-used-outside-tests")
+	t.Setenv("ADMIN_SETUP_TOKEN", "test-only-admin-setup-token")
 
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Silent),
@@ -391,15 +400,6 @@ func TestAdminAuth_CompleteSetup(t *testing.T) {
 	t.Run("complete_setup_successfully", func(t *testing.T) {
 		setupToken, err := adminAuth.GenerateSetupToken()
 		require.NoError(t, err)
-
-		// CompleteSetup compares the submitted token against ADMIN_SETUP_TOKEN
-		// and refuses with "admin setup is disabled" when that is unset
-		// (admin.go:257). GenerateSetupToken only mints a value; it does not
-		// store it anywhere. The real flow is that an operator generates one and
-		// installs it in the environment, so the test has to do the same - it
-		// was previously submitting a freshly generated token that nothing on
-		// the server side could ever have matched.
-		t.Setenv("ADMIN_SETUP_TOKEN", setupToken)
 
 		setupReq := &SetupRequest{
 			Email:           "setup@jadenrazo.dev",

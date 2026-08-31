@@ -352,8 +352,9 @@ const BlogPost: React.FC = () => {
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      >
+        {JSON.stringify(jsonLd)}
+      </script>
       <PostContainer>
         <BackLink to="/blog">← Back to Blog</BackLink>
 

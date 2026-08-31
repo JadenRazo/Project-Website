@@ -2,8 +2,11 @@ package projectpath
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/JadenRazo/Project-Website/backend/internal/common/logger"
@@ -16,8 +19,78 @@ type CodeStatsUpdater interface {
 }
 
 type ProjectPathService struct {
-	repo        Repository
+	repo         Repository
 	statsUpdater CodeStatsUpdater
+}
+
+const codeStatsAllowedRootsEnv = "CODE_STATS_ALLOWED_ROOTS"
+
+func configuredProjectRoots() ([]string, error) {
+	configured := os.Getenv(codeStatsAllowedRootsEnv)
+	if configured == "" {
+		workingDirectory, err := os.Getwd()
+		if err != nil {
+			return nil, fmt.Errorf("resolve default code-stats root: %w", err)
+		}
+		configured = workingDirectory
+	}
+
+	var roots []string
+	for _, candidate := range filepath.SplitList(configured) {
+		if strings.TrimSpace(candidate) == "" {
+			continue
+		}
+		absolute, err := filepath.Abs(candidate)
+		if err != nil {
+			return nil, fmt.Errorf("resolve configured code-stats root: %w", err)
+		}
+		roots = append(roots, filepath.Clean(absolute))
+	}
+
+	if len(roots) == 0 {
+		return nil, fmt.Errorf("%s does not contain a usable path", codeStatsAllowedRootsEnv)
+	}
+	return roots, nil
+}
+
+func resolveProjectPath(candidate string) (string, error) {
+	absoluteCandidate, err := filepath.Abs(candidate)
+	if err != nil {
+		return "", fmt.Errorf("resolve project path: %w", err)
+	}
+	absoluteCandidate = filepath.Clean(absoluteCandidate)
+
+	roots, err := configuredProjectRoots()
+	if err != nil {
+		return "", err
+	}
+
+	for _, rootPath := range roots {
+		relative, relErr := filepath.Rel(rootPath, absoluteCandidate)
+		if relErr != nil || filepath.IsAbs(relative) || relative == ".." || strings.HasPrefix(relative, ".."+string(os.PathSeparator)) {
+			continue
+		}
+
+		root, openErr := os.OpenRoot(rootPath)
+		if openErr != nil {
+			return "", fmt.Errorf("open configured code-stats root: %w", openErr)
+		}
+		info, statErr := root.Stat(relative)
+		closeErr := root.Close()
+		if statErr != nil {
+			return "", fmt.Errorf("inspect project path: %w", statErr)
+		}
+		if closeErr != nil {
+			return "", fmt.Errorf("close configured code-stats root: %w", closeErr)
+		}
+		if !info.IsDir() {
+			return "", errors.New("project path must be a directory")
+		}
+
+		return filepath.Join(rootPath, relative), nil
+	}
+
+	return "", fmt.Errorf("project path must be inside one of the roots configured by %s", codeStatsAllowedRootsEnv)
 }
 
 func NewService(repo Repository) *ProjectPathService {
@@ -26,7 +99,7 @@ func NewService(repo Repository) *ProjectPathService {
 
 func NewServiceWithStatsUpdater(repo Repository, statsUpdater CodeStatsUpdater) *ProjectPathService {
 	return &ProjectPathService{
-		repo:        repo,
+		repo:         repo,
 		statsUpdater: statsUpdater,
 	}
 }
@@ -46,7 +119,7 @@ func (s *ProjectPathService) CreateProjectPath(ctx context.Context, path *Projec
 
 	// Trigger async code stats update
 	s.triggerStatsUpdate("created project path", path.Name)
-	
+
 	return nil
 }
 
@@ -72,14 +145,14 @@ func (s *ProjectPathService) UpdateProjectPath(ctx context.Context, path *Projec
 	}
 
 	// Trigger async code stats update if active status changed or path details changed
-	shouldUpdate := existing.IsActive != path.IsActive || 
-		existing.Path != path.Path || 
+	shouldUpdate := existing.IsActive != path.IsActive ||
+		existing.Path != path.Path ||
 		fmt.Sprintf("%v", existing.ExcludePatterns) != fmt.Sprintf("%v", path.ExcludePatterns)
-	
+
 	if shouldUpdate {
 		s.triggerStatsUpdate("updated project path", path.Name)
 	}
-	
+
 	return nil
 }
 
@@ -96,7 +169,7 @@ func (s *ProjectPathService) DeleteProjectPath(ctx context.Context, id uuid.UUID
 
 	// Trigger async code stats update
 	s.triggerStatsUpdate("deleted project path", path.Name)
-	
+
 	return nil
 }
 
@@ -129,9 +202,11 @@ func (s *ProjectPathService) validateProjectPath(path *ProjectPath) error {
 		return fmt.Errorf("path is required")
 	}
 
-	if _, err := os.Stat(path.Path); os.IsNotExist(err) {
-		return fmt.Errorf("path does not exist: %s", path.Path)
+	resolvedPath, err := resolveProjectPath(path.Path)
+	if err != nil {
+		return err
 	}
+	path.Path = resolvedPath
 
 	if path.ExcludePatterns == nil {
 		path.ExcludePatterns = make([]string, 0)
@@ -143,16 +218,16 @@ func (s *ProjectPathService) validateProjectPath(path *ProjectPath) error {
 // triggerStatsUpdate asynchronously updates code statistics
 func (s *ProjectPathService) triggerStatsUpdate(action, pathName string) {
 	if s.statsUpdater == nil {
-		logger.Warn("Code stats updater not configured, skipping stats update", 
+		logger.Warn("Code stats updater not configured, skipping stats update",
 			"action", action, "path", pathName)
 		return
 	}
 
 	// Run stats update in a goroutine to avoid blocking the API response
 	go func() {
-		logger.Info("Triggering code stats update", 
+		logger.Info("Triggering code stats update",
 			"action", action, "path", pathName)
-		
+
 		if err := s.statsUpdater.UpdateStats(); err != nil {
 			logger.Error("Failed to update code statistics after project path change",
 				"action", action, "path", pathName, "error", err)

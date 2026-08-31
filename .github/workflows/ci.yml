@@ -67,12 +67,18 @@ jobs:
         with:
           go-version-file: backend/go.mod
           cache-dependency-path: backend/go.sum
-      # Scoped to the packages that hold tests today - all under
-      # internal/common/auth plus internal/performance. Widening this to ./...
+      # Scoped to the packages that hold tests today - auth, the focused
+      # security-sensitive packages, and performance. Widening this to ./...
       # would drag in the packages that do not compile and turn the job red for
       # reasons that have nothing to do with the tests.
       - name: go test
-        run: go test -race ./internal/common/auth/... ./internal/performance/...
+        run: >-
+          go test -race
+          ./internal/common/auth/...
+          ./internal/common/logger
+          ./internal/codestats/projectpath
+          ./internal/devpanel
+          ./internal/performance/...
 
   backend-build-ratchet:
     name: backend (build ratchet)

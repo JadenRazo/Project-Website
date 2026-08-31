@@ -78,13 +78,19 @@ services:
       - REDIS_PORT=6379
       - JWT_SECRET=${JWT_SECRET}
       - ADMIN_TOKEN=${ADMIN_TOKEN}
+      - ADMIN_SETUP_TOKEN=${ADMIN_SETUP_TOKEN}
       - OAUTH_ENCRYPTION_KEY=${OAUTH_ENCRYPTION_KEY}
       - RESEND_API_KEY=${RESEND_API_KEY}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
       - FROM_EMAIL=${FROM_EMAIL}
       - CONTACT_TO_EMAIL=${CONTACT_TO_EMAIL}
       - METRICS_ENABLED=true
       - VISITOR_TRACKING_ENABLED=true
       - PRIVACY_MODE=balanced
+      - CODE_STATS_ALLOWED_ROOTS=/main/Project-Website:/quiz_bot
       - PORT=8080
     volumes:
       - ./deploy/redis/certs:/app/certs:ro

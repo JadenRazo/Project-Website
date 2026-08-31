@@ -57,17 +57,17 @@ func HTTPLogger(next http.Handler) http.Handler {
 
 		// Log the request
 		entry := log.WithFields(logrus.Fields{
-			"remote_addr":  r.RemoteAddr,
-			"method":       r.Method,
-			"path":         r.URL.Path,
-			"query":        r.URL.RawQuery,
+			"remote_addr":  sanitizeLogString(r.RemoteAddr),
+			"method":       sanitizeLogString(r.Method),
+			"path":         sanitizeLogString(r.URL.Path),
+			"query":        sanitizeLogString(r.URL.RawQuery),
 			"status":       rw.statusCode,
 			"size":         rw.size,
 			"duration_ms":  duration.Milliseconds(),
-			"user_agent":   r.UserAgent(),
-			"referer":      r.Referer(),
-			"request_id":   r.Header.Get("X-Request-ID"),
-			"content_type": r.Header.Get("Content-Type"),
+			"user_agent":   sanitizeLogString(r.UserAgent()),
+			"referer":      sanitizeLogString(r.Referer()),
+			"request_id":   sanitizeLogString(r.Header.Get("X-Request-ID")),
+			"content_type": sanitizeLogString(r.Header.Get("Content-Type")),
 		})
 
 		msg := "HTTP Request"
@@ -85,9 +85,9 @@ func HTTPLogger(next http.Handler) http.Handler {
 // RequestLogger returns a logger with request context
 func RequestLogger(r *http.Request) *logrus.Entry {
 	return log.WithFields(logrus.Fields{
-		"remote_addr": r.RemoteAddr,
-		"method":      r.Method,
-		"path":        r.URL.Path,
-		"request_id":  r.Header.Get("X-Request-ID"),
+		"remote_addr": sanitizeLogString(r.RemoteAddr),
+		"method":      sanitizeLogString(r.Method),
+		"path":        sanitizeLogString(r.URL.Path),
+		"request_id":  sanitizeLogString(r.Header.Get("X-Request-ID")),
 	})
 }

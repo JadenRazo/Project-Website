@@ -33,6 +33,16 @@ type WebSocketEvent =
   | { type: 'user_status_changed'; payload: { userId: string; status: string } }
   | { type: 'error'; payload: { message: string } };
 
+type MessagesByChannel = Map<string, Message[]>;
+
+const randomIndex = (length: number): number => {
+  if (length <= 0) return 0;
+
+  const randomValue = new Uint32Array(1);
+  crypto.getRandomValues(randomValue);
+  return randomValue[0] % length;
+};
+
 // Styled Components
 const PageContainer = styled.div`
   display: flex;
@@ -277,7 +287,7 @@ const EmptyStateText = styled.p`
 
 // Mock data function that simulates WebSocket events
 const createMockWebSocketEvents = (setChannels: React.Dispatch<React.SetStateAction<Channel[]>>, 
-                                   setMessages: React.Dispatch<React.SetStateAction<Record<string, Message[]>>>,
+                                   setMessages: React.Dispatch<React.SetStateAction<MessagesByChannel>>,
                                    setUsers: React.Dispatch<React.SetStateAction<User[]>>) => {
   // Initial mock data
   setTimeout(() => {
@@ -294,8 +304,8 @@ const createMockWebSocketEvents = (setChannels: React.Dispatch<React.SetStateAct
       { id: '4', username: 'charlie', status: 'offline' },
     ]);
     
-    setMessages({
-      '1': [
+    setMessages(new Map([
+      ['1', [
         { 
           id: '1', 
           channelId: '1', 
@@ -312,8 +322,8 @@ const createMockWebSocketEvents = (setChannels: React.Dispatch<React.SetStateAct
           content: 'Thanks for setting this up!', 
           timestamp: new Date(Date.now() - 3000000).toISOString()
         },
-      ],
-      '2': [
+      ]],
+      ['2', [
         { 
           id: '3', 
           channelId: '2', 
@@ -322,9 +332,9 @@ const createMockWebSocketEvents = (setChannels: React.Dispatch<React.SetStateAct
           content: 'How do I connect to the websocket endpoint?', 
           timestamp: new Date(Date.now() - 1800000).toISOString()
         },
-      ],
-      '3': []
-    });
+      ]],
+      ['3', []],
+    ]));
   }, 1000);
   
   // Simulate incoming message every 15 seconds in general channel
@@ -344,9 +354,9 @@ const createMockWebSocketEvents = (setChannels: React.Dispatch<React.SetStateAct
       payload: {
         id: (++counter).toString(),
         channelId: '1',
-        userId: Math.floor(Math.random() * 3 + 2).toString(),
-        username: mockUsers[Math.floor(Math.random() * mockUsers.length)],
-        content: mockContents[Math.floor(Math.random() * mockContents.length)],
+        userId: (randomIndex(3) + 2).toString(),
+        username: mockUsers[randomIndex(mockUsers.length)],
+        content: mockContents[randomIndex(mockContents.length)],
         timestamp: new Date().toISOString()
       }
     };
@@ -357,8 +367,8 @@ const createMockWebSocketEvents = (setChannels: React.Dispatch<React.SetStateAct
   // Simulate user status changes every 20 seconds
   const statusInterval = setInterval(() => {
     const statuses: Array<'online' | 'offline' | 'away'> = ['online', 'offline', 'away'];
-    const userId = Math.floor(Math.random() * 3 + 2).toString();
-    const status = statuses[Math.floor(Math.random() * statuses.length)];
+    const userId = (randomIndex(3) + 2).toString();
+    const status = statuses[randomIndex(statuses.length)];
     
     const mockEvent: WebSocketEvent = {
       type: 'user_status_changed',
@@ -373,13 +383,12 @@ const createMockWebSocketEvents = (setChannels: React.Dispatch<React.SetStateAct
   
   function handleMockEvent(event: WebSocketEvent) {
     if (event.type === 'message') {
-      setMessages(prev => ({
-        ...prev,
-        [event.payload.channelId]: [
-          ...prev[event.payload.channelId],
-          event.payload
-        ]
-      }));
+      setMessages(prev => {
+        const next = new Map(prev);
+        const channelMessages = prev.get(event.payload.channelId) || [];
+        next.set(event.payload.channelId, [...channelMessages, event.payload]);
+        return next;
+      });
     } else if (event.type === 'user_status_changed') {
       setUsers(prev => 
         prev.map(user => 
@@ -405,7 +414,7 @@ const Messaging: React.FC = () => {
   
   const [channels, setChannels] = useState<Channel[]>([]);
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
-  const [messages, setMessages] = useState<Record<string, Message[]>>({});
+  const [messages, setMessages] = useState<MessagesByChannel>(() => new Map());
   const [users, setUsers] = useState<User[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [currentUser] = useState<User>({ id: '1', username: 'jaden', status: 'online' });
@@ -475,13 +484,12 @@ const Messaging: React.FC = () => {
   const handleWebSocketEvent = (event: WebSocketEvent) => {
     switch (event.type) {
       case 'message':
-        setMessages(prev => ({
-          ...prev,
-          [event.payload.channelId]: [
-            ...(prev[event.payload.channelId] || []),
-            event.payload
-          ]
-        }));
+        setMessages(prev => {
+          const next = new Map(prev);
+          const channelMessages = prev.get(event.payload.channelId) || [];
+          next.set(event.payload.channelId, [...channelMessages, event.payload]);
+          return next;
+        });
         break;
         
       case 'channel_created':
@@ -499,11 +507,11 @@ const Messaging: React.FC = () => {
         break;
         
       case 'error':
-        console.error('WebSocket error:', event.payload.message);
+        console.error('WebSocket reported an error');
         break;
         
       default:
-        console.warn('Unknown WebSocket event type:', event);
+        console.warn('Received an unsupported WebSocket event');
     }
   };
 
@@ -531,7 +539,7 @@ const Messaging: React.FC = () => {
     if (!newMessage.trim() || !selectedChannel) return;
     
     const message: Message = {
-      id: Math.random().toString(),
+      id: crypto.randomUUID(),
       channelId: selectedChannel.id,
       userId: currentUser.id,
       username: currentUser.username,
@@ -547,13 +555,12 @@ const Messaging: React.FC = () => {
       }));
     } else {
       // Add to local state if WebSocket is not connected
-      setMessages(prev => ({
-        ...prev,
-        [selectedChannel.id]: [
-          ...(prev[selectedChannel.id] || []),
-          message
-        ]
-      }));
+      setMessages(prev => {
+        const next = new Map(prev);
+        const channelMessages = prev.get(selectedChannel.id) || [];
+        next.set(selectedChannel.id, [...channelMessages, message]);
+        return next;
+      });
     }
     
     setNewMessage('');
@@ -573,6 +580,10 @@ const Messaging: React.FC = () => {
   const getInitials = (username: string) => {
     return username.slice(0, 2).toUpperCase();
   };
+
+  const selectedMessages = selectedChannel
+    ? messages.get(selectedChannel.id) || []
+    : [];
 
   return (
     <PageContainer>
@@ -615,8 +626,8 @@ const Messaging: React.FC = () => {
               </ChatHeader>
               
               <MessageList ref={messageListRef}>
-                {messages[selectedChannel.id]?.length > 0 ? (
-                  messages[selectedChannel.id].map(message => (
+                {selectedMessages.length > 0 ? (
+                  selectedMessages.map(message => (
                     <MessageContainer key={message.id}>
                       <MessageAvatar>{getInitials(message.username)}</MessageAvatar>
                       <MessageContent>
