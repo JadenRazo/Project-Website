@@ -416,7 +416,7 @@ const Status: React.FC = () => {
 
   const fetchStatus = async () => {
     try {
-      const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || '';
+      const apiUrl = (window as any)._env_?.REACT_APP_API_URL || import.meta.env.VITE_API_URL || '';
       const endpoint = apiUrl ? `${apiUrl}/api/v1/status/` : '/api/v1/status/';
       const response = await fetch(endpoint);
       if (!response.ok) {

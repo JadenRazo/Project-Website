@@ -138,7 +138,6 @@ export const preloadRouteAssets = {
   },
   
   '/projects': () => {
-    preloader.prefetchResource('/src/assets/data/code_stats.json');
     // Preload any project media files
   },
   
@@ -163,13 +162,7 @@ export const preloadRouteAssets = {
 export const preloadCriticalAssets = (): void => {
   // DNS prefetch for external domains
   preloader.dns([
-    'fonts.googleapis.com',
     'api.github.com'
-  ]);
-
-  // Preconnect to important external resources
-  preloader.preconnect([
-    'https://fonts.gstatic.com'
   ]);
 };
 

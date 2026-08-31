@@ -7,6 +7,7 @@ interface SEOProps {
   path?: string;
   image?: string;
   type?: string;
+  noIndex?: boolean;
 }
 
 const SEO: React.FC<SEOProps> = ({
@@ -14,7 +15,8 @@ const SEO: React.FC<SEOProps> = ({
   description,
   path = '',
   image = 'https://jadenrazo.dev/images/og-image.png',
-  type = 'website'
+  type = 'website',
+  noIndex = false
 }) => {
   const siteUrl = 'https://jadenrazo.dev';
   const canonicalUrl = `${siteUrl}${path}`;
@@ -24,10 +26,19 @@ const SEO: React.FC<SEOProps> = ({
     "@context": "https://schema.org",
     "@type": "Person",
     "name": "Jaden Razo",
-    "jobTitle": "Full Stack Developer",
+    "jobTitle": "Cloud and DevOps Engineer",
     "url": "https://jadenrazo.dev",
     "sameAs": [
-      "https://github.com/JadenRazo"
+      "https://github.com/JadenRazo",
+      "https://www.linkedin.com/in/JadenRazo"
+    ],
+    "knowsAbout": [
+      "Amazon Web Services",
+      "Terraform",
+      "DevOps",
+      "Site Reliability Engineering",
+      "Go",
+      "TypeScript"
     ]
   };
 
@@ -35,6 +46,7 @@ const SEO: React.FC<SEOProps> = ({
     <Helmet>
       <title>{title}</title>
       <meta name="description" content={description} />
+      {noIndex && <meta name="robots" content="noindex, nofollow" />}
       <link rel="canonical" href={canonicalUrl} />
 
       <meta property="og:type" content={type} />
@@ -44,6 +56,7 @@ const SEO: React.FC<SEOProps> = ({
       <meta property="og:image" content={image} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
+      <meta property="og:image:alt" content={`${title} social preview`} />
       <meta property="og:site_name" content={siteName} />
       <meta property="og:locale" content="en_US" />
 
@@ -51,6 +64,7 @@ const SEO: React.FC<SEOProps> = ({
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={image} />
+      <meta name="twitter:image:alt" content={`${title} social preview`} />
       <meta name="twitter:creator" content="@JadenRazo" />
       <meta name="twitter:site" content="@JadenRazo" />
 

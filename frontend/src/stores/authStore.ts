@@ -75,61 +75,53 @@ export const useAuthStore = create<AuthStore>()(
         },
 
         login: async (email: string, password: string) => {
-          try {
-            const response = await fetch('/api/auth/login', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ email_or_username: email, password }),
-            });
+          const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email_or_username: email, password }),
+          });
 
-            if (!response.ok) {
-              const errorData = await response.json().catch(() => ({}));
-              throw new Error(errorData.error || 'Invalid email or password');
-            }
-
-            const userData = await response.json();
-            localStorage.setItem('auth_token', userData.token);
-            
-            set({
-              user: userData,
-              isAuthenticated: true,
-              isLoading: false,
-              authModalOpen: false,
-            }, false, 'login/success');
-          } catch (error) {
-            throw error;
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || 'Invalid email or password');
           }
+
+          const userData = await response.json();
+          localStorage.setItem('auth_token', userData.token);
+
+          set({
+            user: userData,
+            isAuthenticated: true,
+            isLoading: false,
+            authModalOpen: false,
+          }, false, 'login/success');
         },
 
         register: async (email: string, password: string) => {
-          try {
-            const response = await fetch('/api/auth/register', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ email, password }),
-            });
+          const response = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, password }),
+          });
 
-            if (!response.ok) {
-              const errorData = await response.json().catch(() => ({}));
-              throw new Error(errorData.error || 'Failed to create account');
-            }
-
-            const userData = await response.json();
-            localStorage.setItem('auth_token', userData.token);
-            
-            set({
-              user: userData,
-              isAuthenticated: true,
-              isLoading: false,
-              authModalOpen: false,
-            }, false, 'register/success');
-          } catch (error) {
-            throw error;
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || 'Failed to create account');
           }
+
+          const userData = await response.json();
+          localStorage.setItem('auth_token', userData.token);
+
+          set({
+            user: userData,
+            isAuthenticated: true,
+            isLoading: false,
+            authModalOpen: false,
+          }, false, 'register/success');
         },
 
         logout: () => {

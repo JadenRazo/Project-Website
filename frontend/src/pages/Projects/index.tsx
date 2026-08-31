@@ -4,12 +4,10 @@ import {
   FaGithub as FaGithubIcon,
   FaExternalLinkAlt as FaExternalLinkAltIcon,
   FaLaptopCode as FaLaptopCodeIcon,
-  FaCode as FaCodeIcon,
 } from 'react-icons/fa';
 import styled from 'styled-components';
 import { mockProjects } from '../../data/projects';
 import SEO from '../../components/common/SEO';
-import { fetchGitHubLOC } from '../../utils/codeStats';
 
 // --- Types ---
 interface Project {
@@ -145,7 +143,7 @@ const PageDescription = styled.p`
   }
 `;
 
-const CodeStatsDisplayContainer = styled(motion.div)`
+const LoadingState = styled(motion.div)`
   background: ${({ theme }) => theme?.colors?.surface || 'rgba(255,255,255,0.05)'};
   padding: 1rem 1.5rem;
   border-radius: 12px;
@@ -479,7 +477,7 @@ const CardLink = styled.a`
   font-size: 0.8rem;
   padding: 0.6rem 0.8rem;
   border-radius: 6px;
-  background: ${({ theme }) => `${theme?.colors?.primary}15` || 'rgba(0,123,255,0.1)'};
+  background: ${({ theme }) => theme?.colors?.primary ? `${theme.colors.primary}15` : 'rgba(0,123,255,0.1)'};
   transition: background 0.2s, transform 0.2s;
   white-space: nowrap;
   flex: 1;
@@ -510,12 +508,12 @@ const CardLink = styled.a`
   }
   
   &:hover {
-    background: ${({ theme }) => `${theme?.colors?.primary}25` || 'rgba(0,123,255,0.15)'};
+    background: ${({ theme }) => theme?.colors?.primary ? `${theme.colors.primary}25` : 'rgba(0,123,255,0.15)'};
     transform: translateY(-1px);
     
     @media (max-width: 480px) {
       transform: none;
-      background: ${({ theme }) => `${theme?.colors?.primary}20` || 'rgba(0,123,255,0.12)'};
+      background: ${({ theme }) => theme?.colors?.primary ? `${theme.colors.primary}20` : 'rgba(0,123,255,0.12)'};
     }
   }
   
@@ -830,9 +828,6 @@ ProjectCard.displayName = 'ProjectCard';
 const Projects: React.FC = () => {
   // Only one card can be open at a time
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [totalLinesOfCode, setTotalLinesOfCode] = useState<number | null>(null);
-  const [isLoadingLines, setIsLoadingLines] = useState<boolean>(true);
-  const [errorLines, setErrorLines] = useState<string | null>(null);
   
   // Projects state
   const [projects, setProjects] = useState<Project[]>([]);
@@ -878,7 +873,7 @@ const Projects: React.FC = () => {
       setProjectsLoading(true);
       
       try {
-        const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || '';
+        const apiUrl = (window as any)._env_?.REACT_APP_API_URL || import.meta.env.VITE_API_URL || '';
         const endpoint = apiUrl ? `${apiUrl}/api/v1/projects?status=active` : '/api/v1/projects?status=active';
         const response = await fetch(endpoint);
         
@@ -951,71 +946,31 @@ const Projects: React.FC = () => {
     fetchProjects();
   }, []);
 
-  useEffect(() => {
-    const fetchLinesOfCode = async (): Promise<void> => {
-      setIsLoadingLines(true);
-      setErrorLines(null);
-
-      try {
-        const data = await fetchGitHubLOC();
-        setTotalLinesOfCode(data.totalLines);
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "An unknown error occurred while loading code stats.";
-        setErrorLines(errorMessage);
-        setTotalLinesOfCode(null);
-      } finally {
-        setIsLoadingLines(false);
-      }
-    };
-
-    fetchLinesOfCode();
-    // Fresh stats are calculated every time this page loads
-  }, []);
-
   return (
     <>
       <SEO
-        title="Projects | Jaden Razo - Portfolio of Web Applications & APIs"
-        description="Explore Jaden Razo's portfolio of full-stack web applications, microservices, and APIs built with React, TypeScript, Go, Python, and modern cloud technologies."
+        title="Cloud & DevOps Projects | Jaden Razo"
+        description="Inspect Jaden Razo's public AWS, Terraform, Go, SRE, supply-chain security, and developer-tooling projects."
         path="/projects"
       />
       <ProjectsContainer>
         <PageHeader>
-        <PageTitle>My Projects</PageTitle>
+        <PageTitle>Engineering Projects</PageTitle>
         <PageDescription>
-          Here's a showcase of my recent work. Each project represents different skills and technologies
-          I've mastered. Click on any project to learn more about it.
+          Public cloud, reliability, delivery, and developer-tooling work. Open a project to inspect
+          its repository, implementation, and documented operational evidence.
         </PageDescription>
       </PageHeader>
-      
-      <CodeStatsDisplayContainer
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-      >
-        <FaCodeIcon />
-        {isLoadingLines && <span>Loading project stats...</span>}
-        {errorLines && <span>Unable to load code statistics at this time</span>}
-        {!isLoadingLines && !errorLines && totalLinesOfCode !== null && (
-          <>
-            <span>Total Lines of Code Across Projects:</span>
-            <strong>{totalLinesOfCode.toLocaleString()}</strong>
-          </>
-        )}
-        {!isLoadingLines && !errorLines && totalLinesOfCode === null && (
-            <span>Code statistics temporarily unavailable</span>
-        )}
-      </CodeStatsDisplayContainer>
-      
+
       {projectsLoading ? (
-        <CodeStatsDisplayContainer
+        <LoadingState
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <FaCodeIcon />
+          <FaLaptopCodeIcon />
           <span>Loading projects...</span>
-        </CodeStatsDisplayContainer>
+        </LoadingState>
       ) : (
         <ProjectsGrid data-projects-grid>
           {projects.map((project, idx) => (
@@ -1035,4 +990,4 @@ const Projects: React.FC = () => {
   );
 };
 
-export default Projects; 
+export default Projects;

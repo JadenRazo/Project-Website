@@ -332,7 +332,17 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ themeMode, toggleTheme })
 
   const checkServices = React.useCallback(async () => {
     try {
-      const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || '';
+      const runtimeApiUrl = (window as any)._env_?.REACT_APP_API_URL;
+      const buildTimeApiUrl = import.meta.env.VITE_API_URL;
+
+      if (import.meta.env.DEV && !runtimeApiUrl && !buildTimeApiUrl) {
+        setServicesStatus(current =>
+          current.map(service => ({ ...service, status: 'down' as const }))
+        );
+        return;
+      }
+
+      const apiUrl = runtimeApiUrl || buildTimeApiUrl || '';
       const endpoint = apiUrl ? `${apiUrl}/api/v1/status/` : '/api/v1/status/';
       const response = await fetch(endpoint, {
         method: 'GET',
@@ -548,4 +558,4 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ themeMode, toggleTheme })
   );
 };
 
-export default NavigationBar; 
+export default NavigationBar;

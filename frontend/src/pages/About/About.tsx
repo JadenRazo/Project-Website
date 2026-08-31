@@ -398,10 +398,10 @@ const experienceItemVariants = {
 
 const ExperienceSection = () => {
   const experienceLines = useMemo(() => [
-    "• Primary technical contact for 15+ end users, troubleshooting software, hardware, and connectivity issues via on-site and remote support",
+    "• Provide on-site and remote support for software, hardware, identity, and connectivity issues",
     "• Manage user account provisioning, password resets, and MFA enrollment through Okta and Active Directory",
-    "• Built and deployed a full-stack booking platform processing 50+ appointments and $3,000+/month via Square API",
-    "• Provisioned AWS infrastructure with Terraform; built Prometheus/Grafana monitoring dashboards achieving 99.5% uptime"
+    "• Build and maintain public cloud and web systems, including a booking workflow integrated with the Square API",
+    "• Provision repeatable AWS infrastructure with Terraform and document monitoring, delivery, and recovery paths"
   ], []);
 
   const lineRefs = useRef<(HTMLSpanElement | null)[]>([]);
@@ -467,8 +467,8 @@ const ExperienceSection = () => {
       <SectionTitle>Experience</SectionTitle>
       <SectionContent>
         <ExperienceItem variants={experienceItemVariants}>
-          <ExperienceTitle>IT Support Contact & Freelance Developer</ExperienceTitle>
-          <ExperienceCompany>24Hr Home Care / Self-Employed</ExperienceCompany>
+          <ExperienceTitle>IT Support & Independent Cloud Engineering</ExperienceTitle>
+          <ExperienceCompany>24Hr Home Care / Independent Projects</ExperienceCompany>
           <ExperienceDate>2022 - Present</ExperienceDate>
           <ExperienceDescription>
             {experienceLines.map((_, lineIndex) => (
@@ -554,8 +554,8 @@ const About: React.FC = () => {
   return (
     <>
       <SEO
-        title="About Jaden Razo | Systems Administrator & Full Stack Developer"
-        description="CompTIA A+ and Network+ certified IT professional and full stack developer. Experienced with Active Directory, Azure, AWS, Docker, Go, TypeScript, and cloud infrastructure."
+        title="About Jaden Razo | Cloud & DevOps Engineer"
+        description="CompTIA A+ and Network+ certified cloud and DevOps engineer with hands-on systems administration experience and public AWS, Terraform, Go, and SRE work."
         path="/about"
       />
       <AboutContainer>
@@ -573,21 +573,21 @@ const About: React.FC = () => {
             >
               <img 
                 src={headshot} 
-                alt="Jaden Razo - Systems Administrator & Full Stack Developer"
+                alt="Jaden Razo, cloud and DevOps engineer"
                 loading="eager"
               />
             </ProfileImage>
             <ProfileInfo>
               <Name>Jaden Razo</Name>
-              <Title>Systems Administrator & Full Stack Developer</Title>
+              <Title>Cloud &amp; DevOps Engineer</Title>
               <motion.p
                 style={{ color: 'var(--text)', lineHeight: 1.6, marginTop: '1rem' }}
                 variants={itemVariants}
               >
-                CompTIA A+ and Network+ certified IT professional with hands-on experience in
-                end-user support, hardware/software troubleshooting, and Active Directory administration
-                across Windows, Mac, and Linux environments. I also build and deploy full-stack web
-                applications and cloud infrastructure as a freelance developer.
+                CompTIA A+ and Network+ certified engineer with hands-on experience in
+                end-user support, identity administration, and troubleshooting across Windows,
+                macOS, and Linux. My public work focuses on AWS infrastructure, Terraform,
+                secure delivery, observability, and reliability evidence that teams can inspect.
               </motion.p>
             </ProfileInfo>
           </ProfileSection>
@@ -763,4 +763,4 @@ const About: React.FC = () => {
   );
 };
 
-export default About; 
+export default About;

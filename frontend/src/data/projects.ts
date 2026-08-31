@@ -112,4 +112,90 @@ export const mockProjects: ProjectData[] = [
   },
 ];
 
+export interface EvidenceProject extends ProjectData {
+  evidence: string;
+  discipline: string;
+}
+
+export const evidenceProjects: EvidenceProject[] = [
+  {
+    id: 'cloudcostmcp',
+    name: 'CloudCostMCP',
+    discipline: 'Cost engineering',
+    description:
+      'Multi-IaC cost analysis for AWS, Azure, and GCP, with provider-backed pricing verification and incident-driven regression controls.',
+    evidence:
+      'Pricing-drift defect fixed; 41 live catalog checks and 1,564 deterministic tests exercise the corrected behavior.',
+    repo_url: 'https://github.com/JadenRazo/CloudCostMCP',
+    live_url: 'https://www.npmjs.com/package/@jadenrazo/cloudcost-mcp',
+    tags: ['TypeScript', 'AWS', 'Azure', 'GCP', 'MCP'],
+    status: 'active',
+  },
+  {
+    id: 'sre-reference-app',
+    name: 'SRE Reference App',
+    discipline: 'Reliability engineering',
+    description:
+      'An ECS Fargate reference system that keeps SLO math, burn-rate alarms, failure injection, runbooks, and postmortem material beside the Terraform.',
+    evidence:
+      'A controlled task-failure exercise records 78-second recovery, the observed alarm behavior, and the limits of the result.',
+    repo_url: 'https://github.com/JadenRazo/sre-reference-app',
+    live_url: '',
+    tags: ['AWS', 'Terraform', 'ECS', 'Prometheus', 'SLOs'],
+    status: 'active',
+  },
+  {
+    id: 'llm-lint',
+    name: 'llm-lint',
+    discipline: 'Developer tooling',
+    description:
+      'A Go policy scanner for generated repository artifacts and boundary violations, distributed as native binaries and an npm package.',
+    evidence:
+      'CI publishes SARIF, runs CodeQL and release verification, generates SBOMs, and signs release artifacts.',
+    repo_url: 'https://github.com/JadenRazo/llm-lint',
+    live_url: 'https://www.npmjs.com/package/@jadenrazo/llm-lint',
+    tags: ['Go', 'SARIF', 'CodeQL', 'SBOM', 'Cosign'],
+    status: 'active',
+  },
+  {
+    id: 'aws-supply-chain-security',
+    name: 'AWS Supply Chain Security',
+    discipline: 'Secure delivery',
+    description:
+      'A container supply-chain reference that separates credential-free review checks from explicitly dispatched AWS write paths.',
+    evidence:
+      'Immutable action pins, OIDC role chaining, SBOM generation, image scanning, and keyless signing are visible in the workflows.',
+    repo_url: 'https://github.com/JadenRazo/aws-supply-chain-security',
+    live_url: '',
+    tags: ['AWS', 'GitHub Actions', 'OIDC', 'Terraform', 'Cosign'],
+    status: 'active',
+  },
+  {
+    id: 'tts-raizhost',
+    name: 'TTS RaizHost',
+    discipline: 'Kubernetes reliability',
+    description:
+      'A self-hosted reader that routes synthesis between a preferred GPU service and an in-cluster CPU fallback, with bounded metrics and operator runbooks.',
+    evidence:
+      'Probe and circuit transitions are tested across TypeScript and Python contracts; the repository explicitly distinguishes those checks from an unexecuted live failure drill.',
+    repo_url: 'https://github.com/JadenRazo/tts-raizhost',
+    live_url: '',
+    tags: ['Kubernetes', 'Next.js', 'Python', 'Prometheus', 'OpenTelemetry'],
+    status: 'active',
+  },
+  {
+    id: 'raizhost-architecture',
+    name: 'RaizHost Architecture',
+    discipline: 'Technical decision record',
+    description:
+      'A public architecture record for the AWS platform behind RaizHost, including service choices, cost constraints, and operational boundaries.',
+    evidence:
+      'The record documents roughly ten sites and three applications at about $50 per month while clearly separating public evidence from private source.',
+    repo_url: 'https://github.com/JadenRazo/raizhost-architecture',
+    live_url: 'https://raizhost.com',
+    tags: ['AWS', 'CloudFront', 'Lambda', 'Graviton', 'Cost'],
+    status: 'active',
+  },
+]
+
 export default mockProjects;

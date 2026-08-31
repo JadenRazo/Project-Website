@@ -71,8 +71,8 @@ export const getScrollOffset = (): number => {
 
 // Debounce function for resize events
 let resizeTimeout: NodeJS.Timeout | null = null;
-const debounce = (func: Function, wait: number) => {
-  return (...args: any[]) => {
+const debounce = <T extends unknown[]>(func: (...args: T) => void, wait: number) => {
+  return (...args: T) => {
     if (resizeTimeout) clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => func(...args), wait);
   };

@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const getApiBaseUrl = (): string => {
   const runtimeEnv = (window as any)._env_?.REACT_APP_API_URL;
-  const buildTimeEnv = process.env.REACT_APP_API_URL;
+  const buildTimeEnv = import.meta.env.VITE_API_URL;
 
   if (runtimeEnv !== undefined && runtimeEnv !== null) {
     return runtimeEnv === '' ? '' : runtimeEnv;
@@ -28,6 +28,10 @@ const MAX_FAILURES = 3;
 
 export const trackPageView = async (path: string): Promise<void> => {
   if (!isTrackingEnabled) return;
+
+  const hasConfiguredDevelopmentApi =
+    Boolean((window as any)._env_?.REACT_APP_API_URL) || Boolean(import.meta.env.VITE_API_URL);
+  if (import.meta.env.DEV && !hasConfiguredDevelopmentApi) return;
 
   if (consecutiveFailures >= MAX_FAILURES) {
     console.error('[Visitor Tracking] Disabled after', MAX_FAILURES, 'consecutive failures');

@@ -38,19 +38,3 @@ if (!rootElement) {
 
 const root = createRoot(rootElement);
 root.render(<AppWithProviders />);
-
-const hideInitialLoader = () => {
-  const loader = document.getElementById('initial-loader');
-  if (loader) {
-    loader.classList.add('hidden');
-    setTimeout(() => {
-      loader.remove();
-    }, 500);
-  }
-};
-
-if (document.readyState === 'complete') {
-  hideInitialLoader();
-} else {
-  window.addEventListener('load', hideInitialLoader);
-}

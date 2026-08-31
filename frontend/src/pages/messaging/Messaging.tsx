@@ -575,7 +575,7 @@ const Messaging: React.FC = () => {
   };
 
   return (
-    <PageContainer data-lenis-prevent>
+    <PageContainer>
       <ChatContainer>
         <Sidebar>
           <SidebarHeader>
@@ -660,4 +660,4 @@ const Messaging: React.FC = () => {
   );
 };
 
-export default Messaging; 
+export default Messaging;

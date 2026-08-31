@@ -1,0 +1,71 @@
+version: 2
+
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+      time: '09:00'
+      timezone: Etc/UTC
+    open-pull-requests-limit: 2
+    groups:
+      actions:
+        patterns:
+          - '*'
+
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: monthly
+      time: '09:00'
+      timezone: Etc/UTC
+    open-pull-requests-limit: 2
+    groups:
+      frontend-minor-and-patch:
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch
+    ignore:
+      - dependency-name: '*'
+        update-types:
+          - version-update:semver-major
+
+  - package-ecosystem: npm
+    directory: /weeniesmp
+    schedule:
+      interval: monthly
+      time: '09:00'
+      timezone: Etc/UTC
+    open-pull-requests-limit: 2
+    groups:
+      weeniesmp-minor-and-patch:
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch
+    ignore:
+      - dependency-name: '*'
+        update-types:
+          - version-update:semver-major
+
+  - package-ecosystem: gomod
+    directory: /backend
+    schedule:
+      interval: monthly
+      time: '09:00'
+      timezone: Etc/UTC
+    open-pull-requests-limit: 2
+    groups:
+      go-minor-and-patch:
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch
+    ignore:
+      - dependency-name: '*'
+        update-types:
+          - version-update:semver-major

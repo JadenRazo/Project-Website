@@ -78,7 +78,7 @@ export function useCrudOperations<T extends { id: string }, TFormData>(
   }, [config.requiresAuth]);
 
   const buildUrl = useCallback((path = '') => {
-    const apiUrl = (window as any)._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || '';
+    const apiUrl = (window as any)._env_?.REACT_APP_API_URL || import.meta.env.VITE_API_URL || '';
     const baseUrl = apiUrl ? `${apiUrl}${config.baseUrl}` : config.baseUrl;
     return path ? `${baseUrl}/${path}` : baseUrl;
   }, [config.baseUrl]);

@@ -478,13 +478,14 @@ class ScrollTransformController {
   
   private applySpecificTransform(element: HTMLElement, transform: ScrollTransformEffect, progress: number): void {
     switch (transform.type) {
-      case 'opacity':
+      case 'opacity': {
         const fromOpacity = parseFloat(transform.from as string);
         const toOpacity = parseFloat(transform.to as string);
         element.style.opacity = String(fromOpacity + (toOpacity - fromOpacity) * progress);
         break;
+      }
         
-      case 'translateY':
+      case 'translateY': {
         const fromY = parseFloat(transform.from as string);
         const toY = parseFloat(transform.to as string);
         const unit = transform.unit || 'px';
@@ -492,8 +493,9 @@ class ScrollTransformController {
         
         this.applyTransformProperty(element, `translateY(${value}${unit})`);
         break;
+      }
         
-      case 'translateX':
+      case 'translateX': {
         const fromX = parseFloat(transform.from as string);
         const toX = parseFloat(transform.to as string);
         const unitX = transform.unit || 'px';
@@ -501,16 +503,18 @@ class ScrollTransformController {
         
         this.applyTransformProperty(element, `translateX(${valueX}${unitX})`);
         break;
+      }
         
-      case 'scale':
+      case 'scale': {
         const fromScale = parseFloat(transform.from as string);
         const toScale = parseFloat(transform.to as string);
         const valueScale = fromScale + (toScale - fromScale) * progress;
         
         this.applyTransformProperty(element, `scale(${valueScale})`);
         break;
+      }
         
-      case 'rotate':
+      case 'rotate': {
         const fromRotate = parseFloat(transform.from as string);
         const toRotate = parseFloat(transform.to as string);
         const unitRotate = transform.unit || 'deg';
@@ -518,8 +522,9 @@ class ScrollTransformController {
         
         this.applyTransformProperty(element, `rotate(${valueRotate}${unitRotate})`);
         break;
+      }
         
-      case 'blur':
+      case 'blur': {
         const fromBlur = parseFloat(transform.from as string);
         const toBlur = parseFloat(transform.to as string);
         const unitBlur = transform.unit || 'px';
@@ -535,6 +540,7 @@ class ScrollTransformController {
           element.style.filter = `blur(${valueBlur}${unitBlur})`;
         }
         break;
+      }
         
       case 'color':
         if (typeof transform.from === 'string' && typeof transform.to === 'string') {
@@ -829,26 +835,31 @@ class ScrollTransformController {
         state.opacity = window.getComputedStyle(element).opacity;
         break;
       case 'translateX':
-      case 'translateY':
+      case 'translateY': {
         const transform = window.getComputedStyle(element).transform;
         state.transform = transform;
         break;
-      case 'scale':
+      }
+      case 'scale': {
         const scale = window.getComputedStyle(element).transform;
         state.transform = scale;
         break;
-      case 'rotate':
+      }
+      case 'rotate': {
         const rotate = window.getComputedStyle(element).transform;
         state.transform = rotate;
         break;
-      case 'blur':
+      }
+      case 'blur': {
         const filter = window.getComputedStyle(element).filter;
         state.filter = filter;
         break;
-      case 'color':
+      }
+      case 'color': {
         const color = window.getComputedStyle(element).color;
         state.color = color;
         break;
+      }
     }
     
     return state;
@@ -1422,10 +1433,10 @@ export const ScrollTransformBackground: React.FC<{
           if (orb.popped) return orb;
           
           // Create smooth, natural-looking movement patterns
-          let newX = orb.x + Math.sin(timestamp * 0.0001 * orb.speed * 5) * 0.05;
+          const newX = orb.x + Math.sin(timestamp * 0.0001 * orb.speed * 5) * 0.05;
           
           // Apply gravity factor to vertical movement
-          let newY = orb.y - (orb.speed / gravityFactor) * 0.2;
+          const newY = orb.y - (orb.speed / gravityFactor) * 0.2;
           
           // Loop orbs when they exit the view
           if (newY < -10) {
@@ -1746,7 +1757,8 @@ export const ScrollTransformBackground: React.FC<{
     
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
-    let h = 0, s, l = (max + min) / 2;
+    let h = 0, s;
+    const l = (max + min) / 2;
     
     if (max === min) {
       h = s = 0; // achromatic
@@ -1986,4 +1998,4 @@ export const ScrollTransformBackground: React.FC<{
       )}
     </BackgroundContainer>
   );
-}; 
+};
