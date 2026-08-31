@@ -30,10 +30,9 @@ var log *logrus.Logger
 var serviceName string
 var serviceVersion string
 
-var logLineBreaks = strings.NewReplacer("\r", `\r`, "\n", `\n`)
-
 func sanitizeLogString(value string) string {
-	return logLineBreaks.Replace(value)
+	value = strings.ReplaceAll(value, "\r", `\r`)
+	return strings.ReplaceAll(value, "\n", `\n`)
 }
 
 func sanitizeLogValue(value interface{}) interface{} {
