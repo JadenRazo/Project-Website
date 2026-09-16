@@ -4,7 +4,7 @@ import { api } from '../../../utils/apiConfig'
 
 const socialLinks = [
   { icon: Github, href: 'https://github.com/JadenRazo', label: 'GitHub' },
-  { icon: Linkedin, href: 'https://jadenrazo.dev/s/linkedin', label: 'LinkedIn' },
+  { icon: Linkedin, href: 'https://www.linkedin.com/in/JadenRazo', label: 'LinkedIn' },
   { icon: Mail, href: 'mailto:contact@jadenrazo.dev', label: 'Email' },
 ]
 

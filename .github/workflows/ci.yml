@@ -119,6 +119,24 @@ jobs:
         run: npm run lint
       - name: Build
         run: npm run build
+      - name: Install project media QA
+        working-directory: scripts/project-media
+        run: npm ci
+      - name: Install Chromium
+        working-directory: scripts/project-media
+        run: npx playwright install --with-deps chromium
+      - name: Verify the built project showcase
+        env:
+          EVIDENCE_DIR: ${{ runner.temp }}/project-media-qa
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4190 > "$RUNNER_TEMP/project-media-preview.log" 2>&1 &
+          preview_pid=$!
+          trap 'kill "$preview_pid"' EXIT
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4190/ > /dev/null; then break; fi
+            sleep 1
+          done
+          node ../scripts/project-media/verify.mjs
 
   weeniesmp:
     name: weeniesmp

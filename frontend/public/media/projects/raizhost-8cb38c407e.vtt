@@ -1,0 +1,10 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:08.000
+The experience. A visitor explores the RaizHost website and its examples. The film shows the public site, captured in September 2026.
+
+00:00:08.000 --> 00:00:16.000
+The edit. The owner editor changes a bounded content file while the site’s design stays in code. This portion illustrates the documented editing contract.
+
+00:00:16.000 --> 00:00:24.000
+The delivery. Publishing creates a commit in the client’s repository. Its workflow builds the site, updates S3, and invalidates CloudFront. The public architecture record explains the boundaries.

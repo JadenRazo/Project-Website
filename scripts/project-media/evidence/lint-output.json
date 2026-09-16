@@ -1,0 +1,20 @@
+{
+  "scan": {
+    "command": "/tmp/jadenrazo-media-tools/node_modules/.bin/llm-lint scan /tmp/jadenrazo-video-evidence/lint-fixture",
+    "status": 1,
+    "stdout": "llm-lint 0.4.1  scanned 2 files + 0 commits in 2ms\n\n✗ LLM006  error    .cursorrules / .cursor/ tracked\n   └─ .cursorrules\n      Add `.cursorrules`, `.cursor/`, and `.cursorignore` to .gitignore; `git rm --cached` the existing entries.\n\n1 findings  (1 errors, 0 warnings, 0 info)\n",
+    "stderr": ""
+  },
+  "rule": {
+    "command": "/tmp/jadenrazo-media-tools/node_modules/.bin/llm-lint rules show LLM006",
+    "status": 0,
+    "stdout": "ID:          LLM006\nTitle:       .cursorrules / .cursor/ tracked\nSeverity:    error\nCategory:    cursor\nKind:        path\n\nDescription:\n  Cursor editor rules are developer-environment specific and shouldn't ship in production repos.\n\nRemediation:\n  Add `.cursorrules`, `.cursor/`, and `.cursorignore` to .gitignore; `git rm --cached` the existing entries.\n",
+    "stderr": ""
+  },
+  "preview": {
+    "command": "/tmp/jadenrazo-media-tools/node_modules/.bin/llm-lint scan /tmp/jadenrazo-video-evidence/lint-fixture --fix-preview --fix-git-history none",
+    "status": 1,
+    "stdout": "llm-lint 0.4.1  scanned 2 files + 0 commits in 0ms\n\n✗ LLM006  error    .cursorrules / .cursor/ tracked\n   └─ .cursorrules\n      Add `.cursorrules`, `.cursor/`, and `.cursorignore` to .gitignore; `git rm --cached` the existing entries.\n\n1 findings  (1 errors, 0 warnings, 0 info)\n",
+    "stderr": "would fix: 1 files changed, 0 lines removed, 0 commit messages cleaned, 0 commit lines removed, 3 .gitignore entries added, 1 index entries untracked\n"
+  }
+}

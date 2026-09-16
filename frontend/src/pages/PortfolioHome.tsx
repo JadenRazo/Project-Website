@@ -12,8 +12,8 @@ export default function PortfolioHome() {
       />
       <div className="relative">
         <Hero />
-        <About />
         <HorizontalProjectGallery />
+        <About />
         <Services />
         <Contact />
       </div>

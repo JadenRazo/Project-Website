@@ -526,7 +526,7 @@ const SERVICES_ITEMS: MenuItem[] = [
 // External links
 const EXTERNAL_ITEMS: MenuItem[] = [
   { 
-    href: 'https://jadenrazo.dev/s/linkedin',
+    href: 'https://www.linkedin.com/in/JadenRazo',
     icon: Icons.LinkedIn,
     label: 'LinkedIn',
     delay: 0.8,

@@ -1,0 +1,16 @@
+{
+  "name": "portfolio-project-media",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "verify": "node verify.mjs",
+    "probe": "node probe.mjs",
+    "render": "node render.mjs && node encode-webm.mjs && node fingerprint.mjs",
+    "capture": "node capture-products.mjs"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.12.1",
+    "playwright": "1.61.1",
+    "playwright-core": "1.61.1"
+  }
+}

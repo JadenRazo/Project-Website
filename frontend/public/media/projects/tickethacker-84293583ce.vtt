@@ -1,0 +1,10 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:08.000
+Triage the inbox. The actual agent dashboard displays sample tickets from several channels, with status, priority, and assignment in one list.
+
+00:00:08.000 --> 00:00:16.000
+Focus the queue. Filtering the actual inbox by high priority narrows the list to a sample conversation.
+
+00:00:16.000 --> 00:00:24.000
+Move work forward. The agent changes the sample ticket’s status. The local capture uses fixture responses, so no customer messages or accounts are modified.

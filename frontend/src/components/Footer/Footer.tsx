@@ -287,7 +287,7 @@ const Footer: React.FC = () => {
               GitHub
             </FooterExternalLink>
             <FooterExternalLink
-              href="https://jadenrazo.dev/s/linkedin"
+              href="https://www.linkedin.com/in/JadenRazo"
               target="_blank"
               rel="noopener noreferrer"
             >

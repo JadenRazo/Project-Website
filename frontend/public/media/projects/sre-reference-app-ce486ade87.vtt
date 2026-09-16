@@ -1,0 +1,10 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:08.000
+Serve traffic. An application load balancer routes requests to two ECS Fargate tasks. CloudWatch observes the service.
+
+00:00:08.000 --> 00:00:16.000
+Lose a task. The documented exercise stopped one task with the ECS API. The surviving task absorbed traffic as the load balancer drained the stopped task.
+
+00:00:16.000 --> 00:00:24.000
+Measure recovery. ECS replaced the task. The exercise recorded a 78-second recovery window and both burn-rate alarms remained OK. This is a compressed historical explanation, not a new live drill.

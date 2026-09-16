@@ -1,0 +1,10 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:08.000
+Read the code. CloudCost parses a sample Terraform configuration and identifies its compute resource and attributes.
+
+00:00:08.000 --> 00:00:16.000
+Estimate spend. The estimate command returns a resource-level monthly cost with pricing metadata. The demo uses a sample workload, not a production account.
+
+00:00:16.000 --> 00:00:24.000
+See assumptions. The report separates a live compute price from a synthetic data-transfer allowance and includes pricing metadata, confidence, and warnings.

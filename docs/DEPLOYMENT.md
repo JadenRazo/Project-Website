@@ -1,5 +1,10 @@
 # Portfolio Website Deployment Guide
 
+> Current production check, September 16, 2026: `jadenrazo.dev` is served from AWS
+> S3 through CloudFront. The Docker/process instructions below are historical and
+> do not deploy that frontend. See [project films](project-films.md#release-boundary)
+> for the current change's release boundary; verify the AWS target before a release.
+
 ## Production Deployment (Recommended)
 
 ### Quick Start
