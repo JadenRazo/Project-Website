@@ -1,0 +1,10 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:08.000
+Separate concerns. The recorded organization uses five accounts: management, log archive, audit and security, development workloads, and production workloads.
+
+00:00:08.000 --> 00:00:16.000
+Prepare recovery. The pilot-light design has standby infrastructure in a second region with ECS desired count at zero until an operator scales it up.
+
+00:00:16.000 --> 00:00:24.000
+Control idle cost. A scheduled Lambda assumes a limited cross-account role and scales development ECS services to zero. The permission is conditioned on the Environment=dev resource tag.

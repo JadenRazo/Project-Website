@@ -1,0 +1,10 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:08.000
+Scan the repo. A disposable sample repository intentionally includes a local tool configuration file. The scanner identifies the policy violation.
+
+00:00:08.000 --> 00:00:16.000
+Explain the finding. The result identifies the file, rule, and severity so an engineer can understand what needs attention.
+
+00:00:16.000 --> 00:00:24.000
+Preview the repair. Fix-preview explains the proposed cleanup without modifying the sample repository. Teams decide which rules match their own publication policy.

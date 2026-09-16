@@ -59,7 +59,7 @@ export default function Hero() {
 
           <div className="mt-8 flex flex-col gap-3 min-[430px]:flex-row sm:mt-10">
             <a href="#projects" onClick={inspectWork} className="btn-primary">
-              <span>Inspect the work</span>
+              <span>Watch the projects</span>
               <ArrowDownRight size={17} aria-hidden="true" />
             </a>
             <a

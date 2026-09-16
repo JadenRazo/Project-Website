@@ -1,0 +1,56 @@
+{
+  "raizhost": {
+    "src": "/media/projects/raizhost-wide-61557d00fc.mp4",
+    "mobileSrc": "/media/projects/raizhost-portrait-a53ed6c8bb.mp4",
+    "poster": "/media/projects/raizhost-wide-a84f8da6b9.webp",
+    "mobilePoster": "/media/projects/raizhost-portrait-4797fb79cd.webp",
+    "captions": "/media/projects/raizhost-8cb38c407e.vtt",
+    "webmSrc": "/media/projects/raizhost-wide-692730350c.webm",
+    "mobileWebmSrc": "/media/projects/raizhost-portrait-64e41a62d0.webm"
+  },
+  "cloudcostmcp": {
+    "src": "/media/projects/cloudcostmcp-wide-bf7e51d614.mp4",
+    "mobileSrc": "/media/projects/cloudcostmcp-portrait-9f6759b926.mp4",
+    "poster": "/media/projects/cloudcostmcp-wide-f02d2cb746.webp",
+    "mobilePoster": "/media/projects/cloudcostmcp-portrait-534f2eea36.webp",
+    "captions": "/media/projects/cloudcostmcp-05ae59df49.vtt",
+    "webmSrc": "/media/projects/cloudcostmcp-wide-9845355fd2.webm",
+    "mobileWebmSrc": "/media/projects/cloudcostmcp-portrait-e9e3dd4194.webm"
+  },
+  "tickethacker": {
+    "src": "/media/projects/tickethacker-wide-2221265c19.mp4",
+    "mobileSrc": "/media/projects/tickethacker-portrait-ad1270f694.mp4",
+    "poster": "/media/projects/tickethacker-wide-d5de5c7215.webp",
+    "mobilePoster": "/media/projects/tickethacker-portrait-a07ed13649.webp",
+    "captions": "/media/projects/tickethacker-84293583ce.vtt",
+    "webmSrc": "/media/projects/tickethacker-wide-f2cb7c7be1.webm",
+    "mobileWebmSrc": "/media/projects/tickethacker-portrait-649c613f64.webm"
+  },
+  "llm-lint": {
+    "src": "/media/projects/llm-lint-wide-08023a5dad.mp4",
+    "mobileSrc": "/media/projects/llm-lint-portrait-3bc0e20db8.mp4",
+    "poster": "/media/projects/llm-lint-wide-b7a0f19c96.webp",
+    "mobilePoster": "/media/projects/llm-lint-portrait-c0df6bf3ef.webp",
+    "captions": "/media/projects/llm-lint-b217b4b7cf.vtt",
+    "webmSrc": "/media/projects/llm-lint-wide-27eeebbaa7.webm",
+    "mobileWebmSrc": "/media/projects/llm-lint-portrait-c9a345c7aa.webm"
+  },
+  "sre-reference-app": {
+    "src": "/media/projects/sre-reference-app-wide-9356342ac0.mp4",
+    "mobileSrc": "/media/projects/sre-reference-app-portrait-f109613fae.mp4",
+    "poster": "/media/projects/sre-reference-app-wide-b006f80b77.webp",
+    "mobilePoster": "/media/projects/sre-reference-app-portrait-1199ac5f12.webp",
+    "captions": "/media/projects/sre-reference-app-ce486ade87.vtt",
+    "webmSrc": "/media/projects/sre-reference-app-wide-0f93d54344.webm",
+    "mobileWebmSrc": "/media/projects/sre-reference-app-portrait-3be5fecea0.webm"
+  },
+  "sre-landing-zone": {
+    "src": "/media/projects/sre-landing-zone-wide-2d9868cd4d.mp4",
+    "mobileSrc": "/media/projects/sre-landing-zone-portrait-9ca60b59ca.mp4",
+    "poster": "/media/projects/sre-landing-zone-wide-bb77352b42.webp",
+    "mobilePoster": "/media/projects/sre-landing-zone-portrait-281fd6c1ea.webp",
+    "captions": "/media/projects/sre-landing-zone-87b3cdd37a.vtt",
+    "webmSrc": "/media/projects/sre-landing-zone-wide-1bf447fb34.webm",
+    "mobileWebmSrc": "/media/projects/sre-landing-zone-portrait-1578587802.webm"
+  }
+}

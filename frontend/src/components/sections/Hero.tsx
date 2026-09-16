@@ -1450,7 +1450,7 @@ export const Hero: React.FC = () => {
           <div style={{ width: '1px', height: '20px', backgroundColor: theme.colors.border }} />
 
           <motion.a
-            href="https://jadenrazo.dev/s/linkedin"
+            href="https://www.linkedin.com/in/JadenRazo"
             target="_blank"
             rel="noopener noreferrer"
             style={{
