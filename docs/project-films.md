@@ -95,9 +95,10 @@ are separate product issues, not silently claimed as repaired here.
 Inline playback reserves a 76px native-control area below the composition, so a
 paused phone video leaves its explanatory text readable. The player checks both
 `play` and `playing` events: WebKit can resume muted media on re-entry without
-emitting another `playing` event. Only a new pointer/keyboard action on native
-controls or an explicit play/chapter action permits playback after a visibility
-pause. Advancing frames clear a stale loading label after a WebKit seek.
+emitting another `playing` event. The pause stays enforced through the re-entry
+paint; native controls then work even when their events remain inside the
+browser's shadow tree. Explicit play/chapter actions can resume immediately.
+Advancing frames clear a stale loading label after a WebKit seek.
 
 The reproducible CLI capture is `capture-cli.mjs`; set `CLOUDCOST_CLI` to the local
 built CLI file, `CLOUDCOST_REVISION` to its verified commit, and `LLM_LINT_BIN` to the

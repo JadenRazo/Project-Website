@@ -58,7 +58,11 @@ for (const [id, asset] of Object.entries(manifest)) {
     } else if (key === 'captions') {
       const vtt = buffer.toString('utf8')
       assert.ok(vtt.startsWith('WEBVTT'))
-      assert.equal(vtt.match(/-->/g)?.length, 3)
+      const cues = vtt.split('\n').filter(line => {
+        const times = line.split(' --> ')
+        return times.length === 2 && times.every(time => /^\d{2}:\d{2}:\d{2}\.\d{3}$/.test(time))
+      })
+      assert.equal(cues.length, 3)
     }
   }
 }

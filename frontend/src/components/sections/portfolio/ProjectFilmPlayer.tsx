@@ -24,7 +24,22 @@ export default function ProjectFilmPlayer({ film }: { film: ProjectFilm }) {
     const video = videoRef.current
     const frame = frameRef.current
     if (!video || !frame) return
+    let settledFrame = 0
+    const allowNativeControlsAfterPaint = () => {
+      cancelAnimationFrame(settledFrame)
+      // WebKit can issue automatic play during re-entry. Preserve the pause
+      // through that paint, then accept native controls even when their events
+      // stay inside the browser's own shadow tree.
+      settledFrame = requestAnimationFrame(() => {
+        settledFrame = requestAnimationFrame(() => {
+          const bounds = frame.getBoundingClientRect()
+          if (!document.hidden && bounds.bottom > 0 && bounds.top < window.innerHeight)
+            playbackAllowed.current = true
+        })
+      })
+    }
     const pause = () => {
+      cancelAnimationFrame(settledFrame)
       playbackAllowed.current = false
       attempt.current += 1
       video.pause()
@@ -35,14 +50,17 @@ export default function ProjectFilmPlayer({ film }: { film: ProjectFilm }) {
     }
     const onVisibility = () => {
       if (document.hidden) pause()
+      else allowNativeControlsAfterPaint()
     }
     const observer = new IntersectionObserver(([entry]) => {
       if (!entry.isIntersecting) pause()
+      else allowNativeControlsAfterPaint()
     })
     observer.observe(frame)
     document.addEventListener('visibilitychange', onVisibility)
     return () => {
       observer.disconnect()
+      cancelAnimationFrame(settledFrame)
       document.removeEventListener('visibilitychange', onVisibility)
       attempt.current += 1
       video.pause()

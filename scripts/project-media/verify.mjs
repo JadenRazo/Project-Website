@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict'
-import { mkdir, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, writeFile } from 'node:fs/promises'
+import { join } from 'node:path'
+import { tmpdir } from 'node:os'
 
 const engines = await import(process.env.PLAYWRIGHT_MODULE || 'playwright')
 const { default: AxeBuilder } = await import(
@@ -7,9 +9,10 @@ const { default: AxeBuilder } = await import(
 )
 const engine = process.env.ENGINE || 'chromium'
 const base = process.env.PREVIEW_URL || 'http://127.0.0.1:4190'
-const out = process.env.EVIDENCE_DIR || '/tmp/jadenrazo-video-evidence/qa'
+const out = process.env.EVIDENCE_DIR || await mkdtemp(join(tmpdir(), 'project-media-qa-'))
 const mediaPattern = /\.(mp4|webm)(?:\?|$)/
-await mkdir(out, { recursive: true })
+await mkdir(out, { recursive: true, mode: 0o700 })
+console.log('Browser evidence:', out)
 const results = []
 const browser = await engines[engine].launch({
   headless: true,
