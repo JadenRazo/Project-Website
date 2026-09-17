@@ -1,7 +1,7 @@
 # Portfolio content editing
 
-This integration starts from the released project-film revision
-`3b1218a419d64705a7a1da4d237f1a111a215f41`. It preserves the current cloud/DevOps
+This integration starts from the released project-card film revision
+`5ad54207574e8099c583fce3f9eed937600d2c1f`. It preserves the current cloud/DevOps
 design, all six films, media hashes, transcripts, playback controls and links.
 It does not restore the older Build/Create/Innovate opening.
 
@@ -12,8 +12,8 @@ framework-owned structures. Repeated film names and categories share one value.
 
 Owners can edit the homepage headline, background, operating principles, contact
 copy and form labels, walkthrough copy, and About/Contact/Projects introductions.
-They can choose the initially selected film and show or hide technology tags.
-Film selection, keyboard navigation, playback, captions and evidence remain
+They can show or hide project categories and technology tags.
+Film activation, keyboard controls, playback, captions and evidence remain
 intact. Media replacement and recorded statements require a coordinated update;
 the editor does not expose arbitrary CSS/JavaScript or rewrite API-backed records.
 

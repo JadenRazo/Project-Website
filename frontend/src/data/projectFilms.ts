@@ -34,6 +34,7 @@ export interface ProjectFilm {
 const stories = [
   {
     id: 'raizhost',
+    headline: "From a business idea to a working website.",
     color: '#9ac4ae',
     kind: 'Product & architecture tour',
     duration: 24,
@@ -67,6 +68,7 @@ const stories = [
   },
   {
     id: 'cloudcostmcp',
+    headline: "Understand infrastructure before it costs you.",
     color: '#a5baf4',
     kind: 'Recorded CLI output',
     duration: 24,
@@ -100,6 +102,7 @@ const stories = [
   },
   {
     id: 'tickethacker',
+    headline: "One place for the whole conversation.",
     color: '#d8bca0',
     kind: 'Interface demo · sample data',
     duration: 24,
@@ -131,6 +134,7 @@ const stories = [
   },
   {
     id: 'llm-lint',
+    headline: "Catch repository policy issues before release.",
     color: '#c3b0ed',
     kind: 'Recorded CLI output',
     duration: 24,
@@ -164,6 +168,7 @@ const stories = [
   },
   {
     id: 'sre-reference-app',
+    headline: "Design for the moment something fails.",
     color: '#9dcce3',
     kind: 'Documented exercise walkthrough',
     duration: 24,
@@ -196,6 +201,7 @@ const stories = [
   },
   {
     id: 'sre-landing-zone',
+    headline: "Give every workload a clear boundary.",
     color: '#d4c495',
     kind: 'Architecture walkthrough',
     duration: 24,

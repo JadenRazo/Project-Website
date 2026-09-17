@@ -67,51 +67,44 @@
     "intro": "Public cloud, reliability, delivery, and developer-tooling work. Open a project to inspect its repository, implementation, and documented operational evidence."
   },
   "projects-home": {
-    "title": "Behind the build.",
-    "intro": "Six projects. A closer look.",
-    "detail": "See how each one works in under a minute, then explore the code and decisions behind it.",
-    "selection": "Choose a walkthrough",
-    "footer": "Built by Jaden Razo. Open for a closer look.",
-    "allProjects": "All repositories"
+    "eyebrow": "Selected Works",
+    "title": "Featured",
+    "accent": "Projects",
+    "inquiry": "Discuss this project",
+    "allProjects": "View All Projects"
   },
   "project-settings": {
-    "defaultFilm": "raizhost",
-    "showTags": true
+    "showTags": true,
+    "showCategories": true
   },
   "film-raizhost": {
     "title": "RaizHost",
     "category": "Web platform & delivery",
-    "headline": "From a business idea to a working website.",
     "summary": "A website platform with a public marketing site, bounded client editing, and a publishing path backed by each site’s own repository."
   },
   "film-cloudcostmcp": {
     "title": "CloudCostMCP",
     "category": "Cloud cost engineering",
-    "headline": "Understand infrastructure before it costs you.",
     "summary": "Turn infrastructure code into a resource inventory and cost estimate. Inspect the pricing sources and assumptions before touching the deployed environment."
   },
   "film-tickethacker": {
     "title": "TicketHacker",
     "category": "Support & collaboration",
-    "headline": "One place for the whole conversation.",
     "summary": "An omnichannel helpdesk that brings tickets, conversation history, assignment, and status into a single agent workspace."
   },
   "film-llm-lint": {
     "title": "llm-lint",
     "category": "Policy as code",
-    "headline": "Catch repository policy issues before release.",
     "summary": "A native CLI that identifies repository boundary violations, explains the finding, and previews a repair before anything changes."
   },
   "film-sre-reference-app": {
     "title": "SRE Reference App",
     "category": "Reliability engineering",
-    "headline": "Design for the moment something fails.",
     "summary": "A small service that makes reliability inspectable: request routing, task replacement, burn-rate alarms, and a documented failure exercise."
   },
   "film-sre-landing-zone": {
     "title": "SRE Landing Zone",
     "category": "Cloud architecture",
-    "headline": "Give every workload a clear boundary.",
     "summary": "A multi-account AWS lab that brings together workload isolation, a separate audit trail, pilot-light recovery, and tag-scoped cost controls."
   }
 }

@@ -464,105 +464,69 @@
       "access": "owner",
       "fields": [
         {
-          "key": "title",
-          "label": "Heading",
-          "type": "text",
-          "access": "owner",
-          "required": true,
-          "max": 80
-        },
-        {
-          "key": "intro",
-          "label": "Introduction",
-          "type": "text",
-          "access": "owner",
-          "required": true,
-          "max": 120
-        },
-        {
-          "key": "detail",
-          "label": "Supporting text",
-          "type": "textarea",
-          "access": "owner",
-          "required": true,
-          "max": 250
-        },
-        {
-          "key": "selection",
-          "label": "Selection prompt",
+          "key": "eyebrow",
+          "label": "Section label",
           "type": "text",
           "access": "owner",
           "required": true,
           "max": 60
         },
         {
-          "key": "footer",
-          "label": "Footer",
+          "key": "title",
+          "label": "Heading",
           "type": "text",
           "access": "owner",
           "required": true,
-          "max": 120
+          "max": 60
+        },
+        {
+          "key": "accent",
+          "label": "Highlighted heading",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 60
+        },
+        {
+          "key": "inquiry",
+          "label": "Contact link",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 60
         },
         {
           "key": "allProjects",
-          "label": "Repositories link",
+          "label": "All projects link",
           "type": "text",
           "access": "owner",
           "required": true,
-          "max": 40
+          "max": 60
         }
       ],
-      "help": "Change the words around the six films. Their media, captions and playback controls stay intact."
+      "help": "Edit the shared words around the six project cards. Film media, captions and playback controls stay intact."
     },
     {
       "id": "project-settings",
-      "label": "Walkthrough display",
+      "label": "Project card display",
       "page": "/",
       "group": "Homepage",
       "access": "owner",
       "fields": [
         {
-          "key": "defaultFilm",
-          "label": "First project",
-          "type": "select",
-          "access": "owner",
-          "required": true,
-          "options": [
-            {
-              "value": "raizhost",
-              "label": "RaizHost"
-            },
-            {
-              "value": "cloudcostmcp",
-              "label": "CloudCostMCP"
-            },
-            {
-              "value": "tickethacker",
-              "label": "TicketHacker"
-            },
-            {
-              "value": "llm-lint",
-              "label": "llm-lint"
-            },
-            {
-              "value": "sre-reference-app",
-              "label": "SRE Reference App"
-            },
-            {
-              "value": "sre-landing-zone",
-              "label": "SRE Landing Zone"
-            }
-          ]
-        },
-        {
           "key": "showTags",
           "label": "Show technology tags",
           "type": "boolean",
-          "access": "owner",
-          "required": true
+          "access": "owner"
+        },
+        {
+          "key": "showCategories",
+          "label": "Show project categories",
+          "type": "boolean",
+          "access": "owner"
         }
       ],
-      "help": "Choose which project appears first and whether technology tags are shown. Films still play only when a visitor presses play."
+      "help": "Choose which supporting details appear on the project cards. Films still play only when a visitor presses play."
     },
     {
       "id": "film-raizhost",
@@ -586,14 +550,6 @@
           "access": "owner",
           "required": true,
           "max": 65
-        },
-        {
-          "key": "headline",
-          "label": "Headline",
-          "type": "text",
-          "access": "owner",
-          "required": true,
-          "max": 110
         },
         {
           "key": "summary",
@@ -630,14 +586,6 @@
           "max": 65
         },
         {
-          "key": "headline",
-          "label": "Headline",
-          "type": "text",
-          "access": "owner",
-          "required": true,
-          "max": 110
-        },
-        {
           "key": "summary",
           "label": "Summary",
           "type": "textarea",
@@ -670,14 +618,6 @@
           "access": "owner",
           "required": true,
           "max": 65
-        },
-        {
-          "key": "headline",
-          "label": "Headline",
-          "type": "text",
-          "access": "owner",
-          "required": true,
-          "max": 110
         },
         {
           "key": "summary",
@@ -714,14 +654,6 @@
           "max": 65
         },
         {
-          "key": "headline",
-          "label": "Headline",
-          "type": "text",
-          "access": "owner",
-          "required": true,
-          "max": 110
-        },
-        {
           "key": "summary",
           "label": "Summary",
           "type": "textarea",
@@ -756,14 +688,6 @@
           "max": 65
         },
         {
-          "key": "headline",
-          "label": "Headline",
-          "type": "text",
-          "access": "owner",
-          "required": true,
-          "max": 110
-        },
-        {
           "key": "summary",
           "label": "Summary",
           "type": "textarea",
@@ -796,14 +720,6 @@
           "access": "owner",
           "required": true,
           "max": 65
-        },
-        {
-          "key": "headline",
-          "label": "Headline",
-          "type": "text",
-          "access": "owner",
-          "required": true,
-          "max": 110
         },
         {
           "key": "summary",
