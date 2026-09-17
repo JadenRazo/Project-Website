@@ -2,25 +2,33 @@
 
 The homepage keeps the six projects on the deployed September 16, 2026 site:
 RaizHost, CloudCostMCP, TicketHacker, llm-lint, SRE Reference App, and SRE Landing
-Zone. Each has a 24-second, silent film with three eight-second chapters. The
-project stage appears immediately after the introduction.
+Zone. Each has a 24-second, silent film with three eight-second chapters. Videos
+occupy the media slots in the homepage's alternating Featured Projects cards,
+after About. There is no separate tabbed video stage. Each card pairs its film
+with the project's description, technologies, evidence, and inquiry links.
 
 ## Viewing contract
 
-- One mounted player. Selecting a project replaces and releases the old player.
+- Six lazy poster previews, with a visible centered Play control in each card.
+- One mounted video. Starting another card replaces and releases the old video,
+  returning the previous card to its poster. Activation occurs synchronously
+  inside the visitor's play gesture, including on mobile browsers.
 - No video source, video request, autoplay, or media preload before explicit play.
 - A desktop composition (1600 × 1000) and a separately laid-out phone composition
   (896 × 1120). The initial play gesture chooses the composition; it keeps that
   geometry through rotation. Selecting a new film adapts to the current viewport.
 - Native controls for seeking, playback speed, captions, and fullscreen where the
-  browser supports them. Keyboard project selection, chapter shortcuts, an inline
+  browser supports them. Keyboard play controls, chapter shortcuts, an inline
   transcript, and explicit retry/open-video recovery remain available.
-- Playback pauses when the stage leaves the viewport or the document is hidden.
+- Playback pauses when the card leaves the viewport or the document is hidden.
   Returning does not resume it. Reduced motion also disables UI transitions.
 - H.264 MP4 with faststart is preferred when supported; VP9 WebM supplies a
   fallback. Only one format/composition is downloaded. Both are silent, 30 fps.
 - Every distributed asset has a content hash in its URL, including posters and
   WebVTT descriptions. Long-lived immutable caching is safe for these paths.
+- Browser checks follow the real homepage CTA and require the first Play control
+  to land inside the viewport. They also scroll all six cards before playing and
+  verify there are no video requests, then verify cross-card player cleanup.
 
 ## What the films show
 

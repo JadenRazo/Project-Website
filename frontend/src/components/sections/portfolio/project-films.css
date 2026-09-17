@@ -1,141 +1,124 @@
-.project-cinema {
-  padding: 88px 0 64px;
-  border-bottom: 1px solid #253044;
-  background: #080e18;
-  scroll-margin-top: 80px;
+.project-gallery {
+  position: relative;
+  width: 100%;
+  padding: 64px 0 80px;
 }
-.cinema-heading {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 40px;
-  margin-bottom: 38px;
+.project-gallery-heading {
+  text-align: center;
+  margin-bottom: 48px;
 }
-.cinema-eyebrow,
-.cinema-list-label,
-.film-category {
-  font: 11px/1.5 var(--font-mono);
+.project-gallery-heading > p {
+  margin-bottom: 12px;
+  color: var(--color-primary-light);
+  font: 12px/1.5 var(--font-mono);
   text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: #9cabbf;
+  letter-spacing: 0.2em;
 }
-.cinema-eyebrow {
-  margin-bottom: 14px;
-}
-.cinema-eyebrow span {
-  margin-left: 20px;
-  color: #768ba5;
-}
-.cinema-heading h2 {
-  font-size: clamp(36px, 4.7vw, 64px);
-  font-weight: 600;
-  letter-spacing: -0.045em;
-  line-height: 1.08;
+.project-gallery-heading h2 {
+  font-size: clamp(32px, 4.7vw, 60px);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
   color: #f3f5f8;
 }
-.cinema-heading > p {
-  max-width: 380px;
-  color: #a9b6c8;
-  font-size: 15px;
-  line-height: 1.8;
-}
-.cinema-layout {
-  display: grid;
-  grid-template-columns: 265px minmax(0, 1fr);
-  gap: 36px;
-  align-items: start;
-}
-.cinema-selection {
-  padding-top: 2px;
-}
-.cinema-list-label {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 12px 17px;
-}
-.cinema-tabs {
+.project-cards {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 88px;
 }
-.cinema-tab {
-  position: relative;
-  display: flex;
-  gap: 13px;
+.project-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
-  width: 100%;
-  min-height: 83px;
-  padding: 15px 12px;
-  border: 1px solid transparent;
-  border-radius: 7px;
-  color: #9cabbf;
-  background: transparent;
-  cursor: pointer;
-  text-align: left;
-  transition:
-    background-color 0.15s,
-    border-color 0.15s;
+  gap: 30px;
 }
-.cinema-tab:hover {
-  background: #101a29;
-  color: #f3f5f8;
-}
-.cinema-tab.is-selected {
-  color: #f3f5f8;
-  background: #152234;
-  border-color: #34465c;
-}
-.cinema-tab.is-selected::before {
-  content: '';
-  position: absolute;
-  width: 2px;
-  top: 18px;
-  bottom: 18px;
-  left: -1px;
-  background: var(--film-accent);
-}
-.cinema-tab-index {
-  flex: 0 0 18px;
-  font: 11px/1.5 var(--font-mono);
-  color: #91a1b6;
-}
-.cinema-tab-copy {
-  flex: 1;
+.project-card-media,
+.project-card-copy {
   min-width: 0;
 }
-.cinema-tab-copy strong {
-  display: block;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.4;
+.project-card-number {
+  margin-bottom: 10px;
+  color: var(--color-primary-light);
+  font: 11px/1.5 var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
 }
-.cinema-tab-copy > span {
-  display: block;
-  font-size: 11px;
-  line-height: 1.6;
-  margin-top: 5px;
-  color: #a7b6c9;
+.project-card-copy h3 {
+  color: #f3f5f8;
+  font-size: clamp(26px, 3vw, 40px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
 }
-.cinema-tab-time {
-  flex: 0 0 27px;
-  font: 10px/1.5 var(--font-mono);
-  color: #a7b6c9;
+.project-card-category {
+  margin: 12px 0 18px;
+  color: var(--film-accent);
+  font: 11px/1.6 var(--font-mono);
 }
-.is-selected .cinema-tab-time {
+.project-card-copy > p[id] {
+  color: #aebcd0;
+  font-size: 16px;
+  line-height: 1.8;
+}
+.film-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  margin-top: 22px;
+}
+.film-tags li {
+  border: 1px solid #2c3a4e;
+  border-radius: 20px;
+  padding: 5px 11px;
+  font: 11px/1.5 var(--font-mono);
+  color: #b4c1d3;
+  background: #101a29;
+}
+.project-card-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 26px;
+}
+.project-card-links a {
+  min-height: 44px;
+  padding: 10px 16px;
+  font-size: 13px;
+}
+.project-card-links .btn-primary {
+  background: #09609e;
+  border-color: #3085bf;
+  color: #fff;
+}
+.project-card-links .btn-primary:hover {
+  background: #084c80;
+}
+.project-card-inquiry {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin-top: 12px;
+  color: #aebcd0;
+  font-size: 13px;
+}
+.project-card-inquiry:hover {
   color: var(--film-accent);
 }
-.cinema-note {
-  margin: 26px 12px 0;
-  color: #92a3b9;
-  font-size: 12px;
-  line-height: 1.9;
+.project-gallery-footer {
+  display: flex;
+  justify-content: center;
+  margin-top: 64px;
 }
-.cinema-panel {
-  min-width: 0;
-}
-.cinema-panel[hidden] {
-  display: none;
+@media (min-width: 1100px) {
+  .project-card {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 56px;
+  }
+  .project-card:nth-child(even) .project-card-media {
+    order: 2;
+  }
 }
 .project-film-player {
   border: 1px solid #334155;
@@ -193,8 +176,10 @@
   gap: 12px;
   position: absolute;
   z-index: 2;
-  right: 24px;
-  bottom: 24px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
   min-height: 54px;
   padding: 7px 20px 7px 7px;
   border-radius: 40px;
@@ -224,7 +209,9 @@
   color: #526077;
 }
 .film-replay {
-  bottom: 65px;
+  top: auto;
+  bottom: 85px;
+  transform: translateX(-50%);
   padding: 14px 20px;
 }
 .film-chapters {
@@ -253,7 +240,7 @@
   background: #19283a;
 }
 .film-chapters button.is-current::before {
-  content: '';
+  content: "";
   position: absolute;
   height: 2px;
   top: -1px;
@@ -304,65 +291,6 @@
   font-size: 12px;
   color: #a3b3c8;
 }
-.film-details {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 30px;
-  padding-top: 28px;
-}
-.film-category {
-  color: var(--film-accent);
-  font-size: 10px;
-}
-.film-details h3 {
-  color: #f3f5f8;
-  font-size: clamp(21px, 2.2vw, 28px);
-  line-height: 1.3;
-  letter-spacing: -0.025em;
-  font-weight: 600;
-  margin: 9px 0 12px;
-}
-.film-details p:not(.film-category) {
-  font-size: 14px;
-  line-height: 1.85;
-  color: #aebcd0;
-  max-width: 620px;
-}
-.film-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px 15px;
-  list-style: none;
-  margin-top: 18px;
-}
-.film-tags li {
-  font: 10px/1.6 var(--font-mono);
-  color: #96a8be;
-}
-.film-links {
-  min-width: 165px;
-  padding-top: 21px;
-  display: flex;
-  flex-direction: column;
-  align-items: start;
-  gap: 4px;
-}
-.film-links a {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  font-size: 12px;
-  font-weight: 500;
-  color: #e5edf8;
-}
-.film-links a:hover {
-  color: var(--film-accent);
-}
-.film-links .film-inquiry {
-  color: #adbed3;
-  font-size: 11px;
-}
 .film-recovery {
   display: flex;
   flex-wrap: wrap;
@@ -410,104 +338,28 @@
   font-size: 12px;
   pointer-events: none;
 }
-.cinema-footer {
-  display: flex;
-  gap: 20px;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 48px;
-  padding-top: 22px;
-  border-top: 1px solid #29364a;
-  color: #a0b0c5;
-  font-size: 12px;
-}
-.cinema-footer a {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  color: #e5edf8;
-  min-height: 44px;
-}
-.project-cinema :is(button, a, summary, [tabindex]):focus-visible {
+.project-gallery :is(button, a, summary, [tabindex]):focus-visible {
   outline: 2px solid #b5d7ff;
   outline-offset: 4px;
 }
-.project-cinema :is(.film-chapters button, summary):focus-visible {
+.project-gallery :is(.film-chapters button, summary, video):focus-visible {
   outline-offset: -4px;
 }
-@media (max-width: 1100px) {
-  .cinema-layout {
-    grid-template-columns: 225px minmax(0, 1fr);
-    gap: 22px;
-  }
-  .cinema-tab {
-    gap: 9px;
-    padding: 13px 9px;
-  }
-  .cinema-tab-copy strong {
-    font-size: 13px;
-  }
-  .film-details {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-  .film-links {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 4px 20px;
-    padding-top: 0;
-  }
-}
-@media (max-width: 850px) {
-  .project-cinema {
-    padding: 58px 0 40px;
-  }
-  .cinema-heading {
-    align-items: start;
-    flex-direction: column;
-    gap: 20px;
-    margin-bottom: 30px;
-  }
-  .cinema-heading > p {
-    max-width: 550px;
-  }
-  .cinema-layout {
-    display: flex;
-    flex-direction: column;
-    gap: 22px;
-  }
-  .cinema-selection,
-  .cinema-panel {
-    width: 100%;
-  }
-  .cinema-tabs {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 6px;
-  }
-  .cinema-tab {
-    border-color: #253448;
-    min-height: 76px;
-  }
-  .cinema-tab-index,
-  .cinema-tab-time,
-  .cinema-note {
-    display: none;
-  }
-  .cinema-list-label {
-    padding: 0 0 12px;
-  }
-}
 @media (max-width: 639px) {
-  .cinema-tabs {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .project-gallery {
+    padding: 40px 0 56px;
   }
-  .cinema-tab {
-    padding: 12px;
-    min-height: 72px;
+  .project-gallery-heading {
+    margin-bottom: 32px;
   }
-  .cinema-tab-copy > span {
-    font-size: 10px;
+  .project-cards {
+    gap: 60px;
+  }
+  .project-card {
+    gap: 24px;
+  }
+  .project-card-copy > p[id] {
+    font-size: 15px;
   }
   .film-frame {
     aspect-ratio: 4 / 5;
@@ -521,8 +373,6 @@
     gap: 4px;
   }
   .film-play {
-    right: 16px;
-    bottom: 18px;
     min-height: 50px;
     font-size: 12px;
   }
@@ -533,30 +383,15 @@
   .film-chapters strong {
     font-size: 11px;
   }
-  .film-details {
-    padding-top: 23px;
-  }
-  .film-details p:not(.film-category) {
-    font-size: 14px;
-  }
-  .film-links a {
-    font-size: 12px;
-  }
-  .cinema-footer {
-    align-items: start;
-    flex-direction: column;
-    gap: 5px;
-    margin-top: 30px;
-  }
 }
-/* Keep a loaded film's geometry through rotation; the next selection adapts. */
-.film-frame[data-composition='portrait'] {
+/* Keep a loaded film's geometry through rotation; the next playback adapts. */
+.film-frame[data-composition="portrait"] {
   aspect-ratio: 4 / 5;
 }
-.film-frame[data-composition='wide'] {
+.film-frame[data-composition="wide"] {
   aspect-ratio: 8 / 5;
 }
-/* Reserve real space for native controls so paused captions remain readable. */
+/* Native controls have their own space below the picture and its captions. */
 .film-frame[data-composition] {
   box-sizing: content-box;
   padding-bottom: 76px;
@@ -564,12 +399,9 @@
 .film-video {
   object-position: top;
 }
-.project-cinema .film-video:focus-visible {
-  outline-offset: -4px;
-}
 @media (prefers-reduced-motion: reduce) {
-  .project-cinema *,
-  .project-cinema *::before {
+  .project-gallery *,
+  .project-gallery *::before {
     transition: none !important;
     animation: none !important;
   }

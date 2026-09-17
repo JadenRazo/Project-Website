@@ -1,6 +1,11 @@
-import { Hero, About, Services, Contact } from '../components/sections/portfolio'
-import HorizontalProjectGallery from '../components/sections/portfolio/HorizontalProjectGallery'
-import SEO from '../components/common/SEO'
+import {
+  Hero,
+  About,
+  Services,
+  Contact,
+} from "../components/sections/portfolio";
+import HorizontalProjectGallery from "../components/sections/portfolio/HorizontalProjectGallery";
+import SEO from "../components/common/SEO";
 
 export default function PortfolioHome() {
   return (
@@ -12,11 +17,11 @@ export default function PortfolioHome() {
       />
       <div className="relative">
         <Hero />
-        <HorizontalProjectGallery />
         <About />
+        <HorizontalProjectGallery />
         <Services />
         <Contact />
       </div>
     </>
-  )
+  );
 }
