@@ -1,3 +1,4 @@
+import { useSiteContent } from '../../../lib/site-content'
 import { Activity, ArrowDownRight, ExternalLink, Github } from 'lucide-react'
 
 import { useScroll } from '../../../providers/ScrollProvider'
@@ -21,6 +22,8 @@ const evidence = [
 ]
 
 export default function Hero() {
+  const siteContent = useSiteContent()
+  const copy = siteContent['hero']
   const { scrollTo } = useScroll()
 
   const inspectWork = (event: React.MouseEvent<HTMLAnchorElement>) => {
@@ -38,28 +41,25 @@ export default function Hero() {
         <div className="max-w-4xl">
           <div className="mb-7 inline-flex items-center gap-2 border border-primary/40 bg-primary/10 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.16em] text-primary sm:text-xs">
             <span className="h-2 w-2 rounded-full bg-neon" aria-hidden="true" />
-            Open to full-time cloud / DevOps roles
+            <span data-rh="hero.availability">{copy.availability}</span>
           </div>
 
           <p className="mb-4 font-mono text-xs uppercase tracking-[0.22em] text-text-secondary sm:text-sm">
-            AWS · Terraform · Go · SRE
+            <span data-rh="hero.stack">{copy.stack}</span>
           </p>
           <h1
             id="hero-title"
             className="max-w-4xl font-display text-[clamp(2.85rem,8.5vw,6.75rem)] font-bold leading-[0.94] tracking-[-0.055em] text-text-primary"
           >
-            I build reliable <span className="text-primary">cloud systems.</span>
+            <span data-rh="hero.headline">{copy.headline}</span> <span className="text-primary"><span data-rh="hero.accent">{copy.accent}</span></span>
           </h1>
           <p className="mt-7 max-w-2xl text-base leading-7 text-text-secondary sm:text-lg sm:leading-8 lg:text-xl">
-            I&apos;m Jaden Razo, a cloud and DevOps engineer focused on secure
-            delivery, measurable reliability, and cost-aware AWS infrastructure.
-            I turn architecture intent into tests, runbooks, and evidence a team
-            can inspect.
+            <span data-rh="hero.description">{copy.description}</span>
           </p>
 
           <div className="mt-8 flex flex-col gap-3 min-[430px]:flex-row sm:mt-10">
             <a href="#projects" onClick={inspectWork} className="btn-primary">
-              <span>Watch the projects</span>
+              <span><span data-rh="hero.primaryCta">{copy.primaryCta}</span></span>
               <ArrowDownRight size={17} aria-hidden="true" />
             </a>
             <a
@@ -69,7 +69,7 @@ export default function Hero() {
               className="btn-secondary"
             >
               <Github size={17} aria-hidden="true" />
-              <span>GitHub profile</span>
+              <span><span data-rh="hero.secondaryCta">{copy.secondaryCta}</span></span>
             </a>
           </div>
 

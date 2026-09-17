@@ -1,3 +1,4 @@
+import { useSiteContent } from '../../../lib/site-content'
 import { ExternalLink } from 'lucide-react'
 
 const signals = [
@@ -25,26 +26,23 @@ const signals = [
 ]
 
 export default function About() {
+  const siteContent = useSiteContent()
+  const copy = siteContent['about-home']
   return (
     <section id="about" aria-labelledby="about-title" className="relative w-full border-b border-border py-16 sm:py-20 lg:py-28">
       <div className="portfolio-container grid gap-12 lg:grid-cols-[0.72fr_1.28fr] lg:gap-20">
         <div>
           <p className="mb-4 font-mono text-xs uppercase tracking-[0.2em] text-primary">
-            Engineering signal
+            <span data-rh="about-home.eyebrow">{copy.eyebrow}</span>
           </p>
           <h2 id="about-title" className="font-display text-4xl font-bold leading-tight tracking-[-0.04em] text-text-primary sm:text-5xl lg:text-6xl">
-            Evidence over adjectives.
+            <span data-rh="about-home.title">{copy.title}</span>
           </h2>
           <p className="mt-6 max-w-xl text-base leading-7 text-text-secondary sm:text-lg sm:leading-8">
-            I run RaizHost and build public cloud, reliability, and developer-tooling
-            projects around one rule: architecture claims should resolve to code,
-            tests, measurements, or an honest limitation.
+            <span data-rh="about-home.intro">{copy.intro}</span>
           </p>
           <p className="mt-4 max-w-xl text-[15px] leading-7 text-text-muted sm:text-base">
-            My strongest work sits where AWS infrastructure, secure delivery,
-            observability, and operational ownership meet. I&apos;m CompTIA A+ and
-            Network+ certified and currently focused on cloud, DevOps, platform,
-            and SRE roles.
+            <span data-rh="about-home.details">{copy.details}</span>
           </p>
         </div>
 

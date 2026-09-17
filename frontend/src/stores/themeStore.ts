@@ -1,5 +1,6 @@
+import { local as safeLocalStorage } from '../utils/safeStorage';
 import { create } from 'zustand';
-import { devtools, persist } from 'zustand/middleware';
+import { devtools, persist, createJSONStorage } from 'zustand/middleware';
 import { themes } from '../styles/themes';
 import type { Theme, ThemeMode, ThemeState } from './types';
 
@@ -13,7 +14,7 @@ type ThemeStore = ThemeState & ThemeActions;
 
 const getPreferredTheme = (): ThemeMode => {
   if (typeof window !== 'undefined') {
-    const savedTheme = localStorage.getItem('theme') as ThemeMode;
+    const savedTheme = safeLocalStorage.getItem('theme') as ThemeMode;
     
     if (savedTheme === 'dark' || savedTheme === 'light') {
       return savedTheme;
@@ -38,7 +39,7 @@ export const useThemeStore = create<ThemeStore>()(
           const newMode = currentMode === 'light' ? 'dark' : 'light';
           const newTheme = themes[newMode];
 
-          localStorage.setItem('theme', newMode);
+          safeLocalStorage.setItem('theme', newMode);
           
           set({
             themeMode: newMode,
@@ -51,7 +52,7 @@ export const useThemeStore = create<ThemeStore>()(
         setThemeMode: (mode: ThemeMode) => {
           const newTheme = themes[mode];
           
-          localStorage.setItem('theme', mode);
+          safeLocalStorage.setItem('theme', mode);
           
           set({
             themeMode: mode,
@@ -76,6 +77,7 @@ export const useThemeStore = create<ThemeStore>()(
       }),
       {
         name: 'theme-storage',
+        storage: createJSONStorage(() => safeLocalStorage),
         partialize: (state) => ({
           themeMode: state.themeMode
         }),
@@ -108,7 +110,7 @@ const setupMediaQueryListener = () => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     
     const handleChange = (e: MediaQueryListEvent) => {
-      const savedTheme = localStorage.getItem('theme') as ThemeMode;
+      const savedTheme = safeLocalStorage.getItem('theme') as ThemeMode;
       
       if (!savedTheme) {
         const newMode = e.matches ? 'dark' : 'light';

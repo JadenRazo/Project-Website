@@ -1,3 +1,4 @@
+import { local as safeLocalStorage } from './safeStorage';
 import { handleApiError } from './errorHandler';
 
 interface ApiConfig {
@@ -46,15 +47,15 @@ class ApiClient {
   }
 
   private getAuthToken(): string | null {
-    return localStorage.getItem(this.authTokenKey);
+    return safeLocalStorage.getItem(this.authTokenKey);
   }
 
   setAuthToken(token: string): void {
-    localStorage.setItem(this.authTokenKey, token);
+    safeLocalStorage.setItem(this.authTokenKey, token);
   }
 
   clearAuthToken(): void {
-    localStorage.removeItem(this.authTokenKey);
+    safeLocalStorage.removeItem(this.authTokenKey);
   }
 
   private async fetchWithTimeout(

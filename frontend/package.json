@@ -82,7 +82,8 @@
     "clear-cache": "rimraf node_modules/.vite .vite build tsconfig.tsbuildinfo",
     "dev:fresh": "npm run clear-cache && npm run dev",
     "reinstall": "rm -rf node_modules && npm install",
-    "update-stats": "cd .. && ./scripts/monitoring/update_code_stats.sh"
+    "update-stats": "cd .. && ./scripts/monitoring/update_code_stats.sh",
+    "test:editor-compat": "node --test scripts/safe-storage.test.mjs"
   },
   "browserslist": {
     "production": [

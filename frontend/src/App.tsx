@@ -1,5 +1,7 @@
+import { SiteRouter as Router } from './lib/editor-preview';
+import { session as safeSessionStorage } from './utils/safeStorage';
 import React, { Suspense, lazy, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { ThemeProvider as StyledThemeProvider } from 'styled-components';
 import { GlobalStyles } from './styles/GlobalStyles';
@@ -133,10 +135,10 @@ function AppContent() {
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
       devCacheManager.setupDevTools();
-      const hasInitialized = sessionStorage.getItem('dev-cache-initialized');
+      const hasInitialized = safeSessionStorage.getItem('dev-cache-initialized');
       if (!hasInitialized) {
         devCacheManager.clearAllCaches();
-        sessionStorage.setItem('dev-cache-initialized', 'true');
+        safeSessionStorage.setItem('dev-cache-initialized', 'true');
       }
     }
   }, []);

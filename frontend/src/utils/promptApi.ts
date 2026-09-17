@@ -1,3 +1,4 @@
+import { local as safeLocalStorage } from './safeStorage';
 // DevPanel API Types
 export interface Prompt {
   id: string;
@@ -46,7 +47,7 @@ export const getAuthHeaders = (): Record<string, string> => {
     'Content-Type': 'application/json',
   };
   
-  const token = localStorage.getItem('auth_token');
+  const token = safeLocalStorage.getItem('auth_token');
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }

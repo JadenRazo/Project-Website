@@ -1,3 +1,4 @@
+import { useSiteContent } from '../../lib/site-content'
 import React, { useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { motion } from 'framer-motion';
@@ -245,6 +246,7 @@ const SuccessText = styled.p`
 `;
 
 const Contact: React.FC = () => {
+  const copy = useSiteContent()['contact-page']
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -303,14 +305,14 @@ const Contact: React.FC = () => {
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          Get in Touch
+          <span data-rh="contact-page.title">{copy.title}</span>
         </Title>
         <Subtitle
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
-          Hiring for a cloud, DevOps, platform, or SRE team? I&apos;d like to hear about the role.
+          <span data-rh="contact-page.intro">{copy.intro}</span>
         </Subtitle>
 
         {isSubmitted ? (
@@ -346,7 +348,7 @@ const Contact: React.FC = () => {
             </div>
 
             <InputGroup>
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name" data-rh="contact-page.nameLabel">{copy.nameLabel}</Label>
               <Input
                 type="text"
                 id="name"
@@ -359,7 +361,7 @@ const Contact: React.FC = () => {
             </InputGroup>
 
             <InputGroup>
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" data-rh="contact-page.emailLabel">{copy.emailLabel}</Label>
               <Input
                 type="email"
                 id="email"
@@ -372,7 +374,7 @@ const Contact: React.FC = () => {
             </InputGroup>
 
             <InputGroup>
-              <Label htmlFor="subject">Subject</Label>
+              <Label htmlFor="subject" data-rh="contact-page.subjectLabel">{copy.subjectLabel}</Label>
               <Input
                 type="text"
                 id="subject"
@@ -385,7 +387,7 @@ const Contact: React.FC = () => {
             </InputGroup>
 
             <InputGroup>
-              <Label htmlFor="message">Message</Label>
+              <Label htmlFor="message" data-rh="contact-page.messageLabel">{copy.messageLabel}</Label>
               <TextArea
                 id="message"
                 name="message"
@@ -408,7 +410,7 @@ const Contact: React.FC = () => {
                   Sending...
                 </>
               ) : (
-                'Send Message'
+                <span data-rh="contact-page.submitCta">{copy.submitCta}</span>
               )}
             </SubmitButton>
           </Form>

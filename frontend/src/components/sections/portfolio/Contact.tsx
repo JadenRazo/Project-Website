@@ -1,3 +1,4 @@
+import { useSiteContent } from '../../../lib/site-content'
 import { useState } from 'react'
 import { Send, Mail, Github, Linkedin, CheckCircle, Loader2 } from 'lucide-react'
 import { api } from '../../../utils/apiConfig'
@@ -9,6 +10,8 @@ const socialLinks = [
 ]
 
 export default function Contact() {
+  const siteContent = useSiteContent()
+  const copy = siteContent['contact-home']
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -63,14 +66,13 @@ export default function Contact() {
           className="max-w-3xl text-center mb-6 md:mb-8 lg:mb-10"
         >
           <p className="mb-3 font-mono text-xs uppercase tracking-[0.2em] text-primary">
-            Start a conversation
+            <span data-rh="contact-home.eyebrow">{copy.eyebrow}</span>
           </p>
           <h2 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.04em] mb-3 lg:mb-5 text-text-primary">
-            Let&apos;s build something dependable.
+            <span data-rh="contact-home.title">{copy.title}</span>
           </h2>
           <p className="text-[15px] leading-7 text-text-secondary sm:text-base lg:text-lg">
-            Hiring for a cloud, DevOps, platform, or SRE team? Tell me about the
-            system, the reliability problem, and what ownership looks like.
+            <span data-rh="contact-home.intro">{copy.intro}</span>
           </p>
           <a href="mailto:contact@jadenrazo.dev" className="mt-3 inline-block text-sm font-medium text-primary hover:underline">
             contact@jadenrazo.dev
@@ -107,36 +109,36 @@ export default function Contact() {
               </div>
               <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="sr-only" htmlFor="contact-name">Your name</label>
+                  <label className="sr-only" htmlFor="contact-name" data-rh="contact-home.nameLabel">{copy.nameLabel}</label>
                   <input
                     type="text"
-                    id="contact-name"
+                    id="contact-name" data-rh-control="contact-home.nameLabel"
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
                     required
                     disabled={isLoading}
                     className="w-full px-4 py-3 bg-surface border border-border rounded-lg focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors text-base sm:text-sm text-text-primary placeholder:text-text-muted disabled:opacity-50"
-                    placeholder="Your name"
+                    placeholder={copy.nameLabel}
                   />
                 </div>
                 <div>
-                  <label className="sr-only" htmlFor="contact-email">Your email</label>
+                  <label className="sr-only" htmlFor="contact-email" data-rh="contact-home.emailLabel">{copy.emailLabel}</label>
                   <input
                     type="email"
-                    id="contact-email"
+                    id="contact-email" data-rh-control="contact-home.emailLabel"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
                     required
                     disabled={isLoading}
                     className="w-full px-4 py-3 bg-surface border border-border rounded-lg focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors text-base sm:text-sm text-text-primary placeholder:text-text-muted disabled:opacity-50"
-                    placeholder="Your email"
+                    placeholder={copy.emailLabel}
                   />
                 </div>
               </div>
               <div>
-                <label className="sr-only" htmlFor="contact-subject">Subject</label>
+                <label className="sr-only" htmlFor="contact-subject" data-rh="contact-home.subjectLabel">{copy.subjectLabel}</label>
                 <input
                   type="text"
                   id="contact-subject"
@@ -145,11 +147,11 @@ export default function Contact() {
                   onChange={handleChange}
                   disabled={isLoading}
                   className="w-full px-4 py-3 bg-surface border border-border rounded-lg focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors text-base sm:text-sm text-text-primary placeholder:text-text-muted disabled:opacity-50"
-                  placeholder="Role or team (optional)"
+                  data-rh-control="contact-home.subjectHint" placeholder={copy.subjectHint}
                 />
               </div>
               <div>
-                <label className="sr-only" htmlFor="contact-message">Your message</label>
+                <label className="sr-only" htmlFor="contact-message" data-rh="contact-home.messageLabel">{copy.messageLabel}</label>
                 <textarea
                   id="contact-message"
                   name="message"
@@ -159,7 +161,7 @@ export default function Contact() {
                   disabled={isLoading}
                   rows={3}
                   className="w-full px-4 py-3 bg-surface border border-border rounded-lg focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors resize-none text-base sm:text-sm text-text-primary placeholder:text-text-muted disabled:opacity-50"
-                  placeholder="What are you building or hiring for?"
+                  data-rh-control="contact-home.messageHint" placeholder={copy.messageHint}
                 />
               </div>
               <button type="submit" className="btn-primary w-full" disabled={isLoading}>
@@ -171,7 +173,7 @@ export default function Contact() {
                 ) : (
                   <>
                     <Send size={16} />
-                    <span>Send Message</span>
+                    <span><span data-rh="contact-home.submitCta">{copy.submitCta}</span></span>
                   </>
                 )}
               </button>

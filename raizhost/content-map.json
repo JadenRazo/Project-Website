@@ -1,0 +1,820 @@
+{
+  "version": 2,
+  "site": {
+    "name": "Jaden Razo",
+    "url": "https://jadenrazo.dev"
+  },
+  "entries": [
+    {
+      "id": "hero",
+      "label": "Homepage headline",
+      "page": "/",
+      "group": "Homepage",
+      "access": "owner",
+      "fields": [
+        {
+          "key": "availability",
+          "label": "Availability badge",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 70
+        },
+        {
+          "key": "stack",
+          "label": "Skills line",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 90
+        },
+        {
+          "key": "headline",
+          "label": "Headline",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 70
+        },
+        {
+          "key": "accent",
+          "label": "Highlighted headline",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 50
+        },
+        {
+          "key": "description",
+          "label": "Introduction",
+          "type": "textarea",
+          "access": "owner",
+          "required": true,
+          "max": 500
+        },
+        {
+          "key": "primaryCta",
+          "label": "Projects button",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 35
+        },
+        {
+          "key": "secondaryCta",
+          "label": "GitHub button",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 35
+        }
+      ]
+    },
+    {
+      "id": "about-home",
+      "label": "About section",
+      "page": "/",
+      "group": "Homepage",
+      "access": "owner",
+      "fields": [
+        {
+          "key": "eyebrow",
+          "label": "Section label",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 50
+        },
+        {
+          "key": "title",
+          "label": "Heading",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 80
+        },
+        {
+          "key": "intro",
+          "label": "Introduction",
+          "type": "textarea",
+          "access": "owner",
+          "required": true,
+          "max": 500
+        },
+        {
+          "key": "details",
+          "label": "Background",
+          "type": "textarea",
+          "access": "owner",
+          "required": true,
+          "max": 500
+        }
+      ]
+    },
+    {
+      "id": "services-home",
+      "label": "Operating principles",
+      "page": "/",
+      "group": "Homepage",
+      "access": "owner",
+      "fields": [
+        {
+          "key": "eyebrow",
+          "label": "Section label",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 50
+        },
+        {
+          "key": "title",
+          "label": "Heading",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 80
+        },
+        {
+          "key": "intro",
+          "label": "Introduction",
+          "type": "textarea",
+          "access": "owner",
+          "required": true,
+          "max": 500
+        }
+      ]
+    },
+    {
+      "id": "principle-1",
+      "label": "Infrastructure as a reviewed system",
+      "page": "/",
+      "group": "Homepage",
+      "access": "owner",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 90
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "textarea",
+          "access": "owner",
+          "required": true,
+          "max": 420
+        }
+      ]
+    },
+    {
+      "id": "principle-2",
+      "label": "Safe delivery paths",
+      "page": "/",
+      "group": "Homepage",
+      "access": "owner",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 90
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "textarea",
+          "access": "owner",
+          "required": true,
+          "max": 420
+        }
+      ]
+    },
+    {
+      "id": "principle-3",
+      "label": "Reliability with a denominator",
+      "page": "/",
+      "group": "Homepage",
+      "access": "owner",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 90
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "textarea",
+          "access": "owner",
+          "required": true,
+          "max": 420
+        }
+      ]
+    },
+    {
+      "id": "principle-4",
+      "label": "Cost and security at design time",
+      "page": "/",
+      "group": "Homepage",
+      "access": "owner",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 90
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "textarea",
+          "access": "owner",
+          "required": true,
+          "max": 420
+        }
+      ]
+    },
+    {
+      "id": "contact-home",
+      "label": "Contact section",
+      "page": "/",
+      "group": "Homepage",
+      "access": "owner",
+      "fields": [
+        {
+          "key": "eyebrow",
+          "label": "Section label",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 60
+        },
+        {
+          "key": "title",
+          "label": "Heading",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 90
+        },
+        {
+          "key": "intro",
+          "label": "Introduction",
+          "type": "textarea",
+          "access": "owner",
+          "required": true,
+          "max": 350
+        },
+        {
+          "key": "submitCta",
+          "label": "Send button",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 40
+        },
+        {
+          "key": "nameLabel",
+          "label": "Name field",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 60
+        },
+        {
+          "key": "emailLabel",
+          "label": "Email field",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 60
+        },
+        {
+          "key": "subjectLabel",
+          "label": "Subject field",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 60
+        },
+        {
+          "key": "messageLabel",
+          "label": "Message field",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 60
+        },
+        {
+          "key": "subjectHint",
+          "label": "Subject placeholder",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 100
+        },
+        {
+          "key": "messageHint",
+          "label": "Message placeholder",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 100
+        }
+      ]
+    },
+    {
+      "id": "about-page",
+      "label": "About page",
+      "page": "/about",
+      "group": "Pages",
+      "access": "owner",
+      "fields": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 60
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 100
+        },
+        {
+          "key": "intro",
+          "label": "Introduction",
+          "type": "textarea",
+          "access": "owner",
+          "required": true,
+          "max": 900
+        }
+      ]
+    },
+    {
+      "id": "contact-page",
+      "label": "Contact page",
+      "page": "/contact",
+      "group": "Pages",
+      "access": "owner",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Heading",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 80
+        },
+        {
+          "key": "intro",
+          "label": "Introduction",
+          "type": "textarea",
+          "access": "owner",
+          "required": true,
+          "max": 350
+        },
+        {
+          "key": "nameLabel",
+          "label": "Name label",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 50
+        },
+        {
+          "key": "emailLabel",
+          "label": "Email label",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 50
+        },
+        {
+          "key": "subjectLabel",
+          "label": "Subject label",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 50
+        },
+        {
+          "key": "messageLabel",
+          "label": "Message label",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 50
+        },
+        {
+          "key": "submitCta",
+          "label": "Send button",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 40
+        }
+      ]
+    },
+    {
+      "id": "projects-page",
+      "label": "Projects page",
+      "page": "/projects",
+      "group": "Pages",
+      "access": "owner",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Heading",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 80
+        },
+        {
+          "key": "intro",
+          "label": "Introduction",
+          "type": "textarea",
+          "access": "owner",
+          "required": true,
+          "max": 400
+        }
+      ]
+    },
+    {
+      "id": "projects-home",
+      "label": "Project walkthroughs",
+      "page": "/",
+      "group": "Homepage",
+      "access": "owner",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Heading",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 80
+        },
+        {
+          "key": "intro",
+          "label": "Introduction",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 120
+        },
+        {
+          "key": "detail",
+          "label": "Supporting text",
+          "type": "textarea",
+          "access": "owner",
+          "required": true,
+          "max": 250
+        },
+        {
+          "key": "selection",
+          "label": "Selection prompt",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 60
+        },
+        {
+          "key": "footer",
+          "label": "Footer",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 120
+        },
+        {
+          "key": "allProjects",
+          "label": "Repositories link",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 40
+        }
+      ],
+      "help": "Change the words around the six films. Their media, captions and playback controls stay intact."
+    },
+    {
+      "id": "project-settings",
+      "label": "Walkthrough display",
+      "page": "/",
+      "group": "Homepage",
+      "access": "owner",
+      "fields": [
+        {
+          "key": "defaultFilm",
+          "label": "First project",
+          "type": "select",
+          "access": "owner",
+          "required": true,
+          "options": [
+            {
+              "value": "raizhost",
+              "label": "RaizHost"
+            },
+            {
+              "value": "cloudcostmcp",
+              "label": "CloudCostMCP"
+            },
+            {
+              "value": "tickethacker",
+              "label": "TicketHacker"
+            },
+            {
+              "value": "llm-lint",
+              "label": "llm-lint"
+            },
+            {
+              "value": "sre-reference-app",
+              "label": "SRE Reference App"
+            },
+            {
+              "value": "sre-landing-zone",
+              "label": "SRE Landing Zone"
+            }
+          ]
+        },
+        {
+          "key": "showTags",
+          "label": "Show technology tags",
+          "type": "boolean",
+          "access": "owner",
+          "required": true
+        }
+      ],
+      "help": "Choose which project appears first and whether technology tags are shown. Films still play only when a visitor presses play."
+    },
+    {
+      "id": "film-raizhost",
+      "label": "RaizHost walkthrough",
+      "page": "/",
+      "group": "Homepage",
+      "access": "owner",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Project name",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 45
+        },
+        {
+          "key": "category",
+          "label": "Category",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 65
+        },
+        {
+          "key": "headline",
+          "label": "Headline",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 110
+        },
+        {
+          "key": "summary",
+          "label": "Summary",
+          "type": "textarea",
+          "access": "owner",
+          "required": true,
+          "max": 500
+        }
+      ],
+      "help": "Edit the text accompanying this film. Changing media or the recorded walkthrough requires a coordinated update."
+    },
+    {
+      "id": "film-cloudcostmcp",
+      "label": "CloudCostMCP walkthrough",
+      "page": "/",
+      "group": "Homepage",
+      "access": "owner",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Project name",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 45
+        },
+        {
+          "key": "category",
+          "label": "Category",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 65
+        },
+        {
+          "key": "headline",
+          "label": "Headline",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 110
+        },
+        {
+          "key": "summary",
+          "label": "Summary",
+          "type": "textarea",
+          "access": "owner",
+          "required": true,
+          "max": 500
+        }
+      ],
+      "help": "Edit the text accompanying this film. Changing media or the recorded walkthrough requires a coordinated update."
+    },
+    {
+      "id": "film-tickethacker",
+      "label": "TicketHacker walkthrough",
+      "page": "/",
+      "group": "Homepage",
+      "access": "owner",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Project name",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 45
+        },
+        {
+          "key": "category",
+          "label": "Category",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 65
+        },
+        {
+          "key": "headline",
+          "label": "Headline",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 110
+        },
+        {
+          "key": "summary",
+          "label": "Summary",
+          "type": "textarea",
+          "access": "owner",
+          "required": true,
+          "max": 500
+        }
+      ],
+      "help": "Edit the text accompanying this film. Changing media or the recorded walkthrough requires a coordinated update."
+    },
+    {
+      "id": "film-llm-lint",
+      "label": "llm-lint walkthrough",
+      "page": "/",
+      "group": "Homepage",
+      "access": "owner",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Project name",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 45
+        },
+        {
+          "key": "category",
+          "label": "Category",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 65
+        },
+        {
+          "key": "headline",
+          "label": "Headline",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 110
+        },
+        {
+          "key": "summary",
+          "label": "Summary",
+          "type": "textarea",
+          "access": "owner",
+          "required": true,
+          "max": 500
+        }
+      ],
+      "help": "Edit the text accompanying this film. Changing media or the recorded walkthrough requires a coordinated update."
+    },
+    {
+      "id": "film-sre-reference-app",
+      "label": "SRE Reference App walkthrough",
+      "page": "/",
+      "group": "Homepage",
+      "access": "owner",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Project name",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 45
+        },
+        {
+          "key": "category",
+          "label": "Category",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 65
+        },
+        {
+          "key": "headline",
+          "label": "Headline",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 110
+        },
+        {
+          "key": "summary",
+          "label": "Summary",
+          "type": "textarea",
+          "access": "owner",
+          "required": true,
+          "max": 500
+        }
+      ],
+      "help": "Edit the text accompanying this film. Changing media or the recorded walkthrough requires a coordinated update."
+    },
+    {
+      "id": "film-sre-landing-zone",
+      "label": "SRE Landing Zone walkthrough",
+      "page": "/",
+      "group": "Homepage",
+      "access": "owner",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Project name",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 45
+        },
+        {
+          "key": "category",
+          "label": "Category",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 65
+        },
+        {
+          "key": "headline",
+          "label": "Headline",
+          "type": "text",
+          "access": "owner",
+          "required": true,
+          "max": 110
+        },
+        {
+          "key": "summary",
+          "label": "Summary",
+          "type": "textarea",
+          "access": "owner",
+          "required": true,
+          "max": 500
+        }
+      ],
+      "help": "Edit the text accompanying this film. Changing media or the recorded walkthrough requires a coordinated update."
+    }
+  ]
+}

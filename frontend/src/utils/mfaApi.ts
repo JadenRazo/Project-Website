@@ -1,3 +1,4 @@
+import { local as safeLocalStorage } from './safeStorage';
 import axios from 'axios';
 
 const API_BASE = (window as any)._env_?.REACT_APP_API_URL || import.meta.env.VITE_API_URL || '';
@@ -37,7 +38,7 @@ export interface LoginResponse {
 }
 
 const getAuthHeader = () => {
-  const token = localStorage.getItem('adminToken');
+  const token = safeLocalStorage.getItem('adminToken');
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 

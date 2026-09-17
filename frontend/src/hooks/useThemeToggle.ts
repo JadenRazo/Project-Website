@@ -1,10 +1,11 @@
+import { local as safeLocalStorage } from '../utils/safeStorage';
 import { useState, useEffect } from 'react';
 import type { ThemeMode } from '../styles/theme.types';
 import { themes } from '../styles/themes';
 
 export const useThemeToggle = () => {
   const getInitialTheme = (): ThemeMode => {
-    const savedTheme = localStorage.getItem('theme') as ThemeMode;
+    const savedTheme = safeLocalStorage.getItem('theme') as ThemeMode;
     if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
       return savedTheme;
     }
@@ -19,7 +20,7 @@ export const useThemeToggle = () => {
   const [themeMode, setThemeMode] = useState<ThemeMode>(getInitialTheme);
 
   useEffect(() => {
-    localStorage.setItem('theme', themeMode);
+    safeLocalStorage.setItem('theme', themeMode);
     document.documentElement.setAttribute('data-theme', themeMode);
     
     // Update meta theme-color
@@ -35,7 +36,7 @@ export const useThemeToggle = () => {
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = (e: MediaQueryListEvent) => {
-      if (!localStorage.getItem('theme')) {
+      if (!safeLocalStorage.getItem('theme')) {
         setThemeMode(e.matches ? 'dark' : 'light');
       }
     };

@@ -1,3 +1,4 @@
+import { local as safeLocalStorage } from '../../utils/safeStorage';
 import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import Collapsible from 'react-collapsible';
@@ -716,7 +717,7 @@ const DevPanel: React.FC = () => {
   }, [isAdminAuthenticated, adminUser, fetchData]);
 
   const checkAdminAuth = async () => {
-    const token = localStorage.getItem('auth_token');
+    const token = safeLocalStorage.getItem('auth_token');
     if (token) {
       useAuthStore.getState().validateToken(token);
     } else {
