@@ -1,5 +1,6 @@
+import { local as safeLocalStorage } from '../utils/safeStorage';
 import { create } from 'zustand';
-import { devtools, persist } from 'zustand/middleware';
+import { devtools, persist, createJSONStorage } from 'zustand/middleware';
 import type { AuthState, User } from './types';
 
 interface AuthActions {
@@ -57,7 +58,7 @@ export const useAuthStore = create<AuthStore>()(
                 isLoading: false,
               }, false, 'validateToken/success');
             } else {
-              localStorage.removeItem('auth_token');
+              safeLocalStorage.removeItem('auth_token');
               set({
                 user: null,
                 isAuthenticated: false,
@@ -89,7 +90,7 @@ export const useAuthStore = create<AuthStore>()(
           }
 
           const userData = await response.json();
-          localStorage.setItem('auth_token', userData.token);
+          safeLocalStorage.setItem('auth_token', userData.token);
 
           set({
             user: userData,
@@ -114,7 +115,7 @@ export const useAuthStore = create<AuthStore>()(
           }
 
           const userData = await response.json();
-          localStorage.setItem('auth_token', userData.token);
+          safeLocalStorage.setItem('auth_token', userData.token);
 
           set({
             user: userData,
@@ -125,8 +126,8 @@ export const useAuthStore = create<AuthStore>()(
         },
 
         logout: () => {
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('auth-storage');
+          safeLocalStorage.removeItem('auth_token');
+          safeLocalStorage.removeItem('auth-storage');
           set({
             user: null,
             isAuthenticated: false,
@@ -136,6 +137,7 @@ export const useAuthStore = create<AuthStore>()(
       }),
       {
         name: 'auth-storage',
+        storage: createJSONStorage(() => safeLocalStorage),
         partialize: (state) => ({ 
           user: state.user,
           isAuthenticated: state.isAuthenticated 
@@ -147,7 +149,7 @@ export const useAuthStore = create<AuthStore>()(
 );
 
 export const initializeAuth = () => {
-  const token = localStorage.getItem('auth_token');
+  const token = safeLocalStorage.getItem('auth_token');
   if (token) {
     useAuthStore.getState().validateToken(token);
   } else {

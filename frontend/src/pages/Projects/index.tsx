@@ -1,3 +1,4 @@
+import { useSiteContent } from '../../lib/site-content'
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -826,6 +827,7 @@ ProjectCard.displayName = 'ProjectCard';
 
 // --- Main Projects Page ---
 const Projects: React.FC = () => {
+  const copy = useSiteContent()['projects-page']
   // Only one card can be open at a time
   const [expandedId, setExpandedId] = useState<string | null>(null);
   
@@ -955,11 +957,8 @@ const Projects: React.FC = () => {
       />
       <ProjectsContainer>
         <PageHeader>
-        <PageTitle>Engineering Projects</PageTitle>
-        <PageDescription>
-          Public cloud, reliability, delivery, and developer-tooling work. Open a project to inspect
-          its repository, implementation, and documented operational evidence.
-        </PageDescription>
+        <PageTitle data-rh="projects-page.title">{copy.title}</PageTitle>
+        <PageDescription data-rh="projects-page.intro">{copy.intro}</PageDescription>
       </PageHeader>
 
       {projectsLoading ? (

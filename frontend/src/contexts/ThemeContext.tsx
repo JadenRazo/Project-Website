@@ -1,3 +1,4 @@
+import { local as safeLocalStorage } from '../utils/safeStorage';
 import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import { ThemeProvider as StyledThemeProvider } from 'styled-components';
 import { themes } from '../styles/themes';
@@ -19,7 +20,7 @@ interface ThemeProviderProps {
 
 const getPreferredTheme = (): ThemeMode => {
   if (typeof window !== 'undefined') {
-    const savedTheme = localStorage.getItem('theme') as ThemeMode;
+    const savedTheme = safeLocalStorage.getItem('theme') as ThemeMode;
     
     if (savedTheme === 'dark' || savedTheme === 'light') {
       return savedTheme;
@@ -45,7 +46,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   };
   
   const handleSetThemeMode = (mode: ThemeMode) => {
-    localStorage.setItem('theme', mode);
+    safeLocalStorage.setItem('theme', mode);
     setThemeMode(mode);
   };
   
@@ -53,7 +54,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     
     const handleChange = (e: MediaQueryListEvent) => {
-      const savedTheme = localStorage.getItem('theme') as ThemeMode;
+      const savedTheme = safeLocalStorage.getItem('theme') as ThemeMode;
       
       if (!savedTheme) {
         setThemeMode(e.matches ? 'dark' : 'light');

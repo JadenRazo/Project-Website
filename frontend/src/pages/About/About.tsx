@@ -1,3 +1,4 @@
+import { useSiteContent } from '../../lib/site-content'
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
@@ -498,6 +499,7 @@ const ExperienceSection = () => {
 };
 
 const About: React.FC = () => {
+  const copy = useSiteContent()['about-page']
   const [certifications, setCertifications] = useState<any[]>([]);
   const [certificationsLoading, setCertificationsLoading] = useState(true);
 
@@ -578,16 +580,13 @@ const About: React.FC = () => {
               />
             </ProfileImage>
             <ProfileInfo>
-              <Name>Jaden Razo</Name>
-              <Title>Cloud &amp; DevOps Engineer</Title>
+              <Name data-rh="about-page.name">{copy.name}</Name>
+              <Title data-rh="about-page.title">{copy.title}</Title>
               <motion.p
                 style={{ color: 'var(--text)', lineHeight: 1.6, marginTop: '1rem' }}
                 variants={itemVariants}
               >
-                CompTIA A+ and Network+ certified engineer with hands-on experience in
-                end-user support, identity administration, and troubleshooting across Windows,
-                macOS, and Linux. My public work focuses on AWS infrastructure, Terraform,
-                secure delivery, observability, and reliability evidence that teams can inspect.
+                <span data-rh="about-page.intro">{copy.intro}</span>
               </motion.p>
             </ProfileInfo>
           </ProfileSection>

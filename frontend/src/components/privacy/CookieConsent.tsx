@@ -1,3 +1,4 @@
+import { local as safeLocalStorage } from '../../utils/safeStorage';
 import React, { useState, useEffect } from 'react';
 import { X, Shield, Settings, ChevronDown, ChevronUp, Info } from 'lucide-react';
 
@@ -55,7 +56,7 @@ const CookieConsent: React.FC<CookieConsentProps> = ({
   ]);
 
   useEffect(() => {
-    const consent = localStorage.getItem('cookieConsent');
+    const consent = safeLocalStorage.getItem('cookieConsent');
     if (!consent) {
       setTimeout(() => setIsVisible(true), 1000);
     }
@@ -67,7 +68,7 @@ const CookieConsent: React.FC<CookieConsentProps> = ({
       return acc;
     }, {} as Record<string, boolean>);
 
-    localStorage.setItem('cookieConsent', JSON.stringify({
+    safeLocalStorage.setItem('cookieConsent', JSON.stringify({
       timestamp: new Date().toISOString(),
       categories: allEnabled,
     }));
@@ -82,7 +83,7 @@ const CookieConsent: React.FC<CookieConsentProps> = ({
       return acc;
     }, {} as Record<string, boolean>);
 
-    localStorage.setItem('cookieConsent', JSON.stringify({
+    safeLocalStorage.setItem('cookieConsent', JSON.stringify({
       timestamp: new Date().toISOString(),
       categories: selected,
     }));
@@ -97,7 +98,7 @@ const CookieConsent: React.FC<CookieConsentProps> = ({
       return acc;
     }, {} as Record<string, boolean>);
 
-    localStorage.setItem('cookieConsent', JSON.stringify({
+    safeLocalStorage.setItem('cookieConsent', JSON.stringify({
       timestamp: new Date().toISOString(),
       categories: onlyNecessary,
     }));

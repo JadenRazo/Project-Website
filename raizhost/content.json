@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "hero": {
+    "availability": "Open to full-time cloud / DevOps roles",
+    "stack": "AWS · Terraform · Go · SRE",
+    "headline": "I build reliable",
+    "accent": "cloud systems.",
+    "description": "I'm Jaden Razo, a cloud and DevOps engineer focused on secure delivery, measurable reliability, and cost-aware AWS infrastructure. I turn architecture intent into tests, runbooks, and evidence a team can inspect.",
+    "primaryCta": "Watch the projects",
+    "secondaryCta": "GitHub profile"
+  },
+  "about-home": {
+    "eyebrow": "Engineering signal",
+    "title": "Evidence over adjectives.",
+    "intro": "I run RaizHost and build public cloud, reliability, and developer-tooling projects around one rule: architecture claims should resolve to code, tests, measurements, or an honest limitation.",
+    "details": "My strongest work sits where AWS infrastructure, secure delivery, observability, and operational ownership meet. I'm CompTIA A+ and Network+ certified and currently focused on cloud, DevOps, platform, and SRE roles."
+  },
+  "services-home": {
+    "eyebrow": "Operating principles",
+    "title": "How I approach the work.",
+    "intro": "The goal is not more tooling. It is a delivery system that makes risk visible, keeps writes intentional, and leaves the next operator with evidence they can trust."
+  },
+  "principle-1": {
+    "title": "Infrastructure as a reviewed system",
+    "description": "Terraform, environment boundaries, least privilege, and explicit apply controls make infrastructure changes explainable before they are executable."
+  },
+  "principle-2": {
+    "title": "Safe delivery paths",
+    "description": "Credential-free pull-request checks, immutable action references, OIDC, artifact provenance, and rollback ownership reduce the cost of a bad change."
+  },
+  "principle-3": {
+    "title": "Reliability with a denominator",
+    "description": "SLO math, bounded metrics, failure exercises, alerts, and runbooks turn “reliable” from a description into something a team can evaluate."
+  },
+  "principle-4": {
+    "title": "Cost and security at design time",
+    "description": "Pricing drift, dependency risk, secrets, blast radius, and operational cost are design inputs, not cleanup work after launch."
+  },
+  "contact-home": {
+    "eyebrow": "Start a conversation",
+    "title": "Let's build something dependable.",
+    "intro": "Hiring for a cloud, DevOps, platform, or SRE team? Tell me about the system, the reliability problem, and what ownership looks like.",
+    "submitCta": "Send Message",
+    "nameLabel": "Your name",
+    "emailLabel": "Your email",
+    "subjectLabel": "Subject",
+    "messageLabel": "Your message",
+    "subjectHint": "Role or team (optional)",
+    "messageHint": "What are you building or hiring for?"
+  },
+  "about-page": {
+    "name": "Jaden Razo",
+    "title": "Cloud & DevOps Engineer",
+    "intro": "CompTIA A+ and Network+ certified engineer with hands-on experience in end-user support, identity administration, and troubleshooting across Windows, macOS, and Linux. My public work focuses on AWS infrastructure, Terraform, secure delivery, observability, and reliability evidence that teams can inspect."
+  },
+  "contact-page": {
+    "title": "Get in Touch",
+    "intro": "Hiring for a cloud, DevOps, platform, or SRE team? I'd like to hear about the role.",
+    "nameLabel": "Name",
+    "emailLabel": "Email",
+    "subjectLabel": "Subject",
+    "messageLabel": "Message",
+    "submitCta": "Send Message"
+  },
+  "projects-page": {
+    "title": "Engineering Projects",
+    "intro": "Public cloud, reliability, delivery, and developer-tooling work. Open a project to inspect its repository, implementation, and documented operational evidence."
+  },
+  "projects-home": {
+    "eyebrow": "Selected Works",
+    "title": "Featured",
+    "accent": "Projects",
+    "inquiry": "Discuss this project",
+    "allProjects": "View All Projects"
+  },
+  "project-settings": {
+    "showTags": true,
+    "showCategories": true
+  },
+  "film-raizhost": {
+    "title": "RaizHost",
+    "category": "Web platform & delivery",
+    "summary": "A website platform with a public marketing site, bounded client editing, and a publishing path backed by each site’s own repository."
+  },
+  "film-cloudcostmcp": {
+    "title": "CloudCostMCP",
+    "category": "Cloud cost engineering",
+    "summary": "Turn infrastructure code into a resource inventory and cost estimate. Inspect the pricing sources and assumptions before touching the deployed environment."
+  },
+  "film-tickethacker": {
+    "title": "TicketHacker",
+    "category": "Support & collaboration",
+    "summary": "An omnichannel helpdesk that brings tickets, conversation history, assignment, and status into a single agent workspace."
+  },
+  "film-llm-lint": {
+    "title": "llm-lint",
+    "category": "Policy as code",
+    "summary": "A native CLI that identifies repository boundary violations, explains the finding, and previews a repair before anything changes."
+  },
+  "film-sre-reference-app": {
+    "title": "SRE Reference App",
+    "category": "Reliability engineering",
+    "summary": "A small service that makes reliability inspectable: request routing, task replacement, burn-rate alarms, and a documented failure exercise."
+  },
+  "film-sre-landing-zone": {
+    "title": "SRE Landing Zone",
+    "category": "Cloud architecture",
+    "summary": "A multi-account AWS lab that brings together workload isolation, a separate audit trail, pilot-light recovery, and tag-scoped cost controls."
+  }
+}

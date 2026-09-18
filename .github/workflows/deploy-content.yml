@@ -1,0 +1,78 @@
+# The live branch contains approved production code and owner content edits.
+# Activate only after review; preserve the current design and all project films.
+name: Deploy live portfolio
+
+on:
+  push:
+    branches: [live]
+    paths:
+      - frontend/**
+      - raizhost/**
+      - .github/workflows/deploy-content.yml
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-live-portfolio
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/live'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # No environment: the OIDC role is restricted to this repo's live branch.
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --prefix frontend
+      - run: npm run test:editor-compat --prefix frontend
+      - run: npm run build --prefix frontend
+      - name: Configure frontend-only deployment credentials
+        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5
+        with:
+          role-to-assume: arn:aws:iam::919651863281:role/raizcloud-site-portfolio-editor-deploy
+          aws-region: us-east-1
+      - name: Preserve current homepage and publish assets before HTML
+        env:
+          SITE_BUCKET: raizcloud-site-portfolio-919651863281
+          SITE_DISTRIBUTION: E3IBFD7PQYBK8F
+        run: |
+          set -euo pipefail
+          mkdir -p rollback
+          aws s3api head-object --bucket "${SITE_BUCKET}" --key index.html > rollback/index.metadata.json
+          PREVIOUS_ETAG=$(jq -r .ETag rollback/index.metadata.json)
+          aws s3api get-object --bucket "${SITE_BUCKET}" --key index.html \
+            --if-match "${PREVIOUS_ETAG}" rollback/index.html > rollback/index.get.json
+          aws s3 sync frontend/build/assets/ "s3://${SITE_BUCKET}/assets/" \
+            --cache-control 'public,max-age=31536000,immutable'
+          aws s3 sync frontend/build/media/projects/ "s3://${SITE_BUCKET}/media/projects/" \
+            --cache-control 'public,max-age=31536000,immutable'
+          if [ -d frontend/build/uploads ]; then
+            aws s3 sync frontend/build/uploads/ "s3://${SITE_BUCKET}/uploads/" \
+              --cache-control 'public,max-age=86400'
+          fi
+          aws s3api put-object --bucket "${SITE_BUCKET}" --key index.html \
+            --body frontend/build/index.html --content-type 'text/html' \
+            --cache-control 'no-cache,max-age=0,must-revalidate' --if-match "${PREVIOUS_ETAG}"
+          # Retain old fingerprinted assets for open browser tabs and rollback.
+          # Preserve runtime env-config.js and unrelated public objects. This job
+          # never touches APIs, the messaging origin, DNS or databases.
+          aws cloudfront create-invalidation --distribution-id "${SITE_DISTRIBUTION}" --paths '/*'
+      - name: Retain exact homepage rollback
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: portfolio-homepage-before-${{ github.sha }}
+          path: rollback/
+          if-no-files-found: ignore
+          retention-days: 30

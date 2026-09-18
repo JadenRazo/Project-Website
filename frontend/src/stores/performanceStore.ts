@@ -1,5 +1,6 @@
+import { local as safeLocalStorage } from '../utils/safeStorage';
 import { create } from 'zustand';
-import { devtools, persist } from 'zustand/middleware';
+import { devtools, persist, createJSONStorage } from 'zustand/middleware';
 import { captureMemoryMetrics, monitorMemoryUsage } from '../utils/performance';
 import type { PerformanceState, PerformanceMetrics, ApplicationState } from './types';
 
@@ -21,7 +22,10 @@ const isPerformanceApiAvailable = typeof performance !== 'undefined' &&
 const isMemoryApiAvailable = isPerformanceApiAvailable && 
   typeof (performance as any).memory !== 'undefined';
 
-const isCachesApiAvailable = typeof caches !== 'undefined';
+// Sandboxed previews expose a throwing getter even for `typeof caches`.
+const isCachesApiAvailable = (() => {
+  try { return typeof caches !== 'undefined'; } catch { return false; }
+})();
 
 let monitoringInterval: NodeJS.Timeout | null = null;
 
@@ -203,6 +207,7 @@ export const usePerformanceStore = create<PerformanceStore>()(
       }),
       {
         name: 'performance-settings',
+        storage: createJSONStorage(() => safeLocalStorage),
         partialize: (state) => ({
           applicationState: state.applicationState,
         }),

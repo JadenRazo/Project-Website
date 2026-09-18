@@ -1,3 +1,4 @@
+import { local as safeLocalStorage } from '../utils/safeStorage';
 import { useState, useCallback, useEffect, useRef } from 'react';
 
 export interface CrudConfig {
@@ -68,7 +69,7 @@ export function useCrudOperations<T extends { id: string }, TFormData>(
     };
     
     if (config.requiresAuth) {
-      const token = localStorage.getItem('auth_token');
+      const token = safeLocalStorage.getItem('auth_token');
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }

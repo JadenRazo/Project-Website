@@ -10,7 +10,10 @@ const isMemoryApiAvailable = isPerformanceApiAvailable &&
   typeof (performance as any).memory !== 'undefined';
 
 // Check if caches API is available
-const isCachesApiAvailable = typeof caches !== 'undefined';
+// Sandboxed previews expose a throwing getter even for `typeof caches`.
+const isCachesApiAvailable = (() => {
+  try { return typeof caches !== 'undefined'; } catch { return false; }
+})();
 
 interface MemoryManagerContextType {
   memoryUsage: PerformanceMetrics;

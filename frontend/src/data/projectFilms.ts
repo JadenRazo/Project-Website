@@ -1,3 +1,4 @@
+import content from '../../../raizhost/content.json'
 import assets from './project-film-assets.json'
 
 export interface FilmChapter {
@@ -33,12 +34,8 @@ export interface ProjectFilm {
 const stories = [
   {
     id: 'raizhost',
-    title: 'RaizHost',
-    category: 'Web platform & delivery',
+    headline: "From a business idea to a working website.",
     color: '#9ac4ae',
-    headline: 'From a business idea to a working website.',
-    summary:
-      'A website platform with a public marketing site, bounded client editing, and a publishing path backed by each site’s own repository.',
     kind: 'Product & architecture tour',
     duration: 24,
     tags: ['AWS', 'CloudFront', 'S3', 'GitHub Actions'],
@@ -71,12 +68,8 @@ const stories = [
   },
   {
     id: 'cloudcostmcp',
-    title: 'CloudCostMCP',
-    category: 'Cloud cost engineering',
+    headline: "Understand infrastructure before it costs you.",
     color: '#a5baf4',
-    headline: 'Understand infrastructure before it costs you.',
-    summary:
-      'Turn infrastructure code into a resource inventory and cost estimate. Inspect the pricing sources and assumptions before touching the deployed environment.',
     kind: 'Recorded CLI output',
     duration: 24,
     tags: ['TypeScript', 'Terraform', 'MCP', 'AWS · Azure · GCP'],
@@ -109,12 +102,8 @@ const stories = [
   },
   {
     id: 'tickethacker',
-    title: 'TicketHacker',
-    category: 'Support & collaboration',
+    headline: "One place for the whole conversation.",
     color: '#d8bca0',
-    headline: 'One place for the whole conversation.',
-    summary:
-      'An omnichannel helpdesk that brings tickets, conversation history, assignment, and status into a single agent workspace.',
     kind: 'Interface demo · sample data',
     duration: 24,
     tags: ['React', 'NestJS', 'PostgreSQL', 'Socket.IO'],
@@ -145,12 +134,8 @@ const stories = [
   },
   {
     id: 'llm-lint',
-    title: 'llm-lint',
-    category: 'Policy as code',
+    headline: "Catch repository policy issues before release.",
     color: '#c3b0ed',
-    headline: 'Catch repository policy issues before release.',
-    summary:
-      'A native CLI that identifies repository boundary violations, explains the finding, and previews a repair before anything changes.',
     kind: 'Recorded CLI output',
     duration: 24,
     tags: ['Go', 'CLI', 'SARIF', 'GitHub Actions'],
@@ -183,12 +168,8 @@ const stories = [
   },
   {
     id: 'sre-reference-app',
-    title: 'SRE Reference App',
-    category: 'Reliability engineering',
+    headline: "Design for the moment something fails.",
     color: '#9dcce3',
-    headline: 'Design for the moment something fails.',
-    summary:
-      'A small service that makes reliability inspectable: request routing, task replacement, burn-rate alarms, and a documented failure exercise.',
     kind: 'Documented exercise walkthrough',
     duration: 24,
     tags: ['ECS Fargate', 'Terraform', 'CloudWatch', 'SLOs'],
@@ -220,12 +201,8 @@ const stories = [
   },
   {
     id: 'sre-landing-zone',
-    title: 'SRE Landing Zone',
-    category: 'Cloud architecture',
+    headline: "Give every workload a clear boundary.",
     color: '#d4c495',
-    headline: 'Give every workload a clear boundary.',
-    summary:
-      'A multi-account AWS lab that brings together workload isolation, a separate audit trail, pilot-light recovery, and tag-scoped cost controls.',
     kind: 'Architecture walkthrough',
     duration: 24,
     tags: ['AWS Organizations', 'Terraform', 'IAM', 'Disaster recovery'],
@@ -256,7 +233,17 @@ const stories = [
   },
 ]
 
+const descriptions = {
+  'raizhost': content['film-raizhost'],
+  'cloudcostmcp': content['film-cloudcostmcp'],
+  'tickethacker': content['film-tickethacker'],
+  'llm-lint': content['film-llm-lint'],
+  'sre-reference-app': content['film-sre-reference-app'],
+  'sre-landing-zone': content['film-sre-landing-zone'],
+}
+
 export const projectFilms: ProjectFilm[] = stories.map((story) => ({
   ...story,
+  ...descriptions[story.id as keyof typeof descriptions],
   ...assets[story.id as keyof typeof assets],
 }))
