@@ -3,6 +3,9 @@
 name: Deploy live portfolio
 
 on:
+  # First activation may create a branch without a qualifying path-change push.
+  # The job below still requires the live branch for every manual run.
+  workflow_dispatch:
   push:
     branches: [live]
     paths:
