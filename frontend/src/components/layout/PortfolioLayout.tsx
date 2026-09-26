@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 
 import PortfolioNavbar from './PortfolioNavbar'
+import { WebsiteNavigation } from '../website/Website'
 
 interface PortfolioLayoutProps {
   children: ReactNode
@@ -16,6 +17,7 @@ export default function PortfolioLayout({ children }: PortfolioLayoutProps) {
         Skip to content
       </a>
       <PortfolioNavbar />
+      <WebsiteNavigation belowFixedHeader />
       <main id="main-content" className="relative z-10">
         {children}
       </main>

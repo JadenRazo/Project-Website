@@ -1,3 +1,4 @@
+import SiteText from '../../components/website/SiteText';
 import React, { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { motion, useAnimation } from 'framer-motion';
@@ -474,12 +475,12 @@ const Status: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h1>System Status</h1>
-            <p>Real-time monitoring of all services</p>
+            <h1><SiteText entry="copy-status-1" name="textb58a74d34264f1af" /></h1>
+            <p><SiteText entry="copy-status-1" name="text1f64fe1cb73227fe" /></p>
           </PageHeader>
           <LoadingContainer>
             <div className="spinner" />
-            <p>Loading system status...</p>
+            <p><SiteText entry="copy-status-1" name="text7359d6fb6dda7631" /></p>
           </LoadingContainer>
         </ContentWrapper>
       </StatusContainer>
@@ -495,8 +496,8 @@ const Status: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h1>System Status</h1>
-            <p>Unable to load status information</p>
+            <h1><SiteText entry="copy-status-1" name="textb58a74d34264f1af" /></h1>
+            <p><SiteText entry="copy-status-1" name="textff0ee05e5fa40c54" /></p>
           </PageHeader>
           <OverallStatusCard 
             status="major_outage"
@@ -504,7 +505,7 @@ const Status: React.FC = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <h2>🚨 Status Unavailable</h2>
+            <h2><SiteText entry="copy-status-1" name="text3267f6f8635074af" /></h2>
             <p>{error}</p>
           </OverallStatusCard>
         </ContentWrapper>
@@ -530,8 +531,8 @@ const Status: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <h1>System Status</h1>
-          <p>Real-time monitoring of all backend services and infrastructure</p>
+          <h1><SiteText entry="copy-status-1" name="textb58a74d34264f1af" /></h1>
+          <p><SiteText entry="copy-status-1" name="text9fab8949e7af0718" /></p>
         </PageHeader>
 
         <motion.div
@@ -545,7 +546,7 @@ const Status: React.FC = () => {
               <h2>
                 {getStatusIcon(systemStatus.status)} {getStatusText(systemStatus.status)}
               </h2>
-              <p>All services are being monitored continuously</p>
+              <p><SiteText entry="copy-status-1" name="text52f7bfe886127e90" /></p>
             </OverallStatusCard>
           </motion.div>
 
@@ -562,21 +563,21 @@ const Status: React.FC = () => {
                   
                   {service.error && (
                     <ErrorDisplay>
-                      <strong>Error:</strong> {service.error}
+                      <strong><SiteText entry="copy-status-1" name="text617062906764f3b8" /></strong> {service.error}
                     </ErrorDisplay>
                   )}
                   
                   <ServiceMetrics>
                     <div className="metric">
-                      <div className="label">Uptime</div>
+                      <div className="label"><SiteText entry="copy-status-1" name="textd63ab4711473b039" /></div>
                       <div className="value">{formatUptime(service.uptime_percentage)}</div>
                     </div>
                     <div className="metric">
-                      <div className="label">Latency</div>
+                      <div className="label"><SiteText entry="copy-status-1" name="texte0e7d293043c8cf6" /></div>
                       <div className="value">{formatLatency(service.latency_ms)}</div>
                     </div>
                     <div className="metric">
-                      <div className="label">Last Check</div>
+                      <div className="label"><SiteText entry="copy-status-1" name="text2d424737b5706ac6" /></div>
                       <div className="value">
                         {new Date(service.last_checked).toLocaleTimeString()}
                       </div>
@@ -590,7 +591,7 @@ const Status: React.FC = () => {
           {systemStatus.incidents && systemStatus.incidents.length > 0 && (
             <motion.div variants={itemVariants}>
               <IncidentsSection>
-                <h2>Active Incidents</h2>
+                <h2><SiteText entry="copy-status-1" name="textf5239d5e7c01c5a5" /></h2>
                 {systemStatus.incidents.map((incident, index) => (
                   <IncidentCard
                     key={incident.id}
@@ -606,9 +607,9 @@ const Status: React.FC = () => {
                       </StatusBadge>
                     </div>
                     <div className="incident-meta">
-                      <span><strong>Service:</strong> {incident.service}</span>
-                      <span><strong>Severity:</strong> {incident.severity}</span>
-                      <span><strong>Started:</strong> {formatTime(incident.started_at)}</span>
+                      <span><strong><SiteText entry="copy-status-1" name="text65d157da69bf0342" /></strong> {incident.service}</span>
+                      <span><strong><SiteText entry="copy-status-1" name="textce9bf63abbecf161" /></strong> {incident.severity}</span>
+                      <span><strong><SiteText entry="copy-status-1" name="text8301e51f74b1eeb8" /></strong> {formatTime(incident.started_at)}</span>
                     </div>
                     <div className="incident-description">
                       {incident.description}
@@ -622,8 +623,8 @@ const Status: React.FC = () => {
           {(!systemStatus.incidents || systemStatus.incidents.length === 0) && (
             <motion.div variants={itemVariants}>
               <EmptyState>
-                <h3>🎉 No Active Incidents</h3>
-                <p>All systems are operating normally with no reported issues.</p>
+                <h3><SiteText entry="copy-status-1" name="text3bbdf44a397cc657" /></h3>
+                <p><SiteText entry="copy-status-1" name="textcd9a66a60cacb150" /></p>
               </EmptyState>
             </motion.div>
           )}
@@ -634,9 +635,9 @@ const Status: React.FC = () => {
 
           <motion.div variants={itemVariants}>
             <LastUpdated>
-              <strong>Last updated:</strong> {formatTime(systemStatus.last_updated)}
+              <strong><SiteText entry="copy-status-1" name="textba34a96f29695271" /></strong> {formatTime(systemStatus.last_updated)}
               <br />
-              <small>Status checks run automatically every 30 seconds</small>
+              <small><SiteText entry="copy-status-1" name="text0a1a3c961a030bc9" /></small>
             </LastUpdated>
           </motion.div>
         </motion.div>

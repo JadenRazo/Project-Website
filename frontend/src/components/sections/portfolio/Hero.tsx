@@ -1,3 +1,4 @@
+import SiteText from '../../website/SiteText';
 import { useSiteContent } from '../../../lib/site-content'
 import { Activity, ArrowDownRight, ExternalLink, Github } from 'lucide-react'
 
@@ -74,11 +75,11 @@ export default function Hero() {
           </div>
 
           <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-text-muted sm:text-sm">
-            <span className="font-mono uppercase tracking-[0.14em]">Operating stack</span>
-            <span>AWS</span>
-            <span>Terraform</span>
-            <span>GitHub Actions</span>
-            <span>Linux</span>
+            <span className="font-mono uppercase tracking-[0.14em]"><SiteText entry="copy-hero-1" name="text19f29d33f0993670" /></span>
+            <span><SiteText entry="copy-hero-1" name="text32fd72a0e0746043" /></span>
+            <span><SiteText entry="copy-hero-1" name="text05b073bd5e46bbed" /></span>
+            <span><SiteText entry="copy-hero-1" name="textfae83bd48c808f08" /></span>
+            <span><SiteText entry="copy-hero-1" name="text4828e60247c1636f" /></span>
           </div>
         </div>
 
@@ -89,13 +90,9 @@ export default function Hero() {
           <div className="flex items-center justify-between border-b border-border pb-4">
             <div className="flex items-center gap-2">
               <Activity className="h-4 w-4 text-neon" aria-hidden="true" />
-              <span className="font-mono text-xs uppercase tracking-[0.18em] text-text-primary">
-                Selected evidence
-              </span>
+              <span className="font-mono text-xs uppercase tracking-[0.18em] text-text-primary"><SiteText entry="copy-hero-1" name="textac2a84de8323ef96" /></span>
             </div>
-            <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-text-muted">
-              Public
-            </span>
+            <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-text-muted"><SiteText entry="copy-hero-1" name="text591935b15b1c88e2" /></span>
           </div>
 
           <div className="divide-y divide-border">
@@ -129,7 +126,7 @@ export default function Hero() {
             rel="noopener noreferrer"
             className="mt-2 flex min-h-11 items-center justify-between border-t border-border pt-5 text-sm text-text-secondary hover:text-primary"
           >
-            <span>View service status</span>
+            <span><SiteText entry="copy-hero-1" name="text8a99f989d4c05d43" /></span>
             <ExternalLink className="h-4 w-4" aria-hidden="true" />
           </a>
         </aside>

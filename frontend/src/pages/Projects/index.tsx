@@ -1,3 +1,4 @@
+import SiteText from '../../components/website/SiteText';
 import { useSiteContent } from '../../lib/site-content'
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -703,9 +704,7 @@ const ProjectCard = React.memo<ProjectCardProps>(({
               tabIndex={-1}
               onClick={(event: React.MouseEvent<HTMLAnchorElement>) => event.stopPropagation()} // Prevent card expansion when clicking link
             >
-              <FaGithubIcon />
-              GitHub
-            </GithubExternalLink>
+              <FaGithubIcon /><SiteText entry="copy-page-projects-1" name="textf911e414cf6bdfc5" /></GithubExternalLink>
             <CardLink 
               href={project.liveUrl} 
               target="_blank" 
@@ -713,9 +712,7 @@ const ProjectCard = React.memo<ProjectCardProps>(({
               tabIndex={-1}
               onClick={(event: React.MouseEvent<HTMLAnchorElement>) => event.stopPropagation()} // Prevent card expansion when clicking link
             >
-              <FaExternalLinkAltIcon />
-              Live Demo
-            </CardLink>
+              <FaExternalLinkAltIcon /><SiteText entry="copy-page-projects-1" name="text1841d3c3a6598770" /></CardLink>
           </CardLinks>
         </CardContent>
       </CardHeader>
@@ -804,7 +801,7 @@ const ProjectCard = React.memo<ProjectCardProps>(({
                   />
                 )
               ) : (
-                <Placeholder>No media available</Placeholder>
+                <Placeholder><SiteText entry="copy-page-projects-1" name="text68710f0d9d9de06a" /></Placeholder>
               )}
             </motion.div>
           </MediaWrapper>
@@ -968,7 +965,7 @@ const Projects: React.FC = () => {
           transition={{ duration: 0.5, delay: 0.2 }}
         >
           <FaLaptopCodeIcon />
-          <span>Loading projects...</span>
+          <span><SiteText entry="copy-page-projects-1" name="texted1573abda08a8eb" /></span>
         </LoadingState>
       ) : (
         <ProjectsGrid data-projects-grid>

@@ -1,33 +1,12 @@
 import { useSiteContent } from '../../../lib/site-content'
 import { ExternalLink } from 'lucide-react'
 
-const signals = [
-  {
-    label: 'Incident analysis',
-    title: 'A pricing defect became a regression suite.',
-    description:
-      'The CloudCostMCP incident record shows the bad selection logic, the detection gap, live provider verification, and the controls added after the fix.',
-    href: 'https://github.com/JadenRazo/CloudCostMCP/blob/main/docs/incidents/2026-08-pricing-drift.md',
-  },
-  {
-    label: 'Controlled failure',
-    title: 'Recovery is measured, not implied.',
-    description:
-      'The SRE reference app records a 78-second ECS recovery exercise beside its SLO math, runbook, GameDay, postmortem, and explicit limitations.',
-    href: 'https://github.com/JadenRazo/sre-reference-app',
-  },
-  {
-    label: 'Release integrity',
-    title: 'Artifacts carry their own evidence.',
-    description:
-      'llm-lint uses CodeQL, SARIF, release verification, SBOMs, native package checks, and signed release artifacts instead of asking users to trust a build script.',
-    href: 'https://github.com/JadenRazo/llm-lint',
-  },
-]
+
 
 export default function About() {
   const siteContent = useSiteContent()
   const copy = siteContent['about-home']
+  const signals = siteContent['about-signals']
   return (
     <section id="about" aria-labelledby="about-title" className="relative w-full border-b border-border py-16 sm:py-20 lg:py-28">
       <div className="portfolio-container grid gap-12 lg:grid-cols-[0.72fr_1.28fr] lg:gap-20">
@@ -49,8 +28,8 @@ export default function About() {
         <div className="border-t border-border">
           {signals.map((signal, index) => (
             <a
-              key={signal.label}
-              href={signal.href}
+              key={signal.id}
+              href={signal.href} data-rh-link={`about-signals.${index}.href`}
               target="_blank"
               rel="noopener noreferrer"
               className="group grid gap-3 border-b border-border py-6 sm:grid-cols-[3rem_1fr_auto] sm:gap-5 sm:py-7"
@@ -60,13 +39,13 @@ export default function About() {
               </span>
               <span>
                 <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-primary">
-                  {signal.label}
+                  <span data-rh={`about-signals.${index}.label`}>{signal.label}</span>
                 </span>
                 <span className="mt-2 block text-lg font-semibold leading-7 text-text-primary group-hover:text-primary sm:text-xl">
-                  {signal.title}
+                  <span data-rh={`about-signals.${index}.title`}>{signal.title}</span>
                 </span>
                 <span className="mt-2 block text-[15px] leading-7 text-text-secondary sm:text-base">
-                  {signal.description}
+                  <span data-rh={`about-signals.${index}.description`}>{signal.description}</span>
                 </span>
               </span>
               <ExternalLink className="hidden h-4 w-4 text-text-muted group-hover:text-primary sm:block" aria-hidden="true" />

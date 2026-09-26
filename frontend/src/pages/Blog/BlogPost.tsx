@@ -1,3 +1,4 @@
+import SiteText from '../../components/website/SiteText';
 import { session as safeSessionStorage } from '../../utils/safeStorage';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
@@ -313,7 +314,7 @@ const BlogPost: React.FC = () => {
   if (loading) {
     return (
       <PostContainer>
-        <LoadingState>Loading post...</LoadingState>
+        <LoadingState><SiteText entry="copy-blog-post-1" name="text01b7b36c75173811" /></LoadingState>
       </PostContainer>
     );
   }
@@ -321,10 +322,10 @@ const BlogPost: React.FC = () => {
   if (error || !post) {
     return (
       <PostContainer>
-        <BackLink to="/blog">← Back to Blog</BackLink>
+        <BackLink to="/blog"><SiteText entry="copy-blog-post-1" name="text60a5e1a04b0a6b9e" /></BackLink>
         <ErrorState>
-          <h2>Post not found</h2>
-          <p>The post you're looking for doesn't exist or has been removed.</p>
+          <h2><SiteText entry="copy-blog-post-1" name="textdba8fb4c58ba2fa2" /></h2>
+          <p><SiteText entry="copy-blog-post-1" name="text21520f92215e3341" /></p>
         </ErrorState>
       </PostContainer>
     );
@@ -357,7 +358,7 @@ const BlogPost: React.FC = () => {
         {JSON.stringify(jsonLd)}
       </script>
       <PostContainer>
-        <BackLink to="/blog">← Back to Blog</BackLink>
+        <BackLink to="/blog"><SiteText entry="copy-blog-post-1" name="text60a5e1a04b0a6b9e" /></BackLink>
 
         <PostHeader
           initial={{ opacity: 0, y: 20 }}
@@ -374,8 +375,8 @@ const BlogPost: React.FC = () => {
           <Title>{post.title}</Title>
           <Meta>
             <span>{formatDate(post.published_at)}</span>
-            <span>{post.read_time_minutes} min read</span>
-            <span>{post.view_count} views</span>
+            <span>{post.read_time_minutes}<SiteText entry="copy-blog-post-1" name="text121d7143a0528254" before /></span>
+            <span>{post.view_count}<SiteText entry="copy-blog-post-1" name="text46e244a50f709a16" before /></span>
           </Meta>
         </PostHeader>
 
@@ -393,7 +394,7 @@ const BlogPost: React.FC = () => {
         </MarkdownContent>
 
         <PostFooter>
-          <ViewCount>{post.view_count} views</ViewCount>
+          <ViewCount>{post.view_count}<SiteText entry="copy-blog-post-1" name="text46e244a50f709a16" before /></ViewCount>
           <ShareButton onClick={handleShare}>
             {copied ? 'Copied!' : 'Copy Link'}
           </ShareButton>

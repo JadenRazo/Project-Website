@@ -1,3 +1,4 @@
+import SiteText from '../../components/website/SiteText';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
@@ -451,10 +452,8 @@ const Blog: React.FC = () => {
       />
       <BlogContainer>
         <PageHeader>
-          <PageTitle>Blog</PageTitle>
-          <PageDescription>
-            Notes on cloud engineering, reliable delivery, developer tooling, and the systems I work with day to day.
-          </PageDescription>
+          <PageTitle><SiteText entry="copy-blog-1" name="text8c6bc099534a0251" /></PageTitle>
+          <PageDescription><SiteText entry="copy-blog-1" name="text30ae7a422b160658" /></PageDescription>
         </PageHeader>
 
         <SearchBar
@@ -470,9 +469,7 @@ const Blog: React.FC = () => {
             <TagPill
               $active={activeTag === ''}
               onClick={() => setActiveTag('')}
-            >
-              All
-            </TagPill>
+            ><SiteText entry="copy-blog-1" name="texta52ace420f2175d0" /></TagPill>
             {allTags.map((tag) => (
               <TagPill
                 key={tag}
@@ -486,12 +483,12 @@ const Blog: React.FC = () => {
         )}
 
         {loading ? (
-          <LoadingState>Loading posts...</LoadingState>
+          <LoadingState><SiteText entry="copy-blog-1" name="text35218efc21e457e0" /></LoadingState>
         ) : (
           <>
             {mainFeatured && !searchDebounce && !activeTag && page === 1 && (
               <FeaturedSection>
-                <FeaturedLabel>Featured</FeaturedLabel>
+                <FeaturedLabel><SiteText entry="copy-blog-1" name="textc533cafab69e4033" /></FeaturedLabel>
                 <FeaturedCardWrapper to={`/blog/${mainFeatured.slug}`}>
                   <FeaturedCard
                     initial={{ opacity: 0, y: 20 }}
@@ -511,7 +508,7 @@ const Blog: React.FC = () => {
                       <PostExcerpt>{mainFeatured.excerpt}</PostExcerpt>
                       <PostMeta>
                         <span>{formatDate(mainFeatured.published_at)}</span>
-                        <span>{mainFeatured.read_time_minutes} min read</span>
+                        <span>{mainFeatured.read_time_minutes}<SiteText entry="copy-blog-1" name="text121d7143a0528254" before /></span>
                       </PostMeta>
                     </FeaturedContent>
                   </FeaturedCard>
@@ -545,7 +542,7 @@ const Blog: React.FC = () => {
                           <PostExcerpt>{post.excerpt}</PostExcerpt>
                           <PostMeta>
                             <span>{formatDate(post.published_at)}</span>
-                            <span>{post.read_time_minutes} min read</span>
+                            <span>{post.read_time_minutes}<SiteText entry="copy-blog-1" name="text121d7143a0528254" before /></span>
                           </PostMeta>
                         </PostBody>
                       </PostCard>
@@ -555,7 +552,7 @@ const Blog: React.FC = () => {
               </AnimatePresence>
             ) : (
               <EmptyState>
-                <h3>No posts found</h3>
+                <h3><SiteText entry="copy-blog-1" name="text3d0c20ef5e6b2932" /></h3>
                 <p>
                   {searchDebounce || activeTag
                     ? 'Try adjusting your search or filters.'
@@ -569,9 +566,7 @@ const Blog: React.FC = () => {
                 <PageButton
                   disabled={page <= 1}
                   onClick={() => setPage((p) => p - 1)}
-                >
-                  Previous
-                </PageButton>
+                ><SiteText entry="copy-blog-1" name="texta57b08a480b822a0" /></PageButton>
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(
                   (p) => (
                     <PageButton
@@ -586,9 +581,7 @@ const Blog: React.FC = () => {
                 <PageButton
                   disabled={page >= totalPages}
                   onClick={() => setPage((p) => p + 1)}
-                >
-                  Next
-                </PageButton>
+                ><SiteText entry="copy-blog-1" name="text1ff57a29d7c9d11b" /></PageButton>
               </Pagination>
             )}
           </>

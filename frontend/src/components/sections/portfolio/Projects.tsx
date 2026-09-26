@@ -1,3 +1,4 @@
+import SiteText from '../../website/SiteText';
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ExternalLink, Github, ChevronLeft, ChevronRight, Code, FileCode } from 'lucide-react'
@@ -188,8 +189,7 @@ export default function Projects() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="text-2xl sm:text-3xl md:text-4xl font-bold text-text-primary mb-2"
-          >
-            Featured <span className="gradient-text">Projects</span>
+          ><SiteText entry="copy-home-projects-1" name="text02cd26ee047c7b2e" after /><span className="gradient-text"><SiteText entry="copy-home-projects-1" name="text04e2a9728af75840" /></span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -197,9 +197,7 @@ export default function Projects() {
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
             className="text-text-secondary text-sm md:text-base text-center"
-          >
-            A selection of my recent work
-          </motion.p>
+          ><SiteText entry="copy-home-projects-1" name="text474143231c4de495" /></motion.p>
         </div>
 
         {/* Project Content */}
@@ -306,7 +304,7 @@ export default function Projects() {
                         <div className="text-sm sm:text-base md:text-base lg:text-lg font-bold gradient-text">
                           <AnimatedCounter value={currentProject.linesOfCode} />
                         </div>
-                        <div className="text-[10px] sm:text-xs text-text-muted">Lines</div>
+                        <div className="text-[10px] sm:text-xs text-text-muted"><SiteText entry="copy-home-projects-1" name="text3b26a5427458edd2" /></div>
                       </div>
                     </div>
                     <div className="glass-card px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-3.5 md:py-2.5 lg:px-4 lg:py-3 flex items-center gap-2">
@@ -317,7 +315,7 @@ export default function Projects() {
                         <div className="text-sm sm:text-base md:text-base lg:text-lg font-bold gradient-text">
                           <AnimatedCounter value={currentProject.files} />
                         </div>
-                        <div className="text-[10px] sm:text-xs text-text-muted">Files</div>
+                        <div className="text-[10px] sm:text-xs text-text-muted"><SiteText entry="copy-home-projects-1" name="textabc7e9892806b047" /></div>
                       </div>
                     </div>
                   </div>
@@ -344,7 +342,7 @@ export default function Projects() {
                         className="btn-primary py-2 px-3 sm:py-2.5 sm:px-4 lg:py-3 lg:px-5 text-xs sm:text-sm"
                       >
                         <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        <span>View Live</span>
+                        <span><SiteText entry="copy-home-projects-1" name="textdc943e8052db4f94" /></span>
                       </a>
                     )}
                     <a
@@ -354,7 +352,7 @@ export default function Projects() {
                       className="btn-secondary py-2 px-3 sm:py-2.5 sm:px-4 lg:py-3 lg:px-5 text-xs sm:text-sm"
                     >
                       <Github className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      <span>Source</span>
+                      <span><SiteText entry="copy-home-projects-1" name="text0e570ca6fabe24f9" /></span>
                     </a>
                   </div>
                 </div>

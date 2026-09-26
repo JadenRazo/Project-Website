@@ -1,0 +1,117 @@
+{
+  "version": 1,
+  "previewPath": "/editor-preview",
+  "pages": [
+    {
+      "id": "home",
+      "path": "/",
+      "title": "Jaden Razo | AWS Cloud & DevOps Engineer"
+    },
+    {
+      "id": "about",
+      "path": "/about",
+      "title": "About Jaden Razo | Cloud & DevOps Engineer"
+    },
+    {
+      "id": "contact",
+      "path": "/contact",
+      "title": "Contact Jaden Razo | Cloud & DevOps Engineer"
+    },
+    {
+      "id": "projects",
+      "path": "/projects",
+      "title": "Cloud & DevOps Projects | Jaden Razo"
+    },
+    {
+      "id": "portfolio",
+      "path": "/portfolio",
+      "title": "Cloud & DevOps Projects | Jaden Razo"
+    },
+    {
+      "id": "blog",
+      "path": "/blog",
+      "title": "Cloud Engineering Notes | Jaden Razo"
+    },
+    {
+      "id": "status",
+      "path": "/status",
+      "title": "System Status | Jaden Razo - Service Health Monitoring"
+    }
+  ],
+  "sections": [
+    {
+      "id": "hero",
+      "pageId": "home",
+      "label": "Introduction"
+    },
+    {
+      "id": "about",
+      "pageId": "home",
+      "label": "About"
+    },
+    {
+      "id": "projects",
+      "pageId": "home",
+      "label": "Featured projects"
+    },
+    {
+      "id": "services",
+      "pageId": "home",
+      "label": "Services"
+    },
+    {
+      "id": "contact",
+      "pageId": "home",
+      "label": "Contact"
+    },
+    {
+      "id": "page-about",
+      "pageId": "about",
+      "label": "About Jaden Razo | Cloud & DevOps Engineer"
+    },
+    {
+      "id": "page-contact",
+      "pageId": "contact",
+      "label": "Contact Jaden Razo | Cloud & DevOps Engineer"
+    },
+    {
+      "id": "page-projects",
+      "pageId": "projects",
+      "label": "Cloud & DevOps Projects | Jaden Razo"
+    },
+    {
+      "id": "page-portfolio",
+      "pageId": "portfolio",
+      "label": "Cloud & DevOps Projects | Jaden Razo"
+    },
+    {
+      "id": "page-blog",
+      "pageId": "blog",
+      "label": "Cloud Engineering Notes | Jaden Razo"
+    },
+    {
+      "id": "page-status",
+      "pageId": "status",
+      "label": "System Status | Jaden Razo - Service Health Monitoring"
+    }
+  ],
+  "reservedPaths": [
+    "/api",
+    "/editor-preview",
+    "/assets",
+    "/static",
+    "/uploads",
+    "/images",
+    "/videos",
+    "/fonts",
+    "/about",
+    "/contact",
+    "/projects",
+    "/portfolio",
+    "/devpanel",
+    "/urlshortener",
+    "/messaging",
+    "/status",
+    "/blog"
+  ]
+}

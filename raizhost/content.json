@@ -1,4 +1,216 @@
 {
+  "website-pages": [
+    {
+      "id": "home",
+      "path": "/",
+      "title": "Jaden Razo | AWS Cloud & DevOps Engineer",
+      "description": "",
+      "inNavigation": false,
+      "enabled": true
+    },
+    {
+      "id": "about",
+      "path": "/about",
+      "title": "About Jaden Razo | Cloud & DevOps Engineer",
+      "description": "",
+      "inNavigation": false,
+      "enabled": true
+    },
+    {
+      "id": "contact",
+      "path": "/contact",
+      "title": "Contact Jaden Razo | Cloud & DevOps Engineer",
+      "description": "",
+      "inNavigation": false,
+      "enabled": true
+    },
+    {
+      "id": "projects",
+      "path": "/projects",
+      "title": "Cloud & DevOps Projects | Jaden Razo",
+      "description": "",
+      "inNavigation": false,
+      "enabled": true
+    },
+    {
+      "id": "portfolio",
+      "path": "/portfolio",
+      "title": "Cloud & DevOps Projects | Jaden Razo",
+      "description": "",
+      "inNavigation": false,
+      "enabled": true
+    },
+    {
+      "id": "blog",
+      "path": "/blog",
+      "title": "Cloud Engineering Notes | Jaden Razo",
+      "description": "",
+      "inNavigation": false,
+      "enabled": true
+    },
+    {
+      "id": "status",
+      "path": "/status",
+      "title": "System Status | Jaden Razo - Service Health Monitoring",
+      "description": "",
+      "inNavigation": false,
+      "enabled": true
+    }
+  ],
+  "website-sections": [
+    {
+      "id": "hero",
+      "pageId": "home",
+      "component": "authored:hero",
+      "title": "Introduction",
+      "body": "",
+      "image": null,
+      "link": "",
+      "linkLabel": "",
+      "alignment": "left",
+      "tone": "inherit",
+      "hidden": false
+    },
+    {
+      "id": "about",
+      "pageId": "home",
+      "component": "authored:about",
+      "title": "About",
+      "body": "",
+      "image": null,
+      "link": "",
+      "linkLabel": "",
+      "alignment": "left",
+      "tone": "inherit",
+      "hidden": false
+    },
+    {
+      "id": "projects",
+      "pageId": "home",
+      "component": "authored:projects",
+      "title": "Featured projects",
+      "body": "",
+      "image": null,
+      "link": "",
+      "linkLabel": "",
+      "alignment": "left",
+      "tone": "inherit",
+      "hidden": false
+    },
+    {
+      "id": "services",
+      "pageId": "home",
+      "component": "authored:services",
+      "title": "Services",
+      "body": "",
+      "image": null,
+      "link": "",
+      "linkLabel": "",
+      "alignment": "left",
+      "tone": "inherit",
+      "hidden": false
+    },
+    {
+      "id": "contact",
+      "pageId": "home",
+      "component": "authored:contact",
+      "title": "Contact",
+      "body": "",
+      "image": null,
+      "link": "",
+      "linkLabel": "",
+      "alignment": "left",
+      "tone": "inherit",
+      "hidden": false
+    },
+    {
+      "id": "page-about",
+      "pageId": "about",
+      "component": "authored:page-about",
+      "title": "About Jaden Razo | Cloud & DevOps Engineer",
+      "body": "",
+      "image": null,
+      "link": "",
+      "linkLabel": "",
+      "alignment": "left",
+      "tone": "inherit",
+      "hidden": false
+    },
+    {
+      "id": "page-contact",
+      "pageId": "contact",
+      "component": "authored:page-contact",
+      "title": "Contact Jaden Razo | Cloud & DevOps Engineer",
+      "body": "",
+      "image": null,
+      "link": "",
+      "linkLabel": "",
+      "alignment": "left",
+      "tone": "inherit",
+      "hidden": false
+    },
+    {
+      "id": "page-projects",
+      "pageId": "projects",
+      "component": "authored:page-projects",
+      "title": "Cloud & DevOps Projects | Jaden Razo",
+      "body": "",
+      "image": null,
+      "link": "",
+      "linkLabel": "",
+      "alignment": "left",
+      "tone": "inherit",
+      "hidden": false
+    },
+    {
+      "id": "page-portfolio",
+      "pageId": "portfolio",
+      "component": "authored:page-portfolio",
+      "title": "Cloud & DevOps Projects | Jaden Razo",
+      "body": "",
+      "image": null,
+      "link": "",
+      "linkLabel": "",
+      "alignment": "left",
+      "tone": "inherit",
+      "hidden": false
+    },
+    {
+      "id": "page-blog",
+      "pageId": "blog",
+      "component": "authored:page-blog",
+      "title": "Cloud Engineering Notes | Jaden Razo",
+      "body": "",
+      "image": null,
+      "link": "",
+      "linkLabel": "",
+      "alignment": "left",
+      "tone": "inherit",
+      "hidden": false
+    },
+    {
+      "id": "page-status",
+      "pageId": "status",
+      "component": "authored:page-status",
+      "title": "System Status | Jaden Razo - Service Health Monitoring",
+      "body": "",
+      "image": null,
+      "link": "",
+      "linkLabel": "",
+      "alignment": "left",
+      "tone": "inherit",
+      "hidden": false
+    }
+  ],
+  "website-design": {
+    "accent": "",
+    "background": "",
+    "foreground": "",
+    "font": "inherit",
+    "contentWidth": null,
+    "cornerRadius": null,
+    "spacing": "inherit"
+  },
   "version": 1,
   "hero": {
     "availability": "Open to full-time cloud / DevOps roles",
@@ -51,7 +263,9 @@
   "about-page": {
     "name": "Jaden Razo",
     "title": "Cloud & DevOps Engineer",
-    "intro": "CompTIA A+ and Network+ certified engineer with hands-on experience in end-user support, identity administration, and troubleshooting across Windows, macOS, and Linux. My public work focuses on AWS infrastructure, Terraform, secure delivery, observability, and reliability evidence that teams can inspect."
+    "intro": "CompTIA A+ and Network+ certified engineer with hands-on experience in end-user support, identity administration, and troubleshooting across Windows, macOS, and Linux. My public work focuses on AWS infrastructure, Terraform, secure delivery, observability, and reliability evidence that teams can inspect.",
+    "image": null,
+    "showImage": true
   },
   "contact-page": {
     "title": "Get in Touch",
@@ -106,5 +320,190 @@
     "title": "SRE Landing Zone",
     "category": "Cloud architecture",
     "summary": "A multi-account AWS lab that brings together workload isolation, a separate audit trail, pilot-light recovery, and tag-scoped cost controls."
-  }
+  },
+  "copy-about-1": {
+    "text8eab0f09df013b1b": "Experience",
+    "textf33acf21e39b9cf0": "IT Support & Independent Cloud Engineering",
+    "text54d3b9b102a1eff2": "24Hr Home Care / Independent Projects",
+    "text81ac808728fb163e": "2022 - Present",
+    "text471502f86c773c59": "Certifications",
+    "text0a5aeb82680a29f7": "Issued:",
+    "text9fe7928a78cd1a96": "Expires:",
+    "text7f139e6be5e80400": "Credential ID:",
+    "textc533cafab69e4033": "Featured",
+    "text424a2551d356754c": "Expired",
+    "text556014e4d40a8521": "Expires Soon",
+    "text1a5a657abe7af745": "Technical Skills",
+    "text512ab3c6b9869577": "Education",
+    "text3edb27fb18c31017": "B.S Cloud Computing",
+    "textdcf1f526b9df8e5e": "Western Governors University",
+    "text88eb4301e717e2c5": "2025 - Expected 2026",
+    "text5af2e7d4c08d1b9b": "Focused on cloud computing, cybersecurity, and distributed systems. Currently pursuing AZ-104, AWS Solutions Architect Associate, and CompTIA Security+.",
+    "text2d35d09539939757": "High School Diploma",
+    "text7413103d02ed596c": "Sky Mountain High School",
+    "text31736e4c0e0060e6": "Graduated with honors while participating in coding camps and volunteering projects. Developed strong foundation in programming fundamentals and problem-solving skills."
+  },
+  "copy-blog-1": {
+    "text8c6bc099534a0251": "Blog",
+    "text30ae7a422b160658": "Notes on cloud engineering, reliable delivery, developer tooling, and the systems I work with day to day.",
+    "texta52ace420f2175d0": "All",
+    "text35218efc21e457e0": "Loading posts...",
+    "textc533cafab69e4033": "Featured",
+    "text121d7143a0528254": "min read",
+    "text3d0c20ef5e6b2932": "No posts found",
+    "texta57b08a480b822a0": "Previous",
+    "text1ff57a29d7c9d11b": "Next"
+  },
+  "copy-blog-post-1": {
+    "text01b7b36c75173811": "Loading post...",
+    "text60a5e1a04b0a6b9e": "← Back to Blog",
+    "textdba8fb4c58ba2fa2": "Post not found",
+    "text21520f92215e3341": "The post you're looking for doesn't exist or has been removed.",
+    "text121d7143a0528254": "min read",
+    "text46e244a50f709a16": "views"
+  },
+  "copy-status-1": {
+    "textb58a74d34264f1af": "System Status",
+    "text1f64fe1cb73227fe": "Real-time monitoring of all services",
+    "text7359d6fb6dda7631": "Loading system status...",
+    "textff0ee05e5fa40c54": "Unable to load status information",
+    "text3267f6f8635074af": "🚨 Status Unavailable",
+    "text9fab8949e7af0718": "Real-time monitoring of all backend services and infrastructure",
+    "text52f7bfe886127e90": "All services are being monitored continuously",
+    "text617062906764f3b8": "Error:",
+    "textd63ab4711473b039": "Uptime",
+    "texte0e7d293043c8cf6": "Latency",
+    "text2d424737b5706ac6": "Last Check",
+    "textf5239d5e7c01c5a5": "Active Incidents",
+    "text65d157da69bf0342": "Service:",
+    "textce9bf63abbecf161": "Severity:",
+    "text8301e51f74b1eeb8": "Started:",
+    "text3bbdf44a397cc657": "🎉 No Active Incidents",
+    "textcd9a66a60cacb150": "All systems are operating normally with no reported issues.",
+    "textba34a96f29695271": "Last updated:",
+    "text0a1a3c961a030bc9": "Status checks run automatically every 30 seconds"
+  },
+  "copy-footer-1": {
+    "text4efca0d10c5feb8e": "About",
+    "textdea7afb25cf6cd8a": "AWS cloud and DevOps engineer building reliable, secure, cost-aware systems with inspectable operational evidence.",
+    "text04e2a9728af75840": "Projects",
+    "text8529259d03bda401": "Developer Panel",
+    "texta59c479b8a7639a7": "URL Shortener",
+    "textc5ca08ff2d916502": "Real-time Messaging",
+    "text9e387fd6a5b53ceb": "View All Projects",
+    "text8c6bc099534a0251": "Blog",
+    "text1a2303ede07493ac": "Connect",
+    "textf911e414cf6bdfc5": "GitHub",
+    "textdd84425b72da12c6": "LinkedIn",
+    "text516138999d68589f": "contact@jadenrazo.dev",
+    "text4cac7bf368d1b881": "Jaden Razo. All rights reserved."
+  },
+  "copy-navigation-bar-1": {
+    "textf2888132b55cd3b7": "Jaden Razo",
+    "text525fb6b66de61b36": "Services Status",
+    "text7cf9fdeda092c478": "View Detailed Status Page →",
+    "text4efca0d10c5feb8e": "About",
+    "text2b5c3d26721ae9c3": "Contact",
+    "text1853eb2e9e5ed2bc": "Portfolio",
+    "text8c6bc099534a0251": "Blog"
+  },
+  "copy-portfolio-navbar-1": {
+    "textf2888132b55cd3b7": "Jaden Razo",
+    "text4d1eaa3fda45be1c": "Cloud / DevOps",
+    "text8c6bc099534a0251": "Blog",
+    "textf911e414cf6bdfc5": "GitHub",
+    "text2b5c3d26721ae9c3": "Contact",
+    "text9d4575ccb2a697bc": "Contact about a role"
+  },
+  "copy-hero-1": {
+    "text19f29d33f0993670": "Operating stack",
+    "text32fd72a0e0746043": "AWS",
+    "text05b073bd5e46bbed": "Terraform",
+    "textfae83bd48c808f08": "GitHub Actions",
+    "text4828e60247c1636f": "Linux",
+    "textac2a84de8323ef96": "Selected evidence",
+    "text591935b15b1c88e2": "Public",
+    "text8a99f989d4c05d43": "View service status"
+  },
+  "copy-horizontal-project-gallery-1": {
+    "textbb17df766ac9a5b4": "Project"
+  },
+  "copy-project-film-player-1": {
+    "text7f14d429da78757e": "Sound-free ·",
+    "text656b46fdad1a720b": "Your browser cannot play this video. Read the walkthrough below.",
+    "textbfdf6444aeacceb1": "Watch walkthrough",
+    "text6ce239b14bc4cc2f": "The video couldn’t load.",
+    "texte2e1cbbca9fc7654": "You can retry, open the video, or read the walkthrough below.",
+    "text55de39f882a37b5b": "Try again",
+    "text6ac7b387e42df1c8": "Open video",
+    "text4e75873760b871d3": "Watch again",
+    "text7c59452cc20ed579": "Read the walkthrough"
+  },
+  "copy-page-contact-1": {
+    "textcbb44284418f685e": "Message Sent!",
+    "textea8c31a67b118470": "Thanks for reaching out. I'll get back to you as soon as possible.",
+    "text286a3af7348e8312": "Sending..."
+  },
+  "copy-page-projects-1": {
+    "textf911e414cf6bdfc5": "GitHub",
+    "text1841d3c3a6598770": "Live Demo",
+    "text68710f0d9d9de06a": "No media available",
+    "texted1573abda08a8eb": "Loading projects..."
+  },
+  "copy-home-contact-1": {
+    "text516138999d68589f": "contact@jadenrazo.dev",
+    "text0a1f2fbcba7a4924": "Message sent",
+    "text1c76b3385ed3ab1d": "Thanks for reaching out. I'll get back to you soon.",
+    "text286a3af7348e8312": "Sending...",
+    "text4cac7bf368d1b881": "Jaden Razo. All rights reserved."
+  },
+  "copy-home-projects-1": {
+    "text02cd26ee047c7b2e": "Featured",
+    "text04e2a9728af75840": "Projects",
+    "text474143231c4de495": "A selection of my recent work",
+    "text3b26a5427458edd2": "Lines",
+    "textabc7e9892806b047": "Files",
+    "textdc943e8052db4f94": "View Live",
+    "text0e570ca6fabe24f9": "Source"
+  },
+  "about-signals": [
+    {
+      "label": "Incident analysis",
+      "title": "A pricing defect became a regression suite.",
+      "description": "The CloudCostMCP incident record shows the bad selection logic, the detection gap, live provider verification, and the controls added after the fix.",
+      "href": "https://github.com/JadenRazo/CloudCostMCP/blob/main/docs/incidents/2026-08-pricing-drift.md",
+      "id": "signal-1"
+    },
+    {
+      "label": "Controlled failure",
+      "title": "Recovery is measured, not implied.",
+      "description": "The SRE reference app records a 78-second ECS recovery exercise beside its SLO math, runbook, GameDay, postmortem, and explicit limitations.",
+      "href": "https://github.com/JadenRazo/sre-reference-app",
+      "id": "signal-2"
+    },
+    {
+      "label": "Release integrity",
+      "title": "Artifacts carry their own evidence.",
+      "description": "llm-lint uses CodeQL, SARIF, release verification, SBOMs, native package checks, and signed release artifacts instead of asking users to trust a build script.",
+      "href": "https://github.com/JadenRazo/llm-lint",
+      "id": "signal-3"
+    }
+  ],
+  "navigation-links": [
+    {
+      "id": "evidence",
+      "name": "Evidence",
+      "href": "#about"
+    },
+    {
+      "id": "work",
+      "name": "Work",
+      "href": "#projects"
+    },
+    {
+      "id": "approach",
+      "name": "Approach",
+      "href": "#services"
+    }
+  ]
 }

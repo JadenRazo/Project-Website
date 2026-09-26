@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "source": {
+    "kind": "github",
+    "repoOwner": "JadenRazo",
+    "repoName": "Project-Website",
+    "branch": "live",
+    "previewBranch": null,
+    "basePath": "",
+    "contentDir": "raizhost",
+    "uploadsDir": "frontend/public/uploads",
+    "uploadsUrlPrefix": "/uploads",
+    "workflowFile": "deploy-content.yml",
+    "siteUrl": "https://jadenrazo.dev",
+    "previewUrl": null
+  }
+}

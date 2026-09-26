@@ -1,3 +1,4 @@
+import SiteText from '../../components/website/SiteText';
 import { useSiteContent } from '../../lib/site-content'
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
@@ -42,7 +43,7 @@ const ProfileSection = styled(motion.div)`
   flex-direction: column;
   align-items: center;
   gap: ${({ theme }) => theme.spacing.xl};
-  
+
   @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
     flex-direction: row;
     align-items: flex-start;
@@ -82,7 +83,7 @@ const ProfileImage = styled(motion.div)`
 
 const ProfileInfo = styled.div`
   text-align: center;
-  
+
   @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
     text-align: left;
   }
@@ -167,7 +168,7 @@ const SectionContent = styled.div`
   color: ${({ theme }) => theme.colors.text};
   font-size: 1.1rem;
   line-height: 1.6;
-  
+
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     font-size: 0.95rem;
     word-break: break-word; /* Prevent text overflow on mobile */
@@ -204,7 +205,7 @@ const SkillItem = styled(motion.li)`
   border-radius: ${({ theme }) => theme.borderRadius.small};
   font-weight: 500;
   color: ${({ theme }) => theme.colors.primary}; /* Brightened skill text color */
-  
+
   svg {
     width: 20px;
     height: 20px;
@@ -220,7 +221,7 @@ const SkillItem = styled(motion.li)`
 
 const ExperienceItem = styled(motion.div)`
   margin-bottom: ${({ theme }) => theme.spacing.lg};
-  
+
   &:last-child {
     margin-bottom: 0;
   }
@@ -249,7 +250,7 @@ const ExperienceDescription = styled.div`
   line-height: 1.6;
   max-width: 100%;
   overflow-wrap: break-word;
-  
+
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     font-size: 0.95rem;
     line-height: 1.5;
@@ -315,7 +316,7 @@ const CertificationCard = styled(motion.div)`
   border-radius: ${({ theme }) => theme.borderRadius.medium};
   border: 1px solid ${({ theme }) => theme.colors.border};
   transition: all 0.3s ease;
-  
+
   &:hover {
     transform: translateY(-4px);
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
@@ -348,11 +349,11 @@ const CertificationLink = styled.a`
   display: inline-flex;
   align-items: center;
   gap: ${({ theme }) => theme.spacing.xs};
-  
+
   &:hover {
     text-decoration: underline;
   }
-  
+
   svg {
     width: 16px;
     height: 16px;
@@ -465,12 +466,12 @@ const ExperienceSection = () => {
       animate="animate"
       ref={sectionRef}
     >
-      <SectionTitle>Experience</SectionTitle>
+      <SectionTitle><SiteText entry="copy-about-1" name="text8eab0f09df013b1b" /></SectionTitle>
       <SectionContent>
         <ExperienceItem variants={experienceItemVariants}>
-          <ExperienceTitle>IT Support & Independent Cloud Engineering</ExperienceTitle>
-          <ExperienceCompany>24Hr Home Care / Independent Projects</ExperienceCompany>
-          <ExperienceDate>2022 - Present</ExperienceDate>
+          <ExperienceTitle><SiteText entry="copy-about-1" name="textf33acf21e39b9cf0" /></ExperienceTitle>
+          <ExperienceCompany><SiteText entry="copy-about-1" name="text54d3b9b102a1eff2" /></ExperienceCompany>
+          <ExperienceDate><SiteText entry="copy-about-1" name="text81ac808728fb163e" /></ExperienceDate>
           <ExperienceDescription>
             {experienceLines.map((_, lineIndex) => (
               <TypedLine key={`line-${lineIndex}`}>
@@ -573,11 +574,12 @@ const About: React.FC = () => {
               whileHover={{ scale: 1.05 }}
               transition={{ type: "spring", stiffness: 300 }}
             >
-              <img 
-                src={headshot} 
-                alt="Jaden Razo, cloud and DevOps engineer"
+              {copy.showImage && <img
+                data-rh-img="about-page.image"
+                src={(copy.image as {src:string;alt?:string} | null)?.src || headshot}
+                alt={(copy.image as {src:string;alt?:string} | null)?.alt ?? "Jaden Razo, cloud and DevOps engineer"}
                 loading="eager"
-              />
+              />}
             </ProfileImage>
             <ProfileInfo>
               <Name data-rh="about-page.name">{copy.name}</Name>
@@ -599,7 +601,7 @@ const About: React.FC = () => {
               transition={{ delay: 0.3 }}
               style={{ marginTop: '2rem' }}
             >
-              <SectionTitle style={{ marginBottom: '1.5rem' }}>Certifications</SectionTitle>
+              <SectionTitle style={{ marginBottom: '1.5rem' }}><SiteText entry="copy-about-1" name="text471502f86c773c59" /></SectionTitle>
               <CertificationGrid>
                 {certifications.map((cert, index) => (
                   <CertificationCard
@@ -611,31 +613,28 @@ const About: React.FC = () => {
                   >
                     <CertificationName>{cert.name}</CertificationName>
                     <CertificationIssuer>{cert.issuer}</CertificationIssuer>
-                    <CertificationDate>
-                      Issued: {new Date(cert.issue_date).toLocaleDateString('en-US', { 
-                        year: 'numeric', 
-                        month: 'long' 
+                    <CertificationDate><SiteText entry="copy-about-1" name="text0a5aeb82680a29f7" after />{new Date(cert.issue_date).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long'
                       })}
                       {cert.expiry_date && (
                         <>
-                          <br />
-                          Expires: {new Date(cert.expiry_date).toLocaleDateString('en-US', { 
-                            year: 'numeric', 
-                            month: 'long' 
+                          <br /><SiteText entry="copy-about-1" name="text9fe7928a78cd1a96" after />{new Date(cert.expiry_date).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long'
                           })}
                         </>
                       )}
                     </CertificationDate>
                     {cert.credential_id && (
-                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-                        Credential ID: {cert.credential_id}
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}><SiteText entry="copy-about-1" name="text7f139e6be5e80400" after />{cert.credential_id}
                       </p>
                     )}
                     <CertificationActions>
                       {cert.verification_url && (
-                        <CertificationLink 
-                          href={cert.verification_url} 
-                          target="_blank" 
+                        <CertificationLink
+                          href={cert.verification_url}
+                          target="_blank"
                           rel="noopener noreferrer"
                         >
                           {cert.verification_text || 'Verify Certificate'}
@@ -644,12 +643,10 @@ const About: React.FC = () => {
                           </svg>
                         </CertificationLink>
                       )}
-                      
+
                       <CertificationBadgeContainer>
                         {cert.is_featured && (
-                          <Badge variant="featured">
-                            Featured
-                          </Badge>
+                          <Badge variant="featured"><SiteText entry="copy-about-1" name="textc533cafab69e4033" /></Badge>
                         )}
                         {cert.category && cert.category.name && (
                           <Badge variant="category">
@@ -660,18 +657,14 @@ const About: React.FC = () => {
                           const expiryDate = new Date(cert.expiry_date);
                           const now = new Date();
                           const monthsUntilExpiry = (expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30);
-                          
+
                           if (monthsUntilExpiry < 0) {
                             return (
-                              <Badge variant="expired">
-                                Expired
-                              </Badge>
+                              <Badge variant="expired"><SiteText entry="copy-about-1" name="text424a2551d356754c" /></Badge>
                             );
                           } else if (monthsUntilExpiry < 3) {
                             return (
-                              <Badge variant="expiry">
-                                Expires Soon
-                              </Badge>
+                              <Badge variant="expiry"><SiteText entry="copy-about-1" name="text556014e4d40a8521" /></Badge>
                             );
                           }
                           return null;
@@ -692,7 +685,7 @@ const About: React.FC = () => {
             initial="initial"
             animate="animate"
           >
-            <SectionTitle>Technical Skills</SectionTitle>
+            <SectionTitle><SiteText entry="copy-about-1" name="text1a5a657abe7af745" /></SectionTitle>
             <SkillsList>
               {[
                 "TypeScript / React",
@@ -735,23 +728,19 @@ const About: React.FC = () => {
             initial="initial"
             animate="animate"
           >
-            <SectionTitle>Education</SectionTitle>
+            <SectionTitle><SiteText entry="copy-about-1" name="text512ab3c6b9869577" /></SectionTitle>
             <SectionContent>
               <ExperienceItem variants={itemVariants}>
-                <ExperienceTitle>B.S Cloud Computing</ExperienceTitle>
-                <ExperienceCompany>Western Governors University</ExperienceCompany>
-                <ExperienceDate>2025 - Expected 2026</ExperienceDate>
-                <ExperienceDescription>
-                  Focused on cloud computing, cybersecurity, and distributed systems. Currently pursuing AZ-104, AWS Solutions Architect Associate, and CompTIA Security+.
-                </ExperienceDescription>
-              </ExperienceItem> 
+                <ExperienceTitle><SiteText entry="copy-about-1" name="text3edb27fb18c31017" /></ExperienceTitle>
+                <ExperienceCompany><SiteText entry="copy-about-1" name="textdcf1f526b9df8e5e" /></ExperienceCompany>
+                <ExperienceDate><SiteText entry="copy-about-1" name="text88eb4301e717e2c5" /></ExperienceDate>
+                <ExperienceDescription><SiteText entry="copy-about-1" name="text5af2e7d4c08d1b9b" /></ExperienceDescription>
+              </ExperienceItem>
               <ExperienceItem variants={itemVariants}>
-                <ExperienceTitle>High School Diploma</ExperienceTitle>
-                <ExperienceCompany>Sky Mountain High School</ExperienceCompany>
+                <ExperienceTitle><SiteText entry="copy-about-1" name="text2d35d09539939757" /></ExperienceTitle>
+                <ExperienceCompany><SiteText entry="copy-about-1" name="text7413103d02ed596c" /></ExperienceCompany>
                 <ExperienceDate>2017 - 2021</ExperienceDate>
-                <ExperienceDescription>
-                  Graduated with honors while participating in coding camps and volunteering projects. Developed strong foundation in programming fundamentals and problem-solving skills.
-                </ExperienceDescription>
+                <ExperienceDescription><SiteText entry="copy-about-1" name="text31736e4c0e0060e6" /></ExperienceDescription>
               </ExperienceItem>
             </SectionContent>
           </Section>

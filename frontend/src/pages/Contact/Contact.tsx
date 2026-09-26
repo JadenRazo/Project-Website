@@ -1,3 +1,4 @@
+import SiteText from '../../components/website/SiteText';
 import { useSiteContent } from '../../lib/site-content'
 import React, { useState } from 'react';
 import styled, { keyframes } from 'styled-components';
@@ -322,10 +323,8 @@ const Contact: React.FC = () => {
             transition={{ duration: 0.4 }}
           >
             <SuccessIcon>&#10003;</SuccessIcon>
-            <SuccessTitle>Message Sent!</SuccessTitle>
-            <SuccessText>
-              Thanks for reaching out. I'll get back to you as soon as possible.
-            </SuccessText>
+            <SuccessTitle><SiteText entry="copy-page-contact-1" name="textcbb44284418f685e" /></SuccessTitle>
+            <SuccessText><SiteText entry="copy-page-contact-1" name="textea8c31a67b118470" /></SuccessText>
           </SuccessContainer>
         ) : (
           <Form
@@ -406,9 +405,7 @@ const Contact: React.FC = () => {
             >
               {isLoading ? (
                 <>
-                  <Spinner />
-                  Sending...
-                </>
+                  <Spinner /><SiteText entry="copy-page-contact-1" name="text286a3af7348e8312" /></>
               ) : (
                 <span data-rh="contact-page.submitCta">{copy.submitCta}</span>
               )}

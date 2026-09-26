@@ -9,63 +9,63 @@
       "id": "hero",
       "label": "Homepage headline",
       "page": "/",
-      "group": "Homepage",
       "access": "owner",
+      "group": "Homepage",
       "fields": [
         {
           "key": "availability",
-          "label": "Availability badge",
           "type": "text",
-          "access": "owner",
+          "label": "Availability badge",
           "required": true,
+          "access": "owner",
           "max": 70
         },
         {
           "key": "stack",
-          "label": "Skills line",
           "type": "text",
-          "access": "owner",
+          "label": "Skills line",
           "required": true,
+          "access": "owner",
           "max": 90
         },
         {
           "key": "headline",
-          "label": "Headline",
           "type": "text",
-          "access": "owner",
+          "label": "Headline",
           "required": true,
+          "access": "owner",
           "max": 70
         },
         {
           "key": "accent",
-          "label": "Highlighted headline",
           "type": "text",
-          "access": "owner",
+          "label": "Highlighted headline",
           "required": true,
+          "access": "owner",
           "max": 50
         },
         {
           "key": "description",
-          "label": "Introduction",
           "type": "textarea",
-          "access": "owner",
+          "label": "Introduction",
           "required": true,
+          "access": "owner",
           "max": 500
         },
         {
           "key": "primaryCta",
-          "label": "Projects button",
           "type": "text",
-          "access": "owner",
+          "label": "Projects button",
           "required": true,
+          "access": "owner",
           "max": 35
         },
         {
           "key": "secondaryCta",
-          "label": "GitHub button",
           "type": "text",
-          "access": "owner",
+          "label": "GitHub button",
           "required": true,
+          "access": "owner",
           "max": 35
         }
       ]
@@ -74,39 +74,39 @@
       "id": "about-home",
       "label": "About section",
       "page": "/",
-      "group": "Homepage",
       "access": "owner",
+      "group": "Homepage",
       "fields": [
         {
           "key": "eyebrow",
-          "label": "Section label",
           "type": "text",
-          "access": "owner",
+          "label": "Section label",
           "required": true,
+          "access": "owner",
           "max": 50
         },
         {
           "key": "title",
-          "label": "Heading",
           "type": "text",
-          "access": "owner",
+          "label": "Heading",
           "required": true,
+          "access": "owner",
           "max": 80
         },
         {
           "key": "intro",
-          "label": "Introduction",
           "type": "textarea",
-          "access": "owner",
+          "label": "Introduction",
           "required": true,
+          "access": "owner",
           "max": 500
         },
         {
           "key": "details",
-          "label": "Background",
           "type": "textarea",
-          "access": "owner",
+          "label": "Background",
           "required": true,
+          "access": "owner",
           "max": 500
         }
       ]
@@ -115,31 +115,31 @@
       "id": "services-home",
       "label": "Operating principles",
       "page": "/",
-      "group": "Homepage",
       "access": "owner",
+      "group": "Homepage",
       "fields": [
         {
           "key": "eyebrow",
-          "label": "Section label",
           "type": "text",
-          "access": "owner",
+          "label": "Section label",
           "required": true,
+          "access": "owner",
           "max": 50
         },
         {
           "key": "title",
-          "label": "Heading",
           "type": "text",
-          "access": "owner",
+          "label": "Heading",
           "required": true,
+          "access": "owner",
           "max": 80
         },
         {
           "key": "intro",
-          "label": "Introduction",
           "type": "textarea",
-          "access": "owner",
+          "label": "Introduction",
           "required": true,
+          "access": "owner",
           "max": 500
         }
       ]
@@ -148,23 +148,23 @@
       "id": "principle-1",
       "label": "Infrastructure as a reviewed system",
       "page": "/",
-      "group": "Homepage",
       "access": "owner",
+      "group": "Homepage",
       "fields": [
         {
           "key": "title",
-          "label": "Title",
           "type": "text",
-          "access": "owner",
+          "label": "Title",
           "required": true,
+          "access": "owner",
           "max": 90
         },
         {
           "key": "description",
-          "label": "Description",
           "type": "textarea",
-          "access": "owner",
+          "label": "Description",
           "required": true,
+          "access": "owner",
           "max": 420
         }
       ]
@@ -173,23 +173,23 @@
       "id": "principle-2",
       "label": "Safe delivery paths",
       "page": "/",
-      "group": "Homepage",
       "access": "owner",
+      "group": "Homepage",
       "fields": [
         {
           "key": "title",
-          "label": "Title",
           "type": "text",
-          "access": "owner",
+          "label": "Title",
           "required": true,
+          "access": "owner",
           "max": 90
         },
         {
           "key": "description",
-          "label": "Description",
           "type": "textarea",
-          "access": "owner",
+          "label": "Description",
           "required": true,
+          "access": "owner",
           "max": 420
         }
       ]
@@ -198,23 +198,23 @@
       "id": "principle-3",
       "label": "Reliability with a denominator",
       "page": "/",
-      "group": "Homepage",
       "access": "owner",
+      "group": "Homepage",
       "fields": [
         {
           "key": "title",
-          "label": "Title",
           "type": "text",
-          "access": "owner",
+          "label": "Title",
           "required": true,
+          "access": "owner",
           "max": 90
         },
         {
           "key": "description",
-          "label": "Description",
           "type": "textarea",
-          "access": "owner",
+          "label": "Description",
           "required": true,
+          "access": "owner",
           "max": 420
         }
       ]
@@ -223,23 +223,23 @@
       "id": "principle-4",
       "label": "Cost and security at design time",
       "page": "/",
-      "group": "Homepage",
       "access": "owner",
+      "group": "Homepage",
       "fields": [
         {
           "key": "title",
-          "label": "Title",
           "type": "text",
-          "access": "owner",
+          "label": "Title",
           "required": true,
+          "access": "owner",
           "max": 90
         },
         {
           "key": "description",
-          "label": "Description",
           "type": "textarea",
-          "access": "owner",
+          "label": "Description",
           "required": true,
+          "access": "owner",
           "max": 420
         }
       ]
@@ -248,87 +248,87 @@
       "id": "contact-home",
       "label": "Contact section",
       "page": "/",
-      "group": "Homepage",
       "access": "owner",
+      "group": "Homepage",
       "fields": [
         {
           "key": "eyebrow",
-          "label": "Section label",
           "type": "text",
-          "access": "owner",
+          "label": "Section label",
           "required": true,
+          "access": "owner",
           "max": 60
         },
         {
           "key": "title",
-          "label": "Heading",
           "type": "text",
-          "access": "owner",
+          "label": "Heading",
           "required": true,
+          "access": "owner",
           "max": 90
         },
         {
           "key": "intro",
-          "label": "Introduction",
           "type": "textarea",
-          "access": "owner",
+          "label": "Introduction",
           "required": true,
+          "access": "owner",
           "max": 350
         },
         {
           "key": "submitCta",
-          "label": "Send button",
           "type": "text",
-          "access": "owner",
+          "label": "Send button",
           "required": true,
+          "access": "owner",
           "max": 40
         },
         {
           "key": "nameLabel",
-          "label": "Name field",
           "type": "text",
-          "access": "owner",
+          "label": "Name field",
           "required": true,
+          "access": "owner",
           "max": 60
         },
         {
           "key": "emailLabel",
-          "label": "Email field",
           "type": "text",
-          "access": "owner",
+          "label": "Email field",
           "required": true,
+          "access": "owner",
           "max": 60
         },
         {
           "key": "subjectLabel",
-          "label": "Subject field",
           "type": "text",
-          "access": "owner",
+          "label": "Subject field",
           "required": true,
+          "access": "owner",
           "max": 60
         },
         {
           "key": "messageLabel",
-          "label": "Message field",
           "type": "text",
-          "access": "owner",
+          "label": "Message field",
           "required": true,
+          "access": "owner",
           "max": 60
         },
         {
           "key": "subjectHint",
-          "label": "Subject placeholder",
           "type": "text",
-          "access": "owner",
+          "label": "Subject placeholder",
           "required": true,
+          "access": "owner",
           "max": 100
         },
         {
           "key": "messageHint",
-          "label": "Message placeholder",
           "type": "text",
-          "access": "owner",
+          "label": "Message placeholder",
           "required": true,
+          "access": "owner",
           "max": 100
         }
       ]
@@ -337,32 +337,44 @@
       "id": "about-page",
       "label": "About page",
       "page": "/about",
-      "group": "Pages",
       "access": "owner",
+      "group": "Pages",
       "fields": [
         {
           "key": "name",
-          "label": "Name",
           "type": "text",
-          "access": "owner",
+          "label": "Name",
           "required": true,
+          "access": "owner",
           "max": 60
         },
         {
           "key": "title",
-          "label": "Title",
           "type": "text",
-          "access": "owner",
+          "label": "Title",
           "required": true,
+          "access": "owner",
           "max": 100
         },
         {
           "key": "intro",
-          "label": "Introduction",
           "type": "textarea",
-          "access": "owner",
+          "label": "Introduction",
           "required": true,
+          "access": "owner",
           "max": 900
+        },
+        {
+          "key": "image",
+          "type": "image",
+          "label": "Profile photo",
+          "help": "Upload a photo to replace the original portrait.",
+          "alt": true
+        },
+        {
+          "key": "showImage",
+          "type": "boolean",
+          "label": "Show portrait"
         }
       ]
     },
@@ -370,63 +382,63 @@
       "id": "contact-page",
       "label": "Contact page",
       "page": "/contact",
-      "group": "Pages",
       "access": "owner",
+      "group": "Pages",
       "fields": [
         {
           "key": "title",
-          "label": "Heading",
           "type": "text",
-          "access": "owner",
+          "label": "Heading",
           "required": true,
+          "access": "owner",
           "max": 80
         },
         {
           "key": "intro",
-          "label": "Introduction",
           "type": "textarea",
-          "access": "owner",
+          "label": "Introduction",
           "required": true,
+          "access": "owner",
           "max": 350
         },
         {
           "key": "nameLabel",
-          "label": "Name label",
           "type": "text",
-          "access": "owner",
+          "label": "Name label",
           "required": true,
+          "access": "owner",
           "max": 50
         },
         {
           "key": "emailLabel",
-          "label": "Email label",
           "type": "text",
-          "access": "owner",
+          "label": "Email label",
           "required": true,
+          "access": "owner",
           "max": 50
         },
         {
           "key": "subjectLabel",
-          "label": "Subject label",
           "type": "text",
-          "access": "owner",
+          "label": "Subject label",
           "required": true,
+          "access": "owner",
           "max": 50
         },
         {
           "key": "messageLabel",
-          "label": "Message label",
           "type": "text",
-          "access": "owner",
+          "label": "Message label",
           "required": true,
+          "access": "owner",
           "max": 50
         },
         {
           "key": "submitCta",
-          "label": "Send button",
           "type": "text",
-          "access": "owner",
+          "label": "Send button",
           "required": true,
+          "access": "owner",
           "max": 40
         }
       ]
@@ -435,23 +447,23 @@
       "id": "projects-page",
       "label": "Projects page",
       "page": "/projects",
-      "group": "Pages",
       "access": "owner",
+      "group": "Pages",
       "fields": [
         {
           "key": "title",
-          "label": "Heading",
           "type": "text",
-          "access": "owner",
+          "label": "Heading",
           "required": true,
+          "access": "owner",
           "max": 80
         },
         {
           "key": "intro",
-          "label": "Introduction",
           "type": "textarea",
-          "access": "owner",
+          "label": "Introduction",
           "required": true,
+          "access": "owner",
           "max": 400
         }
       ]
@@ -459,278 +471,1639 @@
     {
       "id": "projects-home",
       "label": "Project walkthroughs",
+      "help": "Edit the shared words around the six project cards. Film media, captions and playback controls stay intact.",
       "page": "/",
-      "group": "Homepage",
       "access": "owner",
+      "group": "Homepage",
       "fields": [
         {
           "key": "eyebrow",
-          "label": "Section label",
           "type": "text",
-          "access": "owner",
+          "label": "Section label",
           "required": true,
+          "access": "owner",
           "max": 60
         },
         {
           "key": "title",
-          "label": "Heading",
           "type": "text",
-          "access": "owner",
+          "label": "Heading",
           "required": true,
+          "access": "owner",
           "max": 60
         },
         {
           "key": "accent",
-          "label": "Highlighted heading",
           "type": "text",
-          "access": "owner",
+          "label": "Highlighted heading",
           "required": true,
+          "access": "owner",
           "max": 60
         },
         {
           "key": "inquiry",
-          "label": "Contact link",
           "type": "text",
-          "access": "owner",
+          "label": "Contact link",
           "required": true,
+          "access": "owner",
           "max": 60
         },
         {
           "key": "allProjects",
-          "label": "All projects link",
           "type": "text",
-          "access": "owner",
+          "label": "All projects link",
           "required": true,
+          "access": "owner",
           "max": 60
         }
-      ],
-      "help": "Edit the shared words around the six project cards. Film media, captions and playback controls stay intact."
+      ]
     },
     {
       "id": "project-settings",
       "label": "Project card display",
+      "help": "Choose which supporting details appear on the project cards. Films still play only when a visitor presses play.",
       "page": "/",
-      "group": "Homepage",
       "access": "owner",
+      "group": "Homepage",
       "fields": [
         {
           "key": "showTags",
-          "label": "Show technology tags",
           "type": "boolean",
+          "label": "Show technology tags",
           "access": "owner"
         },
         {
           "key": "showCategories",
-          "label": "Show project categories",
           "type": "boolean",
+          "label": "Show project categories",
           "access": "owner"
         }
-      ],
-      "help": "Choose which supporting details appear on the project cards. Films still play only when a visitor presses play."
+      ]
     },
     {
       "id": "film-raizhost",
       "label": "RaizHost walkthrough",
+      "help": "Edit the text accompanying this film. Changing media or the recorded walkthrough requires a coordinated update.",
       "page": "/",
-      "group": "Homepage",
       "access": "owner",
+      "group": "Homepage",
       "fields": [
         {
           "key": "title",
-          "label": "Project name",
           "type": "text",
-          "access": "owner",
+          "label": "Project name",
           "required": true,
+          "access": "owner",
           "max": 45
         },
         {
           "key": "category",
-          "label": "Category",
           "type": "text",
-          "access": "owner",
+          "label": "Category",
           "required": true,
+          "access": "owner",
           "max": 65
         },
         {
           "key": "summary",
-          "label": "Summary",
           "type": "textarea",
-          "access": "owner",
+          "label": "Summary",
           "required": true,
+          "access": "owner",
           "max": 500
         }
-      ],
-      "help": "Edit the text accompanying this film. Changing media or the recorded walkthrough requires a coordinated update."
+      ]
     },
     {
       "id": "film-cloudcostmcp",
       "label": "CloudCostMCP walkthrough",
+      "help": "Edit the text accompanying this film. Changing media or the recorded walkthrough requires a coordinated update.",
       "page": "/",
-      "group": "Homepage",
       "access": "owner",
+      "group": "Homepage",
       "fields": [
         {
           "key": "title",
-          "label": "Project name",
           "type": "text",
-          "access": "owner",
+          "label": "Project name",
           "required": true,
+          "access": "owner",
           "max": 45
         },
         {
           "key": "category",
-          "label": "Category",
           "type": "text",
-          "access": "owner",
+          "label": "Category",
           "required": true,
+          "access": "owner",
           "max": 65
         },
         {
           "key": "summary",
-          "label": "Summary",
           "type": "textarea",
-          "access": "owner",
+          "label": "Summary",
           "required": true,
+          "access": "owner",
           "max": 500
         }
-      ],
-      "help": "Edit the text accompanying this film. Changing media or the recorded walkthrough requires a coordinated update."
+      ]
     },
     {
       "id": "film-tickethacker",
       "label": "TicketHacker walkthrough",
+      "help": "Edit the text accompanying this film. Changing media or the recorded walkthrough requires a coordinated update.",
       "page": "/",
-      "group": "Homepage",
       "access": "owner",
+      "group": "Homepage",
       "fields": [
         {
           "key": "title",
-          "label": "Project name",
           "type": "text",
-          "access": "owner",
+          "label": "Project name",
           "required": true,
+          "access": "owner",
           "max": 45
         },
         {
           "key": "category",
-          "label": "Category",
           "type": "text",
-          "access": "owner",
+          "label": "Category",
           "required": true,
+          "access": "owner",
           "max": 65
         },
         {
           "key": "summary",
-          "label": "Summary",
           "type": "textarea",
-          "access": "owner",
+          "label": "Summary",
           "required": true,
+          "access": "owner",
           "max": 500
         }
-      ],
-      "help": "Edit the text accompanying this film. Changing media or the recorded walkthrough requires a coordinated update."
+      ]
     },
     {
       "id": "film-llm-lint",
       "label": "llm-lint walkthrough",
+      "help": "Edit the text accompanying this film. Changing media or the recorded walkthrough requires a coordinated update.",
       "page": "/",
-      "group": "Homepage",
       "access": "owner",
+      "group": "Homepage",
       "fields": [
         {
           "key": "title",
-          "label": "Project name",
           "type": "text",
-          "access": "owner",
+          "label": "Project name",
           "required": true,
+          "access": "owner",
           "max": 45
         },
         {
           "key": "category",
-          "label": "Category",
           "type": "text",
-          "access": "owner",
+          "label": "Category",
           "required": true,
+          "access": "owner",
           "max": 65
         },
         {
           "key": "summary",
-          "label": "Summary",
           "type": "textarea",
-          "access": "owner",
+          "label": "Summary",
           "required": true,
+          "access": "owner",
           "max": 500
         }
-      ],
-      "help": "Edit the text accompanying this film. Changing media or the recorded walkthrough requires a coordinated update."
+      ]
     },
     {
       "id": "film-sre-reference-app",
       "label": "SRE Reference App walkthrough",
+      "help": "Edit the text accompanying this film. Changing media or the recorded walkthrough requires a coordinated update.",
       "page": "/",
-      "group": "Homepage",
       "access": "owner",
+      "group": "Homepage",
       "fields": [
         {
           "key": "title",
-          "label": "Project name",
           "type": "text",
-          "access": "owner",
+          "label": "Project name",
           "required": true,
+          "access": "owner",
           "max": 45
         },
         {
           "key": "category",
-          "label": "Category",
           "type": "text",
-          "access": "owner",
+          "label": "Category",
           "required": true,
+          "access": "owner",
           "max": 65
         },
         {
           "key": "summary",
-          "label": "Summary",
           "type": "textarea",
-          "access": "owner",
+          "label": "Summary",
           "required": true,
+          "access": "owner",
           "max": 500
         }
-      ],
-      "help": "Edit the text accompanying this film. Changing media or the recorded walkthrough requires a coordinated update."
+      ]
     },
     {
       "id": "film-sre-landing-zone",
       "label": "SRE Landing Zone walkthrough",
+      "help": "Edit the text accompanying this film. Changing media or the recorded walkthrough requires a coordinated update.",
       "page": "/",
-      "group": "Homepage",
       "access": "owner",
+      "group": "Homepage",
       "fields": [
         {
           "key": "title",
-          "label": "Project name",
           "type": "text",
-          "access": "owner",
+          "label": "Project name",
           "required": true,
+          "access": "owner",
           "max": 45
         },
         {
           "key": "category",
-          "label": "Category",
           "type": "text",
-          "access": "owner",
+          "label": "Category",
           "required": true,
+          "access": "owner",
           "max": 65
         },
         {
           "key": "summary",
-          "label": "Summary",
           "type": "textarea",
-          "access": "owner",
+          "label": "Summary",
           "required": true,
+          "access": "owner",
           "max": 500
         }
-      ],
-      "help": "Edit the text accompanying this film. Changing media or the recorded walkthrough requires a coordinated update."
+      ]
+    },
+    {
+      "id": "copy-about-1",
+      "label": "About — text 1",
+      "page": "/about",
+      "access": "owner",
+      "group": "Page content",
+      "fields": [
+        {
+          "key": "text8eab0f09df013b1b",
+          "type": "text",
+          "label": "Experience",
+          "max": 600
+        },
+        {
+          "key": "textf33acf21e39b9cf0",
+          "type": "text",
+          "label": "IT Support & Independent Cloud Engineering",
+          "max": 600
+        },
+        {
+          "key": "text54d3b9b102a1eff2",
+          "type": "text",
+          "label": "24Hr Home Care / Independent Projects",
+          "max": 600
+        },
+        {
+          "key": "text81ac808728fb163e",
+          "type": "text",
+          "label": "2022 - Present",
+          "max": 600
+        },
+        {
+          "key": "text471502f86c773c59",
+          "type": "text",
+          "label": "Certifications",
+          "max": 600
+        },
+        {
+          "key": "text0a5aeb82680a29f7",
+          "type": "text",
+          "label": "Issued:",
+          "max": 600
+        },
+        {
+          "key": "text9fe7928a78cd1a96",
+          "type": "text",
+          "label": "Expires:",
+          "max": 600
+        },
+        {
+          "key": "text7f139e6be5e80400",
+          "type": "text",
+          "label": "Credential ID:",
+          "max": 600
+        },
+        {
+          "key": "textc533cafab69e4033",
+          "type": "text",
+          "label": "Featured",
+          "max": 600
+        },
+        {
+          "key": "text424a2551d356754c",
+          "type": "text",
+          "label": "Expired",
+          "max": 600
+        },
+        {
+          "key": "text556014e4d40a8521",
+          "type": "text",
+          "label": "Expires Soon",
+          "max": 600
+        },
+        {
+          "key": "text1a5a657abe7af745",
+          "type": "text",
+          "label": "Technical Skills",
+          "max": 600
+        },
+        {
+          "key": "text512ab3c6b9869577",
+          "type": "text",
+          "label": "Education",
+          "max": 600
+        },
+        {
+          "key": "text3edb27fb18c31017",
+          "type": "text",
+          "label": "B.S Cloud Computing",
+          "max": 600
+        },
+        {
+          "key": "textdcf1f526b9df8e5e",
+          "type": "text",
+          "label": "Western Governors University",
+          "max": 600
+        },
+        {
+          "key": "text88eb4301e717e2c5",
+          "type": "text",
+          "label": "2025 - Expected 2026",
+          "max": 600
+        },
+        {
+          "key": "text5af2e7d4c08d1b9b",
+          "type": "textarea",
+          "label": "Focused on cloud computing, cybersecurity, and distributed s",
+          "max": 600
+        },
+        {
+          "key": "text2d35d09539939757",
+          "type": "text",
+          "label": "High School Diploma",
+          "max": 600
+        },
+        {
+          "key": "text7413103d02ed596c",
+          "type": "text",
+          "label": "Sky Mountain High School",
+          "max": 600
+        },
+        {
+          "key": "text31736e4c0e0060e6",
+          "type": "textarea",
+          "label": "Graduated with honors while participating in coding camps an",
+          "max": 600
+        }
+      ]
+    },
+    {
+      "id": "copy-page-contact-1",
+      "label": "Contact — text 1",
+      "page": "/contact",
+      "access": "owner",
+      "group": "Page content",
+      "fields": [
+        {
+          "key": "textcbb44284418f685e",
+          "type": "text",
+          "label": "Message Sent!",
+          "max": 600
+        },
+        {
+          "key": "textea8c31a67b118470",
+          "type": "text",
+          "label": "Thanks for reaching out. I'll get back to you as soon as pos",
+          "max": 600
+        },
+        {
+          "key": "text286a3af7348e8312",
+          "type": "text",
+          "label": "Sending...",
+          "max": 600
+        }
+      ]
+    },
+    {
+      "id": "copy-page-projects-1",
+      "label": "Projects — text 1",
+      "page": "/projects",
+      "access": "owner",
+      "group": "Page content",
+      "fields": [
+        {
+          "key": "textf911e414cf6bdfc5",
+          "type": "text",
+          "label": "GitHub",
+          "max": 600
+        },
+        {
+          "key": "text1841d3c3a6598770",
+          "type": "text",
+          "label": "Live Demo",
+          "max": 600
+        },
+        {
+          "key": "text68710f0d9d9de06a",
+          "type": "text",
+          "label": "No media available",
+          "max": 600
+        },
+        {
+          "key": "texted1573abda08a8eb",
+          "type": "text",
+          "label": "Loading projects...",
+          "max": 600
+        }
+      ]
+    },
+    {
+      "id": "copy-blog-1",
+      "label": "Blog — text 1",
+      "page": "/blog",
+      "access": "owner",
+      "group": "Page content",
+      "fields": [
+        {
+          "key": "text8c6bc099534a0251",
+          "type": "text",
+          "label": "Blog",
+          "max": 600
+        },
+        {
+          "key": "text30ae7a422b160658",
+          "type": "text",
+          "label": "Notes on cloud engineering, reliable delivery, developer too",
+          "max": 600
+        },
+        {
+          "key": "texta52ace420f2175d0",
+          "type": "text",
+          "label": "All",
+          "max": 600
+        },
+        {
+          "key": "text35218efc21e457e0",
+          "type": "text",
+          "label": "Loading posts...",
+          "max": 600
+        },
+        {
+          "key": "textc533cafab69e4033",
+          "type": "text",
+          "label": "Featured",
+          "max": 600
+        },
+        {
+          "key": "text121d7143a0528254",
+          "type": "text",
+          "label": "min read",
+          "max": 600
+        },
+        {
+          "key": "text3d0c20ef5e6b2932",
+          "type": "text",
+          "label": "No posts found",
+          "max": 600
+        },
+        {
+          "key": "texta57b08a480b822a0",
+          "type": "text",
+          "label": "Previous",
+          "max": 600
+        },
+        {
+          "key": "text1ff57a29d7c9d11b",
+          "type": "text",
+          "label": "Next",
+          "max": 600
+        }
+      ]
+    },
+    {
+      "id": "copy-blog-post-1",
+      "label": "Blog Post — text 1",
+      "page": "/blog",
+      "access": "owner",
+      "group": "Page content",
+      "fields": [
+        {
+          "key": "text01b7b36c75173811",
+          "type": "text",
+          "label": "Loading post...",
+          "max": 600
+        },
+        {
+          "key": "text60a5e1a04b0a6b9e",
+          "type": "text",
+          "label": "← Back to Blog",
+          "max": 600
+        },
+        {
+          "key": "textdba8fb4c58ba2fa2",
+          "type": "text",
+          "label": "Post not found",
+          "max": 600
+        },
+        {
+          "key": "text21520f92215e3341",
+          "type": "text",
+          "label": "The post you're looking for doesn't exist or has been remove",
+          "max": 600
+        },
+        {
+          "key": "text121d7143a0528254",
+          "type": "text",
+          "label": "min read",
+          "max": 600
+        },
+        {
+          "key": "text46e244a50f709a16",
+          "type": "text",
+          "label": "views",
+          "max": 600
+        }
+      ]
+    },
+    {
+      "id": "copy-status-1",
+      "label": "Status — text 1",
+      "page": "/status",
+      "access": "owner",
+      "group": "Page content",
+      "fields": [
+        {
+          "key": "textb58a74d34264f1af",
+          "type": "text",
+          "label": "System Status",
+          "max": 600
+        },
+        {
+          "key": "text1f64fe1cb73227fe",
+          "type": "text",
+          "label": "Real-time monitoring of all services",
+          "max": 600
+        },
+        {
+          "key": "text7359d6fb6dda7631",
+          "type": "text",
+          "label": "Loading system status...",
+          "max": 600
+        },
+        {
+          "key": "textff0ee05e5fa40c54",
+          "type": "text",
+          "label": "Unable to load status information",
+          "max": 600
+        },
+        {
+          "key": "text3267f6f8635074af",
+          "type": "text",
+          "label": "🚨 Status Unavailable",
+          "max": 600
+        },
+        {
+          "key": "text9fab8949e7af0718",
+          "type": "text",
+          "label": "Real-time monitoring of all backend services and infrastruct",
+          "max": 600
+        },
+        {
+          "key": "text52f7bfe886127e90",
+          "type": "text",
+          "label": "All services are being monitored continuously",
+          "max": 600
+        },
+        {
+          "key": "text617062906764f3b8",
+          "type": "text",
+          "label": "Error:",
+          "max": 600
+        },
+        {
+          "key": "textd63ab4711473b039",
+          "type": "text",
+          "label": "Uptime",
+          "max": 600
+        },
+        {
+          "key": "texte0e7d293043c8cf6",
+          "type": "text",
+          "label": "Latency",
+          "max": 600
+        },
+        {
+          "key": "text2d424737b5706ac6",
+          "type": "text",
+          "label": "Last Check",
+          "max": 600
+        },
+        {
+          "key": "textf5239d5e7c01c5a5",
+          "type": "text",
+          "label": "Active Incidents",
+          "max": 600
+        },
+        {
+          "key": "text65d157da69bf0342",
+          "type": "text",
+          "label": "Service:",
+          "max": 600
+        },
+        {
+          "key": "textce9bf63abbecf161",
+          "type": "text",
+          "label": "Severity:",
+          "max": 600
+        },
+        {
+          "key": "text8301e51f74b1eeb8",
+          "type": "text",
+          "label": "Started:",
+          "max": 600
+        },
+        {
+          "key": "text3bbdf44a397cc657",
+          "type": "text",
+          "label": "🎉 No Active Incidents",
+          "max": 600
+        },
+        {
+          "key": "textcd9a66a60cacb150",
+          "type": "text",
+          "label": "All systems are operating normally with no reported issues.",
+          "max": 600
+        },
+        {
+          "key": "textba34a96f29695271",
+          "type": "text",
+          "label": "Last updated:",
+          "max": 600
+        },
+        {
+          "key": "text0a1a3c961a030bc9",
+          "type": "text",
+          "label": "Status checks run automatically every 30 seconds",
+          "max": 600
+        }
+      ]
+    },
+    {
+      "id": "copy-footer-1",
+      "label": "Footer — text 1",
+      "page": "/",
+      "access": "owner",
+      "group": "Page content",
+      "fields": [
+        {
+          "key": "text4efca0d10c5feb8e",
+          "type": "text",
+          "label": "About",
+          "max": 600
+        },
+        {
+          "key": "textdea7afb25cf6cd8a",
+          "type": "text",
+          "label": "AWS cloud and DevOps engineer building reliable, secure, cos",
+          "max": 600
+        },
+        {
+          "key": "text04e2a9728af75840",
+          "type": "text",
+          "label": "Projects",
+          "max": 600
+        },
+        {
+          "key": "text8529259d03bda401",
+          "type": "text",
+          "label": "Developer Panel",
+          "max": 600
+        },
+        {
+          "key": "texta59c479b8a7639a7",
+          "type": "text",
+          "label": "URL Shortener",
+          "max": 600
+        },
+        {
+          "key": "textc5ca08ff2d916502",
+          "type": "text",
+          "label": "Real-time Messaging",
+          "max": 600
+        },
+        {
+          "key": "text9e387fd6a5b53ceb",
+          "type": "text",
+          "label": "View All Projects",
+          "max": 600
+        },
+        {
+          "key": "text8c6bc099534a0251",
+          "type": "text",
+          "label": "Blog",
+          "max": 600
+        },
+        {
+          "key": "text1a2303ede07493ac",
+          "type": "text",
+          "label": "Connect",
+          "max": 600
+        },
+        {
+          "key": "textf911e414cf6bdfc5",
+          "type": "text",
+          "label": "GitHub",
+          "max": 600
+        },
+        {
+          "key": "textdd84425b72da12c6",
+          "type": "text",
+          "label": "LinkedIn",
+          "max": 600
+        },
+        {
+          "key": "text516138999d68589f",
+          "type": "text",
+          "label": "contact@jadenrazo.dev",
+          "max": 600
+        },
+        {
+          "key": "text4cac7bf368d1b881",
+          "type": "text",
+          "label": "Jaden Razo. All rights reserved.",
+          "max": 600
+        }
+      ]
+    },
+    {
+      "id": "copy-navigation-bar-1",
+      "label": "Navigation Bar — text 1",
+      "page": "/",
+      "access": "owner",
+      "group": "Page content",
+      "fields": [
+        {
+          "key": "textf2888132b55cd3b7",
+          "type": "text",
+          "label": "Jaden Razo",
+          "max": 600
+        },
+        {
+          "key": "text525fb6b66de61b36",
+          "type": "text",
+          "label": "Services Status",
+          "max": 600
+        },
+        {
+          "key": "text7cf9fdeda092c478",
+          "type": "text",
+          "label": "View Detailed Status Page →",
+          "max": 600
+        },
+        {
+          "key": "text4efca0d10c5feb8e",
+          "type": "text",
+          "label": "About",
+          "max": 600
+        },
+        {
+          "key": "text2b5c3d26721ae9c3",
+          "type": "text",
+          "label": "Contact",
+          "max": 600
+        },
+        {
+          "key": "text1853eb2e9e5ed2bc",
+          "type": "text",
+          "label": "Portfolio",
+          "max": 600
+        },
+        {
+          "key": "text8c6bc099534a0251",
+          "type": "text",
+          "label": "Blog",
+          "max": 600
+        }
+      ]
+    },
+    {
+      "id": "copy-portfolio-navbar-1",
+      "label": "Portfolio Navbar — text 1",
+      "page": "/",
+      "access": "owner",
+      "group": "Page content",
+      "fields": [
+        {
+          "key": "textf2888132b55cd3b7",
+          "type": "text",
+          "label": "Jaden Razo",
+          "max": 600
+        },
+        {
+          "key": "text4d1eaa3fda45be1c",
+          "type": "text",
+          "label": "Cloud / DevOps",
+          "max": 600
+        },
+        {
+          "key": "text8c6bc099534a0251",
+          "type": "text",
+          "label": "Blog",
+          "max": 600
+        },
+        {
+          "key": "textf911e414cf6bdfc5",
+          "type": "text",
+          "label": "GitHub",
+          "max": 600
+        },
+        {
+          "key": "text2b5c3d26721ae9c3",
+          "type": "text",
+          "label": "Contact",
+          "max": 600
+        },
+        {
+          "key": "text9d4575ccb2a697bc",
+          "type": "text",
+          "label": "Contact about a role",
+          "max": 600
+        }
+      ]
+    },
+    {
+      "id": "copy-home-contact-1",
+      "label": "Contact — text 1",
+      "page": "/",
+      "access": "owner",
+      "group": "Page content",
+      "fields": [
+        {
+          "key": "text516138999d68589f",
+          "type": "text",
+          "label": "contact@jadenrazo.dev",
+          "max": 600
+        },
+        {
+          "key": "text0a1f2fbcba7a4924",
+          "type": "text",
+          "label": "Message sent",
+          "max": 600
+        },
+        {
+          "key": "text1c76b3385ed3ab1d",
+          "type": "text",
+          "label": "Thanks for reaching out. I'll get back to you soon.",
+          "max": 600
+        },
+        {
+          "key": "text286a3af7348e8312",
+          "type": "text",
+          "label": "Sending...",
+          "max": 600
+        },
+        {
+          "key": "text4cac7bf368d1b881",
+          "type": "text",
+          "label": "Jaden Razo. All rights reserved.",
+          "max": 600
+        }
+      ]
+    },
+    {
+      "id": "copy-hero-1",
+      "label": "Hero — text 1",
+      "page": "/",
+      "access": "owner",
+      "group": "Page content",
+      "fields": [
+        {
+          "key": "text19f29d33f0993670",
+          "type": "text",
+          "label": "Operating stack",
+          "max": 600
+        },
+        {
+          "key": "text32fd72a0e0746043",
+          "type": "text",
+          "label": "AWS",
+          "max": 600
+        },
+        {
+          "key": "text05b073bd5e46bbed",
+          "type": "text",
+          "label": "Terraform",
+          "max": 600
+        },
+        {
+          "key": "textfae83bd48c808f08",
+          "type": "text",
+          "label": "GitHub Actions",
+          "max": 600
+        },
+        {
+          "key": "text4828e60247c1636f",
+          "type": "text",
+          "label": "Linux",
+          "max": 600
+        },
+        {
+          "key": "textac2a84de8323ef96",
+          "type": "text",
+          "label": "Selected evidence",
+          "max": 600
+        },
+        {
+          "key": "text591935b15b1c88e2",
+          "type": "text",
+          "label": "Public",
+          "max": 600
+        },
+        {
+          "key": "text8a99f989d4c05d43",
+          "type": "text",
+          "label": "View service status",
+          "max": 600
+        }
+      ]
+    },
+    {
+      "id": "copy-horizontal-project-gallery-1",
+      "label": "Horizontal Project Gallery — text 1",
+      "page": "/",
+      "access": "owner",
+      "group": "Page content",
+      "fields": [
+        {
+          "key": "textbb17df766ac9a5b4",
+          "type": "text",
+          "label": "Project",
+          "max": 600
+        }
+      ]
+    },
+    {
+      "id": "copy-project-film-player-1",
+      "label": "Project Film Player — text 1",
+      "page": "/",
+      "access": "owner",
+      "group": "Page content",
+      "fields": [
+        {
+          "key": "text7f14d429da78757e",
+          "type": "text",
+          "label": "Sound-free ·",
+          "max": 600
+        },
+        {
+          "key": "text656b46fdad1a720b",
+          "type": "text",
+          "label": "Your browser cannot play this video. Read the walkthrough be",
+          "max": 600
+        },
+        {
+          "key": "textbfdf6444aeacceb1",
+          "type": "text",
+          "label": "Watch walkthrough",
+          "max": 600
+        },
+        {
+          "key": "text6ce239b14bc4cc2f",
+          "type": "text",
+          "label": "The video couldn’t load.",
+          "max": 600
+        },
+        {
+          "key": "texte2e1cbbca9fc7654",
+          "type": "text",
+          "label": "You can retry, open the video, or read the walkthrough below",
+          "max": 600
+        },
+        {
+          "key": "text55de39f882a37b5b",
+          "type": "text",
+          "label": "Try again",
+          "max": 600
+        },
+        {
+          "key": "text6ac7b387e42df1c8",
+          "type": "text",
+          "label": "Open video",
+          "max": 600
+        },
+        {
+          "key": "text4e75873760b871d3",
+          "type": "text",
+          "label": "Watch again",
+          "max": 600
+        },
+        {
+          "key": "text7c59452cc20ed579",
+          "type": "text",
+          "label": "Read the walkthrough",
+          "max": 600
+        }
+      ]
+    },
+    {
+      "id": "copy-home-projects-1",
+      "label": "Projects — text 1",
+      "page": "/",
+      "access": "owner",
+      "group": "Page content",
+      "fields": [
+        {
+          "key": "text02cd26ee047c7b2e",
+          "type": "text",
+          "label": "Featured",
+          "max": 600
+        },
+        {
+          "key": "text04e2a9728af75840",
+          "type": "text",
+          "label": "Projects",
+          "max": 600
+        },
+        {
+          "key": "text474143231c4de495",
+          "type": "text",
+          "label": "A selection of my recent work",
+          "max": 600
+        },
+        {
+          "key": "text3b26a5427458edd2",
+          "type": "text",
+          "label": "Lines",
+          "max": 600
+        },
+        {
+          "key": "textabc7e9892806b047",
+          "type": "text",
+          "label": "Files",
+          "max": 600
+        },
+        {
+          "key": "textdc943e8052db4f94",
+          "type": "text",
+          "label": "View Live",
+          "max": 600
+        },
+        {
+          "key": "text0e570ca6fabe24f9",
+          "type": "text",
+          "label": "Source",
+          "max": 600
+        }
+      ]
+    },
+    {
+      "id": "about-signals",
+      "label": "Evidence links",
+      "page": "/",
+      "access": "owner",
+      "group": "Homepage",
+      "type": "list",
+      "min": 0,
+      "max": 12,
+      "itemLabel": "{label}",
+      "create": {
+        "label": "evidence link",
+        "defaults": {
+          "label": "New evidence",
+          "title": "",
+          "description": "",
+          "href": "https://github.com/JadenRazo"
+        }
+      },
+      "identityKey": "id",
+      "fields": [
+        {
+          "key": "id",
+          "type": "text",
+          "label": "Identity",
+          "required": true,
+          "access": "managed",
+          "editorHidden": true
+        },
+        {
+          "key": "label",
+          "type": "text",
+          "label": "Label"
+        },
+        {
+          "key": "title",
+          "type": "text",
+          "label": "Title"
+        },
+        {
+          "key": "description",
+          "type": "textarea",
+          "label": "Description",
+          "max": 1000
+        },
+        {
+          "key": "href",
+          "type": "link",
+          "label": "Href"
+        }
+      ]
+    },
+    {
+      "id": "navigation-links",
+      "label": "Homepage navigation links",
+      "page": "/",
+      "access": "owner",
+      "group": "Website",
+      "type": "list",
+      "min": 0,
+      "max": 12,
+      "itemLabel": "{name}",
+      "create": {
+        "label": "navigation link",
+        "defaults": {
+          "name": "New link",
+          "href": "/"
+        }
+      },
+      "identityKey": "id",
+      "fields": [
+        {
+          "key": "id",
+          "type": "text",
+          "label": "Identity",
+          "required": true,
+          "access": "managed",
+          "editorHidden": true
+        },
+        {
+          "key": "name",
+          "type": "text",
+          "label": "Label",
+          "required": true
+        },
+        {
+          "key": "href",
+          "type": "link",
+          "label": "Link",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "website-pages",
+      "label": "Pages & navigation",
+      "help": "Add pages, choose their web addresses, and arrange their order in navigation. Existing web addresses stay stable.",
+      "access": "owner",
+      "group": "Website",
+      "type": "list",
+      "min": 1,
+      "max": 100,
+      "itemLabel": "{title}",
+      "create": {
+        "label": "page",
+        "defaults": {
+          "title": "New page",
+          "path": "/new-page",
+          "description": "",
+          "inNavigation": true,
+          "enabled": true
+        }
+      },
+      "identityKey": "id",
+      "fields": [
+        {
+          "key": "id",
+          "type": "text",
+          "label": "Identity",
+          "required": true,
+          "access": "managed",
+          "max": 100,
+          "editorHidden": true
+        },
+        {
+          "key": "title",
+          "type": "text",
+          "label": "Page title",
+          "required": true,
+          "max": 120
+        },
+        {
+          "key": "path",
+          "type": "route",
+          "label": "Web address",
+          "required": true
+        },
+        {
+          "key": "description",
+          "type": "textarea",
+          "label": "Search description",
+          "max": 300
+        },
+        {
+          "key": "inNavigation",
+          "type": "boolean",
+          "label": "Show in navigation"
+        },
+        {
+          "key": "enabled",
+          "type": "boolean",
+          "label": "Page enabled"
+        }
+      ]
+    },
+    {
+      "id": "website-sections",
+      "label": "Sections & layout",
+      "help": "Add, move, hide or remove sections. Their order here is their order on each page.",
+      "access": "owner",
+      "group": "Website",
+      "type": "list",
+      "min": 0,
+      "max": 200,
+      "itemLabel": "{title}",
+      "create": {
+        "label": "section",
+        "defaults": {
+          "pageId": "home",
+          "component": "text",
+          "title": "New section",
+          "body": "",
+          "image": null,
+          "link": "",
+          "linkLabel": "",
+          "alignment": "left",
+          "tone": "inherit",
+          "hidden": false
+        }
+      },
+      "identityKey": "id",
+      "fields": [
+        {
+          "key": "id",
+          "type": "text",
+          "label": "Identity",
+          "required": true,
+          "access": "managed",
+          "max": 100,
+          "editorHidden": true
+        },
+        {
+          "key": "pageId",
+          "type": "reference",
+          "label": "Page",
+          "required": true,
+          "collection": "website-pages"
+        },
+        {
+          "key": "component",
+          "type": "select",
+          "label": "Section type",
+          "required": true,
+          "options": [
+            {
+              "value": "text",
+              "label": "Text"
+            },
+            {
+              "value": "image",
+              "label": "Image"
+            },
+            {
+              "value": "call-to-action",
+              "label": "Call-to-action"
+            },
+            {
+              "value": "authored:hero",
+              "label": "Introduction"
+            },
+            {
+              "value": "authored:about",
+              "label": "About"
+            },
+            {
+              "value": "authored:projects",
+              "label": "Featured projects"
+            },
+            {
+              "value": "authored:services",
+              "label": "Services"
+            },
+            {
+              "value": "authored:contact",
+              "label": "Contact"
+            },
+            {
+              "value": "authored:page-about",
+              "label": "About Jaden Razo | Cloud & DevOps Engineer"
+            },
+            {
+              "value": "authored:page-contact",
+              "label": "Contact Jaden Razo | Cloud & DevOps Engineer"
+            },
+            {
+              "value": "authored:page-projects",
+              "label": "Cloud & DevOps Projects | Jaden Razo"
+            },
+            {
+              "value": "authored:page-portfolio",
+              "label": "Cloud & DevOps Projects | Jaden Razo"
+            },
+            {
+              "value": "authored:page-blog",
+              "label": "Cloud Engineering Notes | Jaden Razo"
+            },
+            {
+              "value": "authored:page-status",
+              "label": "System Status | Jaden Razo - Service Health Monitoring"
+            }
+          ]
+        },
+        {
+          "key": "title",
+          "type": "text",
+          "label": "Heading",
+          "max": 180
+        },
+        {
+          "key": "body",
+          "type": "textarea",
+          "label": "Text",
+          "max": 10000
+        },
+        {
+          "key": "image",
+          "type": "image",
+          "label": "Photo",
+          "maxWidth": 2400,
+          "alt": true
+        },
+        {
+          "key": "link",
+          "type": "link",
+          "label": "Button link"
+        },
+        {
+          "key": "linkLabel",
+          "type": "text",
+          "label": "Button text",
+          "max": 100
+        },
+        {
+          "key": "alignment",
+          "type": "select",
+          "label": "Text alignment",
+          "options": [
+            {
+              "value": "left",
+              "label": "Left"
+            },
+            {
+              "value": "center",
+              "label": "Center"
+            }
+          ]
+        },
+        {
+          "key": "tone",
+          "type": "select",
+          "label": "Section background",
+          "options": [
+            {
+              "value": "inherit",
+              "label": "Original design"
+            },
+            {
+              "value": "accent",
+              "label": "Accent"
+            },
+            {
+              "value": "muted",
+              "label": "Muted"
+            }
+          ]
+        },
+        {
+          "key": "hidden",
+          "type": "boolean",
+          "label": "Hide section"
+        }
+      ]
+    },
+    {
+      "id": "website-design",
+      "label": "Colors, type & spacing",
+      "access": "owner",
+      "group": "Website",
+      "fields": [
+        {
+          "key": "accent",
+          "type": "color",
+          "label": "Accent color",
+          "help": "Leave blank to keep the original design."
+        },
+        {
+          "key": "background",
+          "type": "color",
+          "label": "Background color"
+        },
+        {
+          "key": "foreground",
+          "type": "color",
+          "label": "Text color"
+        },
+        {
+          "key": "font",
+          "type": "select",
+          "label": "Typeface",
+          "options": [
+            {
+              "value": "inherit",
+              "label": "Original design"
+            },
+            {
+              "value": "sans",
+              "label": "Sans"
+            },
+            {
+              "value": "serif",
+              "label": "Serif"
+            }
+          ]
+        },
+        {
+          "key": "contentWidth",
+          "type": "number",
+          "label": "Content width",
+          "help": "Pixels on wide screens. Leave blank for the original width.",
+          "max": 1600,
+          "min": 640,
+          "step": 20
+        },
+        {
+          "key": "cornerRadius",
+          "type": "number",
+          "label": "Corner rounding",
+          "max": 48,
+          "min": 0,
+          "step": 1
+        },
+        {
+          "key": "spacing",
+          "type": "select",
+          "label": "Section spacing",
+          "options": [
+            {
+              "value": "inherit",
+              "label": "Original design"
+            },
+            {
+              "value": "compact",
+              "label": "Compact"
+            },
+            {
+              "value": "comfortable",
+              "label": "Comfortable"
+            },
+            {
+              "value": "spacious",
+              "label": "Spacious"
+            }
+          ]
+        }
+      ]
     }
-  ]
+  ],
+  "website": {
+    "version": 1,
+    "previewPath": "/editor-preview",
+    "pages": [
+      {
+        "id": "home",
+        "path": "/",
+        "title": "Jaden Razo | AWS Cloud & DevOps Engineer"
+      },
+      {
+        "id": "about",
+        "path": "/about",
+        "title": "About Jaden Razo | Cloud & DevOps Engineer"
+      },
+      {
+        "id": "contact",
+        "path": "/contact",
+        "title": "Contact Jaden Razo | Cloud & DevOps Engineer"
+      },
+      {
+        "id": "projects",
+        "path": "/projects",
+        "title": "Cloud & DevOps Projects | Jaden Razo"
+      },
+      {
+        "id": "portfolio",
+        "path": "/portfolio",
+        "title": "Cloud & DevOps Projects | Jaden Razo"
+      },
+      {
+        "id": "blog",
+        "path": "/blog",
+        "title": "Cloud Engineering Notes | Jaden Razo"
+      },
+      {
+        "id": "status",
+        "path": "/status",
+        "title": "System Status | Jaden Razo - Service Health Monitoring"
+      }
+    ],
+    "sections": [
+      {
+        "id": "hero",
+        "pageId": "home",
+        "label": "Introduction"
+      },
+      {
+        "id": "about",
+        "pageId": "home",
+        "label": "About"
+      },
+      {
+        "id": "projects",
+        "pageId": "home",
+        "label": "Featured projects"
+      },
+      {
+        "id": "services",
+        "pageId": "home",
+        "label": "Services"
+      },
+      {
+        "id": "contact",
+        "pageId": "home",
+        "label": "Contact"
+      },
+      {
+        "id": "page-about",
+        "pageId": "about",
+        "label": "About Jaden Razo | Cloud & DevOps Engineer"
+      },
+      {
+        "id": "page-contact",
+        "pageId": "contact",
+        "label": "Contact Jaden Razo | Cloud & DevOps Engineer"
+      },
+      {
+        "id": "page-projects",
+        "pageId": "projects",
+        "label": "Cloud & DevOps Projects | Jaden Razo"
+      },
+      {
+        "id": "page-portfolio",
+        "pageId": "portfolio",
+        "label": "Cloud & DevOps Projects | Jaden Razo"
+      },
+      {
+        "id": "page-blog",
+        "pageId": "blog",
+        "label": "Cloud Engineering Notes | Jaden Razo"
+      },
+      {
+        "id": "page-status",
+        "pageId": "status",
+        "label": "System Status | Jaden Razo - Service Health Monitoring"
+      }
+    ],
+    "reservedPaths": [
+      "/api",
+      "/editor-preview",
+      "/assets",
+      "/static",
+      "/uploads",
+      "/images",
+      "/videos",
+      "/fonts",
+      "/about",
+      "/contact",
+      "/projects",
+      "/portfolio",
+      "/devpanel",
+      "/urlshortener",
+      "/messaging",
+      "/status",
+      "/blog"
+    ]
+  }
 }

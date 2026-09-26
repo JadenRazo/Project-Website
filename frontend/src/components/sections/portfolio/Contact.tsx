@@ -1,3 +1,4 @@
+import SiteText from '../../website/SiteText';
 import { useSiteContent } from '../../../lib/site-content'
 import { useState } from 'react'
 import { Send, Mail, Github, Linkedin, CheckCircle, Loader2 } from 'lucide-react'
@@ -74,9 +75,7 @@ export default function Contact() {
           <p className="text-[15px] leading-7 text-text-secondary sm:text-base lg:text-lg">
             <span data-rh="contact-home.intro">{copy.intro}</span>
           </p>
-          <a href="mailto:contact@jadenrazo.dev" className="mt-3 inline-block text-sm font-medium text-primary hover:underline">
-            contact@jadenrazo.dev
-          </a>
+          <a href="mailto:contact@jadenrazo.dev" className="mt-3 inline-block text-sm font-medium text-primary hover:underline"><SiteText entry="copy-home-contact-1" name="text516138999d68589f" /></a>
         </div>
 
         <div
@@ -85,10 +84,8 @@ export default function Contact() {
           {isSubmitted ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <CheckCircle className="w-10 h-10 sm:w-12 sm:h-12 text-primary mb-3" />
-              <h3 className="text-lg sm:text-xl font-bold mb-1 text-text-primary">Message sent</h3>
-              <p className="text-[15px] leading-6 text-text-secondary">
-                Thanks for reaching out. I'll get back to you soon.
-              </p>
+              <h3 className="text-lg sm:text-xl font-bold mb-1 text-text-primary"><SiteText entry="copy-home-contact-1" name="text0a1f2fbcba7a4924" /></h3>
+              <p className="text-[15px] leading-6 text-text-secondary"><SiteText entry="copy-home-contact-1" name="text1c76b3385ed3ab1d" /></p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4 lg:space-y-5">
@@ -168,7 +165,7 @@ export default function Contact() {
                 {isLoading ? (
                   <>
                     <Loader2 size={16} className="animate-spin" />
-                    <span>Sending...</span>
+                    <span><SiteText entry="copy-home-contact-1" name="text286a3af7348e8312" /></span>
                   </>
                 ) : (
                   <>
@@ -199,8 +196,7 @@ export default function Contact() {
         </div>
 
         <p className="mt-5 text-center text-[15px] leading-6 text-text-muted">
-          &copy; {new Date().getFullYear()} Jaden Razo. All rights reserved.
-        </p>
+          &copy; {new Date().getFullYear()}<SiteText entry="copy-home-contact-1" name="text4cac7bf368d1b881" before /></p>
       </div>
     </section>
   )
