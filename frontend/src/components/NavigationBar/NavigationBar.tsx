@@ -1,3 +1,5 @@
+import { useSiteContent } from '../../lib/site-content';
+import SiteText from '../website/SiteText';
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
@@ -419,6 +421,8 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ themeMode, toggleTheme })
   };
 
 
+  const sitePages = useSiteContent()['website-pages'];
+  const isEnabled = (path: string) => sitePages.find(page => page.path === path)?.enabled !== false;
   const isActive = (path: string) => location.pathname === path;
 
   return (
@@ -427,9 +431,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ themeMode, toggleTheme })
         <Logo to="/" onClick={handleLinkClick}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-          </svg>
-          Jaden Razo
-        </Logo>
+          </svg><SiteText entry="copy-navigation-bar-1" name="textf2888132b55cd3b7" /></Logo>
 
         <HamburgerButton onClick={() => {
           setIsMenuOpen(!isMenuOpen);
@@ -454,9 +456,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ themeMode, toggleTheme })
             >
               <StatusIndicator
                 $status={getOverallStatus()}
-              />
-              Services Status
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              /><SiteText entry="copy-navigation-bar-1" name="text525fb6b66de61b36" /><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M6 9l6 6 6-6" />
               </svg>
             </ServiceStatusButton>
@@ -490,7 +490,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ themeMode, toggleTheme })
                       />
                     </ServiceItem>
                   ))}
-                  <ServiceItem
+                  {isEnabled('/status') && <ServiceItem
                     as={Link}
                     to="/status"
                     style={{ 
@@ -507,50 +507,40 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ themeMode, toggleTheme })
                       fontSize: '0.875rem',
                       fontWeight: '500',
                       width: '100%'
-                    }}>
-                      View Detailed Status Page →
-                    </div>
-                  </ServiceItem>
+                    }}><SiteText entry="copy-navigation-bar-1" name="text7cf9fdeda092c478" /></div>
+                  </ServiceItem>}
                 </ServiceStatusDropdown>
               )}
             </AnimatePresence>
           </div>
 
-          <NavLink
+          {isEnabled('/about') && <NavLink
             to="/about"
             $isActive={isActive('/about')}
             onClick={handleLinkClick}
             aria-current={isActive('/about') ? 'page' : undefined}
-          >
-            About
-          </NavLink>
+          ><SiteText entry="copy-navigation-bar-1" name="text4efca0d10c5feb8e" /></NavLink>}
 
-          <NavLink
+          {isEnabled('/contact') && <NavLink
             to="/contact"
             $isActive={isActive('/contact')}
             onClick={handleLinkClick}
             aria-current={isActive('/contact') ? 'page' : undefined}
-          >
-            Contact
-          </NavLink>
+          ><SiteText entry="copy-navigation-bar-1" name="text2b5c3d26721ae9c3" /></NavLink>}
 
-          <NavLink
+          {isEnabled('/portfolio') && <NavLink
             to="/portfolio"
             $isActive={isActive('/portfolio')}
             onClick={handleLinkClick}
             aria-current={isActive('/portfolio') ? 'page' : undefined}
-          >
-            Portfolio
-          </NavLink>
+          ><SiteText entry="copy-navigation-bar-1" name="text1853eb2e9e5ed2bc" /></NavLink>}
 
-          <NavLink
+          {isEnabled('/blog') && <NavLink
             to="/blog"
             $isActive={isActive('/blog')}
             onClick={handleLinkClick}
             aria-current={isActive('/blog') ? 'page' : undefined}
-          >
-            Blog
-          </NavLink>
+          ><SiteText entry="copy-navigation-bar-1" name="text8c6bc099534a0251" /></NavLink>}
 
         </NavLinks>
       </NavContent>

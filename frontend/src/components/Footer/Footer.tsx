@@ -1,3 +1,5 @@
+import { useSiteContent } from '../../lib/site-content';
+import SiteText from '../website/SiteText';
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
@@ -200,6 +202,8 @@ const TechBadge = styled(motion.span)`
 `;
 
 const Footer: React.FC = () => {
+  const sitePages = useSiteContent()['website-pages'];
+  const isEnabled = (path: string) => sitePages.find(page => page.path === path)?.enabled !== false;
   const currentYear = new Date().getFullYear();
   const navigate = useNavigate();
   const [navigatingTo, setNavigatingTo] = useState<string | null>(null);
@@ -248,8 +252,8 @@ const Footer: React.FC = () => {
     <FooterContainer>
       <FooterContent>
         <FooterSection>
-          <FooterTitle>About</FooterTitle>
-          <p>AWS cloud and DevOps engineer building reliable, secure, cost-aware systems with inspectable operational evidence.</p>
+          <FooterTitle><SiteText entry="copy-footer-1" name="text4efca0d10c5feb8e" /></FooterTitle>
+          <p><SiteText entry="copy-footer-1" name="textdea7afb25cf6cd8a" /></p>
           <TechStack>
             {techStack.map((tech, index) => (
               <TechBadge
@@ -265,16 +269,16 @@ const Footer: React.FC = () => {
         </FooterSection>
 
         <FooterSection>
-          <FooterTitle>Projects</FooterTitle>
-          <FooterLink to="/devpanel" onClick={handleLinkClick} $isNavigating={navigatingTo === '/devpanel'}>Developer Panel</FooterLink>
-          <FooterLink to="/urlshortener" onClick={handleLinkClick} $isNavigating={navigatingTo === '/urlshortener'}>URL Shortener</FooterLink>
-          <FooterLink to="/messaging" onClick={handleLinkClick} $isNavigating={navigatingTo === '/messaging'}>Real-time Messaging</FooterLink>
-          <FooterLink to="/projects" onClick={handleLinkClick} $isNavigating={navigatingTo === '/projects'}>View All Projects</FooterLink>
-          <FooterLink to="/blog" onClick={handleLinkClick} $isNavigating={navigatingTo === '/blog'}>Blog</FooterLink>
+          <FooterTitle><SiteText entry="copy-footer-1" name="text04e2a9728af75840" /></FooterTitle>
+          <FooterLink to="/devpanel" onClick={handleLinkClick} $isNavigating={navigatingTo === '/devpanel'}><SiteText entry="copy-footer-1" name="text8529259d03bda401" /></FooterLink>
+          <FooterLink to="/urlshortener" onClick={handleLinkClick} $isNavigating={navigatingTo === '/urlshortener'}><SiteText entry="copy-footer-1" name="texta59c479b8a7639a7" /></FooterLink>
+          <FooterLink to="/messaging" onClick={handleLinkClick} $isNavigating={navigatingTo === '/messaging'}><SiteText entry="copy-footer-1" name="textc5ca08ff2d916502" /></FooterLink>
+          {isEnabled('/projects') && <FooterLink to="/projects" onClick={handleLinkClick} $isNavigating={navigatingTo === '/projects'}><SiteText entry="copy-footer-1" name="text9e387fd6a5b53ceb" /></FooterLink>}
+          {isEnabled('/blog') && <FooterLink to="/blog" onClick={handleLinkClick} $isNavigating={navigatingTo === '/blog'}><SiteText entry="copy-footer-1" name="text8c6bc099534a0251" /></FooterLink>}
         </FooterSection>
 
         <FooterSection>
-          <FooterTitle>Connect</FooterTitle>
+          <FooterTitle><SiteText entry="copy-footer-1" name="text1a2303ede07493ac" /></FooterTitle>
           <SocialLinks>
             <FooterExternalLink
               href="https://github.com/JadenRazo"
@@ -283,9 +287,7 @@ const Footer: React.FC = () => {
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
-              </svg>
-              GitHub
-            </FooterExternalLink>
+              </svg><SiteText entry="copy-footer-1" name="textf911e414cf6bdfc5" /></FooterExternalLink>
             <FooterExternalLink
               href="https://www.linkedin.com/in/JadenRazo"
               target="_blank"
@@ -295,22 +297,18 @@ const Footer: React.FC = () => {
                 <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
                 <rect x="2" y="9" width="4" height="12" />
                 <circle cx="4" cy="4" r="2" />
-              </svg>
-              LinkedIn
-            </FooterExternalLink>
+              </svg><SiteText entry="copy-footer-1" name="textdd84425b72da12c6" /></FooterExternalLink>
           </SocialLinks>
           <FooterExternalLink href="mailto:contact@jadenrazo.dev">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
               <polyline points="22,6 12,13 2,6" />
-            </svg>
-            contact@jadenrazo.dev
-          </FooterExternalLink>
+            </svg><SiteText entry="copy-footer-1" name="text516138999d68589f" /></FooterExternalLink>
         </FooterSection>
       </FooterContent>
       
       <CopyrightRow>
-        <span>© {currentYear} Jaden Razo. All rights reserved.</span>
+        <span>© {currentYear}<SiteText entry="copy-footer-1" name="text4cac7bf368d1b881" before /></span>
         <ThemeToggleButton onClick={toggleTheme} aria-label={`Switch to ${themeMode === 'dark' ? 'light' : 'dark'} mode`}>
           {themeMode === 'dark' ? (
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

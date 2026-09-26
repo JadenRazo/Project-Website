@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "source": "JadenRazo/raizhost-app",
+  "hashes": {
+    "website-kit.ts": "999ef062623a9be8e949358f99ab566a61d0ce9c1b8d1f5bbc063c395a86580a",
+    "website-static-preview.ts": "499175cc6141dcf7a1df6c26e3780d6d240d1b156581acbd4b465176c566a5a6",
+    "website.css": "62e53dfb026c845527a8fdba2bc157543f7ed620ac815c88105e9e0c5f64728b"
+  }
+}

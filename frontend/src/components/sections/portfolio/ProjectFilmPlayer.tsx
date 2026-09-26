@@ -1,3 +1,4 @@
+import SiteText from '../../website/SiteText';
 import { useEffect, useRef, useState } from "react";
 import { Play, RotateCcw, VolumeX } from "lucide-react";
 import type { ProjectFilm } from "../../../data/projectFilms";
@@ -174,7 +175,7 @@ export default function ProjectFilmPlayer({
       <div className="film-toolbar">
         <span>{film.kind}</span>
         <span>
-          <VolumeX size={14} aria-hidden="true" /> Sound-free ·{" "}
+          <VolumeX size={14} aria-hidden="true" /><SiteText entry="copy-project-film-player-1" name="text7f14d429da78757e" before />{" "}
           {filmTime(film.duration)}
         </span>
       </div>
@@ -250,9 +251,7 @@ export default function ProjectFilmPlayer({
               src={film.captions}
               srcLang="en"
               label="English descriptions"
-            />
-            Your browser cannot play this video. Read the walkthrough below.
-          </video>
+            /><SiteText entry="copy-project-film-player-1" name="text656b46fdad1a720b" /></video>
         )}
         {(!active || mode === "poster") && (
           <>
@@ -275,8 +274,7 @@ export default function ProjectFilmPlayer({
               <span className="film-play-icon">
                 <Play size={21} fill="currentColor" aria-hidden="true" />
               </span>
-              <span>
-                Watch walkthrough{" "}
+              <span><SiteText entry="copy-project-film-player-1" name="textbfdf6444aeacceb1" />{" "}
                 <span className="film-play-time">
                   {filmTime(film.duration)}
                 </span>
@@ -286,14 +284,11 @@ export default function ProjectFilmPlayer({
         )}
         {mode === "error" && (
           <div className="film-recovery" role="status">
-            <p>The video couldn’t load.</p>
-            <p>You can retry, open the video, or read the walkthrough below.</p>
+            <p><SiteText entry="copy-project-film-player-1" name="text6ce239b14bc4cc2f" /></p>
+            <p><SiteText entry="copy-project-film-player-1" name="texte2e1cbbca9fc7654" /></p>
             <button onClick={() => play(time, true)}>
-              <RotateCcw size={16} aria-hidden="true" /> Try again
-            </button>
-            <a href={source} target="_blank" rel="noopener noreferrer">
-              Open video
-            </a>
+              <RotateCcw size={16} aria-hidden="true" /><SiteText entry="copy-project-film-player-1" name="text55de39f882a37b5b" before /></button>
+            <a href={source} target="_blank" rel="noopener noreferrer"><SiteText entry="copy-project-film-player-1" name="text6ac7b387e42df1c8" /></a>
           </div>
         )}
         {mode === "ended" && (
@@ -301,8 +296,7 @@ export default function ProjectFilmPlayer({
             className="film-play film-replay"
             onClick={() => play(0, true)}
           >
-            <RotateCcw size={19} aria-hidden="true" /> Watch again
-          </button>
+            <RotateCcw size={19} aria-hidden="true" /><SiteText entry="copy-project-film-player-1" name="text4e75873760b871d3" before /></button>
         )}
         {mode === "loading" && (
           <div className="film-loading" role="status">
@@ -332,7 +326,7 @@ export default function ProjectFilmPlayer({
         ))}
       </div>
       <details className="film-transcript">
-        <summary>Read the walkthrough</summary>
+        <summary><SiteText entry="copy-project-film-player-1" name="text7c59452cc20ed579" /></summary>
         <ol>
           {film.chapters.map((chapter) => (
             <li key={chapter.title}>

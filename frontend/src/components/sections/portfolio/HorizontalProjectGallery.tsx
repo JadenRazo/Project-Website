@@ -1,3 +1,4 @@
+import SiteText from '../../website/SiteText';
 import { useSiteContent } from "../../../lib/site-content";
 import { useState } from "react";
 import type { CSSProperties } from "react";
@@ -56,8 +57,7 @@ export default function HorizontalProjectGallery() {
                 />
               </div>
               <div className="project-card-copy">
-                <p className="project-card-number">
-                  Project {String(index + 1).padStart(2, "0")}
+                <p className="project-card-number"><SiteText entry="copy-horizontal-project-gallery-1" name="textbb17df766ac9a5b4" after />{String(index + 1).padStart(2, "0")}
                 </p>
                 <h3 id={`project-title-${film.id}`} data-rh={`film-${film.id}.title`}>{film.title}</h3>
                 {settings.showCategories && <p className="project-card-category" data-rh={`film-${film.id}.category`}>{film.category}</p>}

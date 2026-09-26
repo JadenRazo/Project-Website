@@ -27,6 +27,10 @@ import PortfolioLayout from './components/layout/PortfolioLayout';
 import ScrollProvider from './providers/ScrollProvider';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import PortfolioHome from './pages/PortfolioHome';
+import { websiteDesignVariables } from '../../raizhost/editor/website-kit';
+import { useSiteContent } from './lib/site-content';
+import { WebsiteDesign, WebsiteNavigation, WebsiteSections } from './components/website/Website';
+import SEO from './components/common/SEO';
 
 const Contact = lazy(() => import('./pages/Contact/Contact'));
 const DevPanel = lazy(() => import('./pages/devpanel/DevPanel'));
@@ -71,8 +75,20 @@ const SkipLink = styled.a`
   }
 `;
 
-function PortfolioPage() {
+function useWebsiteTheme() {
   const { theme } = useTheme();
+  const design = useSiteContent()['website-design'];
+  // CSS-only safety helpers validate every override before it reaches a theme.
+  const vars = websiteDesignVariables(design);
+  return { ...theme, colors: { ...theme.colors,
+    ...(vars['--rh-accent'] ? { primary: vars['--rh-accent'] } : {}),
+    ...(vars['--rh-background'] ? { background: vars['--rh-background'] } : {}),
+    ...(vars['--rh-foreground'] ? { text: vars['--rh-foreground'] } : {}),
+  } };
+}
+
+function PortfolioPage() {
+  const theme = useWebsiteTheme();
 
   return (
     <StyledThemeProvider theme={theme}>
@@ -85,7 +101,8 @@ function PortfolioPage() {
 }
 
 function StandardLayout({ children }: { children: React.ReactNode }) {
-  const { theme, themeMode, toggleTheme } = useTheme();
+  const { themeMode, toggleTheme } = useTheme();
+  const theme = useWebsiteTheme();
   const { authModalOpen, authModalMode, setAuthModalOpen } = useAuthStore();
 
   return (
@@ -101,6 +118,7 @@ function StandardLayout({ children }: { children: React.ReactNode }) {
             toggleTheme={toggleTheme}
           />
           <ScrollProgressIndicator />
+          <WebsiteNavigation />
           <div id="main-content" className="content">
             <PageTransition>
               {children}
@@ -121,7 +139,9 @@ function StandardLayout({ children }: { children: React.ReactNode }) {
 
 function AppContent() {
   const location = useLocation();
+  const content = useSiteContent();
   const isPortfolioHome = location.pathname === '/';
+  const customPage = content['website-pages'].find(page => page.path === location.pathname && page.path !== '/');
 
   useVisitorTracking();
 
@@ -145,6 +165,14 @@ function AppContent() {
 
   if (isPortfolioHome) {
     return <PortfolioPage />;
+  }
+  if (customPage) {
+    const native = { 'page-about': <AboutPage />, 'page-contact': <Contact />, 'page-projects': <ProjectsPage />,
+      'page-portfolio': <ProjectsPage />, 'page-blog': <BlogPage />, 'page-status': <Status /> };
+    return <StandardLayout><ErrorBoundary><Suspense fallback={<SmartSkeleton />}>
+      {!Object.hasOwn(native, `page-${customPage.id}`) && <SEO title={customPage.title} description={customPage.description} path={customPage.path} />}
+      <WebsiteSections page={customPage} native={native} />
+    </Suspense></ErrorBoundary></StandardLayout>;
   }
 
   return (
@@ -177,6 +205,7 @@ function App() {
       <StoreInitializer>
         <Router>
           <ScrollProvider>
+            <WebsiteDesign />
             <ScrollToTop />
             <AppContent />
           </ScrollProvider>
