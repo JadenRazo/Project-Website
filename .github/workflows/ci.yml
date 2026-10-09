@@ -137,6 +137,7 @@ jobs:
             sleep 1
           done
           node ../scripts/project-media/verify.mjs
+          node ../scripts/project-media/verify-recovery.mjs
 
   weeniesmp:
     name: weeniesmp

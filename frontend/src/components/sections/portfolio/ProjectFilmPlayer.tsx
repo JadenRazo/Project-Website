@@ -19,6 +19,7 @@ export default function ProjectFilmPlayer({
   const frameRef = useRef<HTMLDivElement>(null);
   const requested = useRef(false);
   const pendingSeek = useRef<number | null>(null);
+  const fallbackSource = useRef<string | null>(null);
   const attempt = useRef(0);
   const playbackAllowed = useRef(false);
   const [mode, setMode] = useState<
@@ -33,6 +34,7 @@ export default function ProjectFilmPlayer({
     if (!active) {
       requested.current = false;
       pendingSeek.current = null;
+      fallbackSource.current = null;
       playbackAllowed.current = false;
       setMode("poster");
       setTime(0);
@@ -112,7 +114,6 @@ export default function ProjectFilmPlayer({
         behavior: "instant",
       });
     }
-    const currentAttempt = ++attempt.current;
     playbackAllowed.current = true;
     pendingSeek.current = start ?? (mode === "ended" ? 0 : null);
     if (!requested.current || mode === "error") {
@@ -126,6 +127,14 @@ export default function ProjectFilmPlayer({
         : mp4
           ? film.src
           : film.webmSrc;
+      const alternateType = mp4
+        ? 'video/webm; codecs="vp9"'
+        : 'video/mp4; codecs="avc1.640028"';
+      fallbackSource.current = video.canPlayType(alternateType)
+        ? portrait
+          ? mp4 ? film.mobileWebmSrc : film.mobileSrc
+          : mp4 ? film.webmSrc : film.src
+        : null;
       video.src = selectedSource;
       setComposition(portrait ? "portrait" : "wide");
       setSource(selectedSource);
@@ -140,14 +149,7 @@ export default function ProjectFilmPlayer({
     // The play/retry overlay disappears. Keep keyboard focus on the controls.
     if (transferFocus)
       requestAnimationFrame(() => video.focus({ preventScroll: true }));
-    void video.play().catch((error: DOMException) => {
-      if (attempt.current !== currentAttempt) return;
-      setMode(
-        error.name === "NotAllowedError" || error.name === "AbortError"
-          ? "paused"
-          : "error",
-      );
-    });
+    requestPlayback(video);
   };
   const chapterIndex = Math.max(
     0,
@@ -169,6 +171,38 @@ export default function ProjectFilmPlayer({
     }
     return true;
   };
+
+  function requestPlayback(video: HTMLVideoElement) {
+    const currentAttempt = ++attempt.current;
+    void video.play().catch((error: DOMException) => {
+      if (attempt.current !== currentAttempt) return;
+      if (error.name === "NotAllowedError" || error.name === "AbortError") {
+        setMode("paused");
+      } else {
+        recoverPlayback(video);
+      }
+    });
+  }
+
+  function recoverPlayback(video: HTMLVideoElement) {
+    if (!requested.current || video !== videoRef.current) return;
+    // Capability hints can be wrong, and a format's request can fail. Try the
+    // other supported encoding once before offering manual recovery.
+    const alternate = fallbackSource.current;
+    fallbackSource.current = null;
+    attempt.current += 1;
+    if (!alternate) {
+      setMode("error");
+      return;
+    }
+    const resume = guardPlayback(video) && mode !== "paused" && mode !== "ended";
+    pendingSeek.current ??= video.currentTime;
+    video.src = alternate;
+    setSource(alternate);
+    setMode(resume ? "loading" : "paused");
+    video.load();
+    if (resume) requestPlayback(video);
+  }
 
   return (
     <div className="project-film-player">
@@ -242,8 +276,9 @@ export default function ProjectFilmPlayer({
                 setMode("loading");
             }}
             onEnded={() => setMode("ended")}
-            onError={() => {
-              if (requested.current) setMode("error");
+            onError={(event) => {
+              // Ignore queued errors from a source that has already been replaced.
+              if (event.currentTarget.error) recoverPlayback(event.currentTarget);
             }}
           >
             <track
