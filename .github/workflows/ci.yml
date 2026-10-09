@@ -138,6 +138,7 @@ jobs:
           done
           node ../scripts/project-media/verify.mjs
           node ../scripts/project-media/verify-recovery.mjs
+          node ../scripts/project-media/verify-startup.mjs
 
   weeniesmp:
     name: weeniesmp
