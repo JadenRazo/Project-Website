@@ -1,5 +1,6 @@
 import SiteText from '../../website/SiteText';
 import { useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { Play, RotateCcw, VolumeX } from "lucide-react";
 import type { ProjectFilm } from "../../../data/projectFilms";
 
@@ -135,17 +136,26 @@ export default function ProjectFilmPlayer({
           ? mp4 ? film.mobileWebmSrc : film.mobileSrc
           : mp4 ? film.webmSrc : film.src
         : null;
-      video.src = selectedSource;
-      setComposition(portrait ? "portrait" : "wide");
-      setSource(selectedSource);
       requested.current = true;
-      video.load();
+      // Commit the visible player and its controls inside the click gesture.
+      // Calling play on the still-hidden poster state can fail at startup.
+      flushSync(() => {
+        setComposition(portrait ? "portrait" : "wide");
+        setSource(selectedSource);
+        setMode("loading");
+      });
+      video.preload = "metadata";
+      video.muted = true;
+      video.playsInline = true;
+      // Assigning src starts resource selection; load() would reset it again.
+      video.src = selectedSource;
+    } else {
+      flushSync(() => setMode("loading"));
     }
     if (video.readyState >= 1 && pendingSeek.current !== null) {
       video.currentTime = pendingSeek.current;
       pendingSeek.current = null;
     }
-    setMode("loading");
     // The play/retry overlay disappears. Keep keyboard focus on the controls.
     if (transferFocus)
       requestAnimationFrame(() => video.focus({ preventScroll: true }));
@@ -174,14 +184,24 @@ export default function ProjectFilmPlayer({
 
   function requestPlayback(video: HTMLVideoElement) {
     const currentAttempt = ++attempt.current;
-    void video.play().catch((error: DOMException) => {
+    const rejected = (error: unknown) => {
       if (attempt.current !== currentAttempt) return;
-      if (error.name === "NotAllowedError" || error.name === "AbortError") {
-        setMode("paused");
-      } else {
+      const name = error instanceof Error || error instanceof DOMException
+        ? error.name : "";
+      if (name !== "NotAllowedError" && name !== "AbortError" &&
+          (name === "NotSupportedError" || video.error)) {
         recoverPlayback(video);
+      } else {
+        // Permission and startup rejections leave a valid video available in
+        // the native controls; they do not mean that its file failed to load.
+        setMode("paused");
       }
-    });
+    };
+    try {
+      void video.play()?.catch(rejected);
+    } catch (error) {
+      rejected(error);
+    }
   }
 
   function recoverPlayback(video: HTMLVideoElement) {
@@ -200,7 +220,6 @@ export default function ProjectFilmPlayer({
     video.src = alternate;
     setSource(alternate);
     setMode(resume ? "loading" : "paused");
-    video.load();
     if (resume) requestPlayback(video);
   }
 
