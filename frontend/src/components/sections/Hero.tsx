@@ -496,7 +496,7 @@ const SKILLS: Record<string, Skill> = {
     name: 'Real-Time Systems',
     description: 'Building WebSocket-powered applications for instant communication and live data. Experience with presence systems, live updates, and event-driven architectures.',
     icon: 'database',
-    projects: ['Real-Time Messaging Platform', 'Live Service Status Dashboard', 'Discord Bot with LLM Integration']
+    projects: ['Live Service Status Dashboard', 'Discord Bot with LLM Integration']
   },
   'devops': {
     id: 'devops',

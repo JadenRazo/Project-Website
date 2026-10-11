@@ -1202,12 +1202,6 @@
           "max": 600
         },
         {
-          "key": "textc5ca08ff2d916502",
-          "type": "text",
-          "label": "Real-time Messaging",
-          "max": 600
-        },
-        {
           "key": "text9e387fd6a5b53ceb",
           "type": "text",
           "label": "View All Projects",
