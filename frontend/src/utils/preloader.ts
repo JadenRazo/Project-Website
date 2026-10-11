@@ -149,10 +149,6 @@ export const preloadRouteAssets = {
     // Preload devpanel specific assets
   },
   
-  '/messaging': () => {
-    // Preload messaging related assets
-  },
-  
   '/urlshortener': () => {
     // Preload URL shortener assets
   }

@@ -41,12 +41,6 @@ interface VisitorAnalyticsData {
   realTimeCount: number;
 }
 
-interface RealtimeData {
-  type: string;
-  path: string;
-  realtime: number;
-}
-
 interface MetricsSummary {
   uniqueVisitors: number;
   totalPageViews: number;
@@ -206,7 +200,7 @@ const ChartTitle = styled.h3`
   margin: 0 0 1.5rem 0;
 `;
 
-const LiveIndicator = styled.div`
+const SnapshotIndicator = styled.div`
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -217,26 +211,6 @@ const LiveIndicator = styled.div`
   font-size: 0.875rem;
   font-weight: 500;
 
-  &::before {
-    content: '';
-    width: 8px;
-    height: 8px;
-    background: ${({ theme }) => theme.colors.success};
-    border-radius: 50%;
-    animation: pulse 2s infinite;
-  }
-
-  @keyframes pulse {
-    0% {
-      box-shadow: 0 0 0 0 ${({ theme }) => theme.colors.success}40;
-    }
-    70% {
-      box-shadow: 0 0 0 10px ${({ theme }) => theme.colors.success}00;
-    }
-    100% {
-      box-shadow: 0 0 0 0 ${({ theme }) => theme.colors.success}00;
-    }
-  }
 `;
 
 const LocationsGrid = styled.div`
@@ -272,7 +246,6 @@ const VisitorAnalytics: React.FC = () => {
     timelineData: [] as TimelineData[],
     locationData: [] as LocationData[],
     deviceData: null as DeviceBreakdown | null,
-    realtimeData: [] as RealtimeData[],
     loading: true,
     error: null as string | null,
   });
@@ -321,19 +294,6 @@ const VisitorAnalytics: React.FC = () => {
     fetchVisitorData();
     fetchTimelineData();
 
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const ws = new WebSocket(`${protocol}//${window.location.host}/ws/analytics`);
-
-    ws.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      if (message.type === 'pageview') {
-        setState(prevState => ({ ...prevState, realtimeData: [...prevState.realtimeData, message] }));
-      }
-    };
-
-    return () => {
-      ws.close();
-    };
   }, [state.timeRange]);
 
   const { timeRange, visitorStats, timelineData, locationData, deviceData, loading, error } = state;
@@ -453,9 +413,9 @@ const VisitorAnalytics: React.FC = () => {
         </MetricCard>
 
         <MetricCard>
-          <MetricLabel>Real-Time Visitors</MetricLabel>
+          <MetricLabel>Current Visitors</MetricLabel>
           <MetricValue>{visitorStats.realTimeCount}</MetricValue>
-          <LiveIndicator>Live</LiveIndicator>
+          <SnapshotIndicator>Snapshot</SnapshotIndicator>
         </MetricCard>
       </MetricsGrid>
 

@@ -8,6 +8,8 @@ import { useScrollTo } from '../../hooks/useScrollTo';
 import { useTheme } from '../../hooks/useTheme';
 
 const FooterContainer = styled.footer`
+  width: 100%;
+  min-width: 0;
   background: ${({ theme }) => theme.colors.surface};
   border-top: 1px solid ${({ theme }) => theme.colors.border};
   padding: ${({ theme }) => `${theme.spacing.xl} 0`};
@@ -24,7 +26,7 @@ const FooterContent = styled.div`
   margin: 0 auto;
   padding: 0 ${({ theme }) => theme.spacing.md};
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: ${({ theme }) => theme.spacing.xl};
 
   @media (min-width: 1024px) {
@@ -39,7 +41,7 @@ const FooterContent = styled.div`
     padding: 0 ${({ theme }) => theme.spacing.lg};
   }
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+  @media (max-width: 600px) {
     grid-template-columns: 1fr;
     text-align: center;
     gap: ${({ theme }) => theme.spacing.lg};
@@ -47,6 +49,7 @@ const FooterContent = styled.div`
 `;
 
 const FooterSection = styled.div`
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing.md};
@@ -58,7 +61,7 @@ const FooterSection = styled.div`
     margin: 0;
   }
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+  @media (max-width: 600px) {
     align-items: center;
     gap: ${({ theme }) => theme.spacing.sm};
   }
@@ -272,7 +275,6 @@ const Footer: React.FC = () => {
           <FooterTitle><SiteText entry="copy-footer-1" name="text04e2a9728af75840" /></FooterTitle>
           <FooterLink to="/devpanel" onClick={handleLinkClick} $isNavigating={navigatingTo === '/devpanel'}><SiteText entry="copy-footer-1" name="text8529259d03bda401" /></FooterLink>
           <FooterLink to="/urlshortener" onClick={handleLinkClick} $isNavigating={navigatingTo === '/urlshortener'}><SiteText entry="copy-footer-1" name="texta59c479b8a7639a7" /></FooterLink>
-          <FooterLink to="/messaging" onClick={handleLinkClick} $isNavigating={navigatingTo === '/messaging'}><SiteText entry="copy-footer-1" name="textc5ca08ff2d916502" /></FooterLink>
           {isEnabled('/projects') && <FooterLink to="/projects" onClick={handleLinkClick} $isNavigating={navigatingTo === '/projects'}><SiteText entry="copy-footer-1" name="text9e387fd6a5b53ceb" /></FooterLink>}
           {isEnabled('/blog') && <FooterLink to="/blog" onClick={handleLinkClick} $isNavigating={navigatingTo === '/blog'}><SiteText entry="copy-footer-1" name="text8c6bc099534a0251" /></FooterLink>}
         </FooterSection>

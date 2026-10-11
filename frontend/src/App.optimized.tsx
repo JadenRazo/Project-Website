@@ -30,7 +30,6 @@ const SkillsSection = lazy(() =>
 );
 const Contact = lazy(() => import('./pages/Contact/Contact'));
 const DevPanel = lazy(() => import('./pages/devpanel/DevPanel'));
-const Messaging = lazy(() => import('./pages/messaging/Messaging'));
 const UrlShortener = lazy(() => import('./pages/urlshortener/UrlShortener'));
 const NotFound = lazy(() => import('./pages/NotFound/NotFound'));
 const AboutPage = lazy(() => import('./pages/About/About'));
@@ -168,7 +167,6 @@ function OptimizedAppContent() {
                 {/* Application routes */}
                 <Route path="/devpanel" element={<DevPanel />} />
                 <Route path="/urlshortener" element={<UrlShortener />} />
-                <Route path="/messaging" element={<Messaging />} />
                 <Route path="/status" element={<Status />} />
                 
                 {/* 404 route */}
