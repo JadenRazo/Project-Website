@@ -119,13 +119,6 @@ const Icons = {
       <line x1="7" y1="17" x2="18" y2="17"></line>
     </svg>
   ),
-  Messaging: (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-      <line x1="8" y1="10" x2="16" y2="10"></line>
-      <line x1="8" y1="14" x2="14" y2="14"></line>
-    </svg>
-  ),
   Services: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="3" width="7" height="7"></rect>
@@ -512,14 +505,6 @@ const SERVICES_ITEMS: MenuItem[] = [
     delay: 0.6,
     isService: true,
     description: 'Create and manage short URLs'
-  },
-  {
-    href: '/messaging',
-    icon: Icons.Messaging,
-    label: 'Messaging',
-    delay: 0.7,
-    isService: true,
-    description: 'Real-time messaging platform'
   }
 ];
 

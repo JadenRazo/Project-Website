@@ -26,7 +26,7 @@ export const mockProjects: ProjectData[] = [
   {
     id: '1',
     name: 'Portfolio Website',
-    description: 'A modern, responsive portfolio website built with React, TypeScript, and styled-components featuring real-time messaging, URL shortener, and developer panel.',
+    description: 'A modern, responsive portfolio website built with React, TypeScript, and styled-components featuring a URL shortener and developer panel.',
     repo_url: 'https://github.com/JadenRazo/Project-Website',
     live_url: 'https://jadenrazo.dev',
     tags: ['React', 'TypeScript', 'Go', 'PostgreSQL', 'WebSocket', 'REST API'],

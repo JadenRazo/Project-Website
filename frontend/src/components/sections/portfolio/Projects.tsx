@@ -23,7 +23,7 @@ const projects: Project[] = [
     id: 1,
     title: 'Project Website',
     category: 'Full-Stack Portfolio',
-    description: 'Personal portfolio and project showcase with Go microservices backend, React frontend, real-time messaging, and comprehensive admin panel.',
+    description: 'Personal portfolio and project showcase with Go microservices backend, React frontend, and comprehensive admin panel.',
     liveUrl: 'https://jadenrazo.dev',
     githubUrl: 'https://github.com/jadenrazo/Project-Website',
     images: [
