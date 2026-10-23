@@ -64,7 +64,7 @@
     "terser": "^5.51.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
-    "vite": "^7.3.3"
+    "vite": "^7.3.7"
   },
   "scripts": {
     "dev": "vite",
